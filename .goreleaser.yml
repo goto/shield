@@ -81,5 +81,5 @@ brews:
     install: |-
       bin.install "shield"
     commit_author:
-      name: Ravi Suhag
-      email: suhag.ravi@gmail.com
+      name: github-actions[bot]
+      email: 41898282+github-actions[bot]@users.noreply.github.com
