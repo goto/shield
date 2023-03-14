@@ -1,11 +1,11 @@
 [
     {
         "name": "John Doe",
-        "email": "john.doe@odpf.io"
+        "email": "john.doe@goto.io"
     },
     {
         "name": "Jane Dee",
-        "email": "jane.dee@odpf.io",
+        "email": "jane.dee@goto.io",
         "metadata": {
             "k1": "value-string",
             "k2": 123,
