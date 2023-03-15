@@ -99,7 +99,7 @@ func TestHandler_ListResources(t *testing.T) {
 }
 
 func TestHandler_CreateResource(t *testing.T) {
-	email := "user@goto.io"
+	email := "user@gotocompany.com"
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context

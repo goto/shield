@@ -28,8 +28,8 @@ var testPermissionAttributesMap = map[string]any{
 	"organization":  "org1",
 	"namespace":     "ns1",
 	"resource_type": "kind",
-	"group":         "group@goto.com",
-	"user":          "user1@goto.com",
+	"group":         "group@gotocompany.com",
+	"user":          "user1@gotocompany.com",
 }
 
 var expectedResources = []resource.Resource{
@@ -253,7 +253,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 
 		resp, err := a.ServeHook(response, nil)
 
@@ -303,7 +303,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -318,7 +318,7 @@ func TestServeHook(t *testing.T) {
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@goto.io",
+			UserID:         "user@gotocompany.com",
 			Name:           rsc.Name,
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
@@ -394,7 +394,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -409,7 +409,7 @@ func TestServeHook(t *testing.T) {
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@goto.io",
+			UserID:         "user@gotocompany.com",
 			Name:           "bar",
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
@@ -493,7 +493,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 
 		rsc := resource.Resource{
 			Name:           "bar",
@@ -508,7 +508,7 @@ func TestServeHook(t *testing.T) {
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@goto.io",
+			UserID:         "user@gotocompany.com",
 			Name:           "bar",
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
@@ -592,7 +592,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -608,7 +608,7 @@ func TestServeHook(t *testing.T) {
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@goto.io",
+			UserID:         "user@gotocompany.com",
 			Name:           "bar",
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},
@@ -691,7 +691,7 @@ func TestServeHook(t *testing.T) {
 
 		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
 
-		response.Request.Header.Set("X-Shield-Email", "user@goto.io")
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
 		response.Request.Header.Set("organization", "org1")
 
 		rsc := resource.Resource{
@@ -707,7 +707,7 @@ func TestServeHook(t *testing.T) {
 			ProjectID:      rsc.ProjectID,
 			OrganizationID: rsc.OrganizationID,
 			NamespaceID:    rsc.NamespaceID,
-			UserID:         "user@goto.io",
+			UserID:         "user@gotocompany.com",
 			Name:           "bar",
 			CreatedAt:      time.Time{},
 			UpdatedAt:      time.Time{},

@@ -51,7 +51,7 @@ dockers:
       - "docker.io/gotocompany/{{.ProjectName}}:{{ .Version }}"
       - "docker.io/gotocompany/{{.ProjectName}}:{{ .Tag }}-amd64"
 nfpms:
-  - maintainer: goto
+  - maintainer: gotocompany
     description: Identity and authorization system
     homepage: https://github.com/goto/shield
     license: Apache 2.0

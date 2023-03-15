@@ -1,6 +1,6 @@
 # Installation
 
-We provide pre-built [binaries](https://github.com/goto/shield/releases), [Docker Images](https://hub.docker.com/r/goto/shield) and [Helm Charts](https://github.com/goto/charts/tree/main/stable/shield)
+We provide pre-built [binaries](https://github.com/goto/shield/releases), [Docker Images](https://hub.docker.com/r/gotocompany/shield) and [Helm Charts](https://github.com/goto/charts/tree/main/stable/shield)
 
 ## Binary (Cross-platform)
 
@@ -33,7 +33,7 @@ Shield provides Docker image as part of the release. Make sure you have Spicedb 
 
 ```sh
 # Download docker image from docker hub
-$ docker pull goto/shield
+$ docker pull gotocompany/shield
 
 # Run the following docker command with minimal config.
 $ docker run -p 8080:8080 \
@@ -42,7 +42,7 @@ $ docker run -p 8080:8080 \
   -e SHIELD_SPICEDB_HOST=spicedb.localhost:50051 \
   -e SHIELD_SPICEDB_PRE_SHARED_KEY=randomkey
   -v .config:.config
-  goto/shield serve
+  gotocompany/shield serve
 ```
 
 ## Compiling from source

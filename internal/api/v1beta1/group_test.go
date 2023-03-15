@@ -219,7 +219,7 @@ func TestHandler_ListGroups(t *testing.T) {
 }
 
 func TestHandler_CreateGroup(t *testing.T) {
-	email := "user@goto.io"
+	email := "user@gotocompany.com"
 	someOrgID := uuid.NewString()
 	someGroupID := uuid.NewString()
 	tests := []struct {

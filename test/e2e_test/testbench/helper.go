@@ -16,7 +16,7 @@ import (
 )
 
 const (
-	OrgAdminEmail  = "admin1-group1-org1@goto.io"
+	OrgAdminEmail  = "admin1-group1-org1@gotocompany.com"
 	IdentityHeader = "X-Shield-Email"
 )
 

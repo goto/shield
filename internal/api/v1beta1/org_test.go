@@ -97,7 +97,7 @@ func TestListOrganizations(t *testing.T) {
 }
 
 func TestCreateOrganization(t *testing.T) {
-	email := "user@goto.io"
+	email := "user@gotocompany.com"
 	table := []struct {
 		title string
 		setup func(ctx context.Context, os *mocks.OrganizationService) context.Context

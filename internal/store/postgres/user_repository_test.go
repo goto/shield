@@ -186,15 +186,15 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			Description: "should create a user",
 			UserToCreate: user.User{
 				Name:  "new user",
-				Email: "new.user@goto.io",
+				Email: "new.user@gotocompany.com",
 			},
-			ExpectedEmail: "new.user@goto.io",
+			ExpectedEmail: "new.user@gotocompany.com",
 		},
 		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
 				Name:  "new user",
-				Email: "new.user@goto.io",
+				Email: "new.user@gotocompany.com",
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
@@ -397,7 +397,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
 				Name:  "Doe John",
-				Email: "john.doe@goto.io",
+				Email: "john.doe@gotocompany.com",
 			},
 			Err: user.ErrNotExist,
 		},

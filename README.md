@@ -81,20 +81,20 @@ scoop update shield
 We provide ready to use Docker container images. To pull the latest image:
 
 ```
-docker pull goto/shield:latest
+docker pull gotocompany/shield:latest
 ```
 
 To pull a specific version:
 
 ```
-docker pull goto/shield:v0.3.2
+docker pull gotocompany/shield:v0.3.2
 ```
 
 If you like to have a shell alias that runs the latest version of shield from docker whenever you type `shield`:
 
 ```
-mkdir -p $HOME/.config/goto
-alias shield="docker run -e HOME=/tmp -v $HOME/.config/goto:/tmp/.config/goto --user $(id -u):$(id -g) --rm -it -p 3306:3306/tcp goto/shield:latest"
+mkdir -p $HOME/.config/ggotocompanyoto
+alias shield="docker run -e HOME=/tmp -v $HOME/.config/gotocompany:/tmp/.config/gotocompany --user $(id -u):$(id -g) --rm -it -p 3306:3306/tcp gotocompany/shield:latest"
 ```
 
 ## Usage
