@@ -93,7 +93,7 @@ docker pull gotocompany/shield:v0.3.2
 If you like to have a shell alias that runs the latest version of shield from docker whenever you type `shield`:
 
 ```
-mkdir -p $HOME/.config/ggotocompanyoto
+mkdir -p $HOME/.config/gotocompany
 alias shield="docker run -e HOME=/tmp -v $HOME/.config/gotocompany:/tmp/.config/gotocompany --user $(id -u):$(id -g) --rm -it -p 3306:3306/tcp gotocompany/shield:latest"
 ```
 
