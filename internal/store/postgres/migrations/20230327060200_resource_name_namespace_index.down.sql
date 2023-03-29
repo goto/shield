@@ -1,1 +1,1 @@
-DROP INDEX resource_name_namespace_index;
+DROP INDEX resource_name_namespace_id_index;

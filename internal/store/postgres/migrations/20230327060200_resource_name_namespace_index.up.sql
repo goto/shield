@@ -1,1 +1,1 @@
-CREATE INDEX resource_name_namespace_index ON resource (name, namespace_id);
+CREATE INDEX resource_name_namespace_id_index ON resources (name, namespace_id);
