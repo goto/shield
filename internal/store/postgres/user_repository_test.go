@@ -147,6 +147,16 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 			},
 		},
 		{
+			Description:   "should get a user with metadata",
+			SelectedEmail: s.users[1].Email,
+			ExpectedUser: user.User{
+				ID:       s.users[1].ID,
+				Name:     s.users[1].Name,
+				Email:    s.users[1].Email,
+				Metadata: s.users[1].Metadata,
+			},
+		},
+		{
 			Description:   "should return error if email is empty",
 			SelectedEmail: "",
 			ErrString:     user.ErrInvalidEmail.Error(),
