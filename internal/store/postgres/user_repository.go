@@ -825,11 +825,19 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 
 		for {
 			var key string
-			var value any
+			var valuejson string
 			if !metadata.Next() {
 				break
 			}
-			metadata.Scan(&key, &value)
+			err := metadata.Scan(&key, &valuejson)
+			if err != nil {
+				return err
+			}
+			var value any
+			err = json.Unmarshal([]byte(valuejson), &value)
+			if err != nil {
+				return err
+			}
 			data[key] = value
 		}
 
