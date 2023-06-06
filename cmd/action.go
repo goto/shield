@@ -32,8 +32,6 @@ func ActionCommand(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.AddCommand(createActionCommand(cliConfig))
-	cmd.AddCommand(editActionCommand(cliConfig))
-	cmd.AddCommand(viewActionCommand(cliConfig))
 	cmd.AddCommand(listActionCommand(cliConfig))
 
 	bindFlagsFromClientConfig(cmd)
@@ -92,110 +90,6 @@ func createActionCommand(cliConfig *Config) *cli.Command {
 	cmd.MarkFlagRequired("file")
 	cmd.Flags().StringVarP(&header, "header", "H", "", "Header <key>:<value>")
 	cmd.MarkFlagRequired("header")
-
-	return cmd
-}
-
-func editActionCommand(cliConfig *Config) *cli.Command {
-	var filePath string
-
-	cmd := &cli.Command{
-		Use:   "edit",
-		Short: "Edit an action",
-		Args:  cli.ExactArgs(1),
-		Example: heredoc.Doc(`
-			$ shield action edit <action-id> --file=<action-body>
-		`),
-		Annotations: map[string]string{
-			"action:core": "true",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			var reqBody shieldv1beta1.ActionRequestBody
-			if err := file.Parse(filePath, &reqBody); err != nil {
-				return err
-			}
-
-			err := reqBody.ValidateAll()
-			if err != nil {
-				return err
-			}
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			actionID := args[0]
-			_, err = client.UpdateAction(cmd.Context(), &shieldv1beta1.UpdateActionRequest{
-				Id:   actionID,
-				Body: &reqBody,
-			})
-			if err != nil {
-				return err
-			}
-
-			spinner.Stop()
-			fmt.Printf("successfully edited action with id %s\n", actionID)
-			return nil
-		},
-	}
-
-	cmd.Flags().StringVarP(&filePath, "file", "f", "", "Path to the action body file")
-	cmd.MarkFlagRequired("file")
-
-	return cmd
-}
-
-func viewActionCommand(cliConfig *Config) *cli.Command {
-	cmd := &cli.Command{
-		Use:   "view",
-		Short: "View an action",
-		Args:  cli.ExactArgs(1),
-		Example: heredoc.Doc(`
-			$ shield action view <action-id>
-		`),
-		Annotations: map[string]string{
-			"action:core": "true",
-		},
-		RunE: func(cmd *cli.Command, args []string) error {
-			spinner := printer.Spin("")
-			defer spinner.Stop()
-
-			client, cancel, err := createClient(cmd.Context(), cliConfig.Host)
-			if err != nil {
-				return err
-			}
-			defer cancel()
-
-			actionID := args[0]
-			res, err := client.GetAction(cmd.Context(), &shieldv1beta1.GetActionRequest{
-				Id: actionID,
-			})
-			if err != nil {
-				return err
-			}
-
-			report := [][]string{}
-
-			action := res.GetAction()
-
-			spinner.Stop()
-
-			report = append(report, []string{"ID", "NAME", "NAMESPACE"})
-			report = append(report, []string{
-				action.GetId(),
-				action.GetName(),
-				action.GetNamespace().GetId(),
-			})
-			printer.Table(os.Stdout, report)
-
-			return nil
-		},
-	}
 
 	return cmd
 }
