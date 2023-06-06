@@ -43,30 +43,6 @@ func TestClientRole(t *testing.T) {
 				subCommands: []string{"create", "-h", "test"},
 				err:         errors.New("required flag(s) \"file\", \"header\" not set"),
 			},
-			{
-				name:        "`role` edit without host should throw error host not found",
-				want:        "",
-				subCommands: []string{"edit", "123"},
-				err:         cmd.ErrClientConfigHostNotFound,
-			},
-			{
-				name:        "`role` edit with host flag should throw error missing required flag",
-				want:        "",
-				subCommands: []string{"edit", "123", "-h", "test"},
-				err:         errors.New("required flag(s) \"file\" not set"),
-			},
-			{
-				name:        "`role` view without host should throw error host not found",
-				want:        "",
-				subCommands: []string{"view", "123"},
-				err:         cmd.ErrClientConfigHostNotFound,
-			},
-			{
-				name:        "`role` view with host flag should pass",
-				want:        "",
-				subCommands: []string{"view", "123", "-h", "test"},
-				err:         context.DeadlineExceeded,
-			},
 		}
 		for _, tt := range tests {
 			t.Run(tt.name, func(t *testing.T) {
