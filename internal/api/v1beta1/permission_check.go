@@ -43,10 +43,8 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	var results []*shieldv1beta1.CheckResourcePermissionResponse_ResourcePermissionResponse
 	checkCtx, cancel := context.WithCancel(ctx)
 	defer cancel()
-	resultCh := make(chan resourcePermissionResult)
-	defer close(resultCh)
-	errorCh := make(chan error)
-	defer close(errorCh)
+	resultCh := make(chan resourcePermissionResult, len(req.ResourcePermissions))
+	errorCh := make(chan error, len(req.ResourcePermissions))
 
 	for _, permission := range req.ResourcePermissions {
 		go func(checkCtx context.Context, resourcePermission *shieldv1beta1.ResourcePermission,
