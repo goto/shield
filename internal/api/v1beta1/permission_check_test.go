@@ -79,6 +79,22 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			wantErr: nil,
 		},
 		{
+			name: "Deprecated check single resource permission: should return unauthenticated error if relation service's CheckAuthz function returns auth error",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.CheckResourcePermissionRequest{
+				ObjectId:        testRelationV2.Object.ID,
+				ObjectNamespace: testRelationV2.Object.NamespaceID,
+				Permission:      schema.EditPermission,
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
