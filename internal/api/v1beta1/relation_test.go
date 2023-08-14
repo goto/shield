@@ -8,6 +8,7 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/internal/schema"
 	"github.com/stretchr/testify/assert"
@@ -229,11 +230,12 @@ func TestHandler_CreateRelation(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockRelationSrv := new(mocks.RelationService)
 			mockResourceSrv := new(mocks.ResourceService)
+			relationAdapter := new(adapter.Relation)
 			if tt.setup != nil {
 				tt.setup(mockRelationSrv, mockResourceSrv)
 			}
 
-			mockDep := Handler{relationService: mockRelationSrv, resourceService: mockResourceSrv}
+			mockDep := Handler{relationService: mockRelationSrv, resourceService: mockResourceSrv, relationAdapter: relationAdapter}
 			resp, err := mockDep.CreateRelation(context.Background(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)

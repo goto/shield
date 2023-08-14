@@ -12,6 +12,7 @@ import (
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/adapter"
 )
 
 type Deps struct {
@@ -24,6 +25,7 @@ type Deps struct {
 	NamespaceService *namespace.Service
 	ActionService    *action.Service
 	RelationService  *relation.Service
+	RelationAdapter  *adapter.Relation
 	ResourceService  *resource.Service
 	RuleService      *rule.Service
 }

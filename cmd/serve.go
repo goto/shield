@@ -25,6 +25,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/server"
@@ -116,13 +117,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := buildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		return err
 	}
@@ -151,7 +152,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	return server.Serve(ctx, logger, cfg.App, nrApp, deps)
 }
 
-func buildAPIDependencies(
+func BuildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
 	resourceBlobRepository *blob.ResourcesRepository,
@@ -172,7 +173,7 @@ func buildAPIDependencies(
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService, userService)
+	relationService := relation.NewService(relationPGRepository, relationSpiceRepository)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
 	groupService := group.NewService(groupRepository, relationService, userService)
@@ -194,6 +195,8 @@ func buildAPIDependencies(
 		userService,
 		projectService)
 
+	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
+
 	dependencies := api.Deps{
 		OrgService:       organizationService,
 		UserService:      userService,
@@ -205,6 +208,7 @@ func buildAPIDependencies(
 		PolicyService:    policyService,
 		ActionService:    actionService,
 		NamespaceService: namespaceService,
+		RelationAdapter:  relationAdapter,
 	}
 	return dependencies, nil
 }

@@ -6,7 +6,9 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/goto/salt/log"
+	"github.com/goto/shield/cmd"
 	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/store/spicedb"
@@ -18,15 +20,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/goto/shield/core/action"
-	"github.com/goto/shield/core/group"
-	"github.com/goto/shield/core/namespace"
-	"github.com/goto/shield/core/organization"
-	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
-	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1"
@@ -40,7 +36,6 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware/prefix"
 	"github.com/goto/shield/internal/proxy/middleware/rulematch"
 	"github.com/goto/shield/internal/store/blob"
-	"github.com/goto/shield/internal/store/postgres"
 )
 
 const (
@@ -162,12 +157,13 @@ func ServeProxies(
 	relationService *relation.Service,
 	userService *user.Service,
 	projectService *project.Service,
+	relationAdapter *adapter.Relation,
 ) ([]func() error, []func(ctx context.Context) error, error) {
 	var cleanUpBlobs []func() error
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, resourceService, relationService, identityProxyHeaderKey)
+		hookPipeline := buildHookPipeline(logger, resourceService, relationService, relationAdapter, identityProxyHeaderKey)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -202,9 +198,9 @@ func ServeProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, relationService v1beta1.RelationService, identityProxyHeaderKey string) hook.Service {
+func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, relationService v1beta1.RelationService, relationAdapter *adapter.Relation, identityProxyHeaderKey string) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, resourceService, relationService, identityProxyHeaderKey)
+	return authz_hook.New(log, rootHook, rootHook, resourceService, relationService, relationAdapter, identityProxyHeaderKey)
 }
 
 // buildPipeline builds middleware sequence
@@ -235,68 +231,23 @@ func BuildAPIDependenciesAndMigrate(
 	sdb *spicedb.SpiceDB,
 	rbfs blob.Bucket,
 ) (api.Deps, error) {
-	actionRepository := postgres.NewActionRepository(dbc)
-	actionService := action.NewService(actionRepository)
-
-	namespaceRepository := postgres.NewNamespaceRepository(dbc)
-	namespaceService := namespace.NewService(namespaceRepository)
-
-	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository)
-
-	roleRepository := postgres.NewRoleRepository(dbc)
-	roleService := role.NewService(roleRepository)
-
-	relationPGRepository := postgres.NewRelationRepository(dbc)
-	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, roleService, userService)
-
-	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, userService)
-
-	organizationRepository := postgres.NewOrganizationRepository(dbc)
-	organizationService := organization.NewService(organizationRepository, relationService, userService)
-
-	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService)
-
-	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policyService := policy.NewService(policyPGRepository)
-
 	policySpiceRepository := spicedb.NewPolicyRepository(sdb)
 
-	resourcePGRepository := postgres.NewResourceRepository(dbc)
-	resourceService := resource.NewService(
-		resourcePGRepository,
-		resourceBlobRepository,
-		relationService,
-		userService,
-		projectService)
-
-	dependencies := api.Deps{
-		OrgService:       organizationService,
-		UserService:      userService,
-		ProjectService:   projectService,
-		GroupService:     groupService,
-		RelationService:  relationService,
-		ResourceService:  resourceService,
-		RoleService:      roleService,
-		PolicyService:    policyService,
-		ActionService:    actionService,
-		NamespaceService: namespaceService,
+	dependencies, err := cmd.BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbc, sdb)
+	if err != nil {
+		return api.Deps{}, err
 	}
 
 	s := schema.NewSchemaMigrationService(
 		blob.NewSchemaConfigRepository(rbfs),
-		namespaceService,
-		roleService,
-		actionService,
-		policyService,
+		dependencies.NamespaceService,
+		dependencies.RoleService,
+		dependencies.ActionService,
+		dependencies.PolicyService,
 		policySpiceRepository,
 	)
 
-	err := s.RunMigrations(ctx)
-	if err != nil {
+	if err := s.RunMigrations(ctx); err != nil {
 		return api.Deps{}, err
 	}
 

@@ -11,6 +11,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api/v1beta1"
 	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/proxy/hook"
@@ -34,12 +35,13 @@ func serveProxies(
 	relationService *relation.Service,
 	userService *user.Service,
 	projectService *project.Service,
+	relationAdapter *adapter.Relation,
 ) ([]func() error, []func(ctx context.Context) error, error) {
 	var cleanUpBlobs []func() error
 	var cleanUpProxies []func(ctx context.Context) error
 
 	for _, svcConfig := range cfg.Services {
-		hookPipeline := buildHookPipeline(logger, resourceService, relationService, identityProxyHeaderKey)
+		hookPipeline := buildHookPipeline(logger, resourceService, relationService, relationAdapter, identityProxyHeaderKey)
 
 		h2cProxy := proxy.NewH2c(
 			proxy.NewH2cRoundTripper(logger, hookPipeline),
@@ -74,9 +76,14 @@ func serveProxies(
 	return cleanUpBlobs, cleanUpProxies, nil
 }
 
-func buildHookPipeline(log log.Logger, resourceService v1beta1.ResourceService, relationService v1beta1.RelationService, identityProxyHeaderKey string) hook.Service {
+func buildHookPipeline(
+	log log.Logger,
+	resourceService v1beta1.ResourceService,
+	relationService v1beta1.RelationService,
+	relationAdapter *adapter.Relation,
+	identityProxyHeaderKey string) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, resourceService, relationService, identityProxyHeaderKey)
+	return authz_hook.New(log, rootHook, rootHook, resourceService, relationService, relationAdapter, identityProxyHeaderKey)
 }
 
 // buildPipeline builds middleware sequence

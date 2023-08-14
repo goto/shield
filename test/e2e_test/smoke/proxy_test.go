@@ -175,7 +175,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	}
 
 	// serving proxies
-	_, _, err = testbench.ServeProxies(ctx, logger, appConfig.App.IdentityProxyHeader, appConfig.App.UserIDHeader, appConfig.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService)
+	_, _, err = testbench.ServeProxies(ctx, logger, appConfig.App.IdentityProxyHeader, appConfig.App.UserIDHeader, appConfig.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		logger.Fatal("failed to serve proxies", err)
 		return
