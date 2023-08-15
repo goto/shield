@@ -142,6 +142,8 @@ func (te *TestBench) CleanUp() error {
 }
 
 func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield, func(), func()) {
+	t.Helper()
+
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
