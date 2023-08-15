@@ -130,6 +130,58 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 		s.Assert().Equal("test-resource", resourceName)
 	})
+	s.Run("resource created on echo server should persist in shieldDB when using group slug", func() {
+		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
+		s.Require().NoError(err)
+
+		url := fmt.Sprintf("http://localhost:%d/api/resource_slug", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]string{
+			"project":    s.projID,
+			"name":       "test-resource-slug",
+			"group_slug": groupDetail.GetGroup().GetSlug(),
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+
+		s.Assert().Equal(200, res.StatusCode)
+
+		resourceSelectQuery := "SELECT name FROM resources"
+		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		s.Require().NoError(err)
+		defer resources.Close()
+
+		var resourceName = ""
+		for resources.Next() {
+			if err := resources.Scan(&resourceName); err != nil {
+				s.Require().NoError(err)
+			}
+		}
+		s.Assert().Equal("test-resource-slug", resourceName)
+
+		relationSelectQuery := "SELECT subject_id FROM relations ORDER BY created_at DESC LIMIT 1"
+		relations, err := s.dbClient.DB.Query(relationSelectQuery)
+		s.Require().NoError(err)
+		defer resources.Close()
+
+		var subjectID = ""
+		for relations.Next() {
+			if err := relations.Scan(&subjectID); err != nil {
+				s.Require().NoError(err)
+			}
+		}
+		s.Assert().Equal(s.groupID, subjectID)
+	})
 }
 
 func TestEndToEndProxySmokeTestSuite(t *testing.T) {

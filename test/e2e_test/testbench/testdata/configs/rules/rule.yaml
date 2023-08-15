@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:62950"
+        target: "http://localhost:64085"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -24,6 +24,37 @@ rules:
                       source: request
                     group:
                       key: group
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: group
+          - name: create_resource_group_slug
+            path: "/api/resource_slug"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    group:
+                      key: group_slug
                       type: json_payload
                       source: request
                     organization:

@@ -46,7 +46,7 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 		groupID := rel.Subject.ID
 
 		if !uuid.IsValid(groupID) {
-			fetchedGroup, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
+			fetchedGroup, err := a.groupService.Get(ctx, rel.Subject.ID)
 			if err != nil {
 				return relation.RelationV2{}, fmt.Errorf("%w on subject conversion: %s", relation.ErrFetchingGroup, err.Error())
 			}
