@@ -1,11 +1,13 @@
 package testbench
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
+	"text/template"
 	"time"
 
 	"github.com/google/uuid"
@@ -41,7 +43,7 @@ type TestBench struct {
 	resources         []*dockertest.Resource
 }
 
-func initTestBench(ctx context.Context, appConfig *config.Shield, withMockBackendServer bool) (*TestBench, *config.Shield, error) {
+func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort int) (*TestBench, *config.Shield, error) {
 	var (
 		err    error
 		logger = log.NewZap()
@@ -121,9 +123,8 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, withMockBacken
 	}
 	logger.Info("shield is migrated")
 
-	if withMockBackendServer {
+	if mockServerPort != 0 {
 		go func() {
-			mockServerPort := 4000
 			startMockServer(ctx, logger, mockServerPort)
 		}()
 	}
@@ -140,7 +141,7 @@ func (te *TestBench) CleanUp() error {
 	return nil
 }
 
-func SetupTests(t *testing.T, withMockBackendServer bool) (shieldv1beta1.ShieldServiceClient, *config.Shield, func(), func()) {
+func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield, func(), func()) {
 	wd, err := os.Getwd()
 	if err != nil {
 		t.Fatal(err)
@@ -160,6 +161,28 @@ func SetupTests(t *testing.T, withMockBackendServer bool) (shieldv1beta1.ShieldS
 	}
 
 	apiGRPCPort, err := GetFreePort()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	mockServerPort, err := GetFreePort()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tmplt, err := template.ParseFiles(fmt.Sprintf("%s/%s", testDataPath, "configs/rules/rule.yamltpl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var tmplBuf bytes.Buffer
+	if err := tmplt.Execute(&tmplBuf, struct {
+		Port int
+	}{mockServerPort}); err != nil {
+		t.Fatal(err)
+	}
+
+	err = os.WriteFile(fmt.Sprintf("%s/%s", testDataPath, "configs/rules/rule.yaml"), tmplBuf.Bytes(), 0644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -189,7 +212,7 @@ func SetupTests(t *testing.T, withMockBackendServer bool) (shieldv1beta1.ShieldS
 		},
 	}
 
-	_, _, err = initTestBench(context.Background(), appConfig, withMockBackendServer)
+	_, _, err = initTestBench(context.Background(), appConfig, mockServerPort)
 	if err != nil {
 		t.Fatal(err.Error())
 	}

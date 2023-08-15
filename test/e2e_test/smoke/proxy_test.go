@@ -30,7 +30,7 @@ type EndToEndProxySmokeTestSuite struct {
 
 func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T(), true)
+	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T())
 
 	dbClient, err := testbench.SetupDB(s.appConfig.DB)
 	if err != nil {

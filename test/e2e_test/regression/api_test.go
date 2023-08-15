@@ -24,7 +24,7 @@ type EndToEndAPIRegressionTestSuite struct {
 
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T(), false)
+	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T())
 
 	// validate
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
