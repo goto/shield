@@ -1,0 +1,39 @@
+rules:
+  - backends:
+      - name: entropy
+        target: "http://localhost:{{.Port}}"
+        frontends:
+          - name: ping
+            path: "/api/ping"
+            method: "GET"
+          - name: create_resource
+            path: "/api/resource"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    group:
+                      key: group
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: group
