@@ -80,7 +80,7 @@ curl --location --request POST 'http://localhost:8000/admin/v1beta1/organization
     "name": "gotocompany",
     "slug": "gotocompany",
     "metadata": {
-        "description": "Open DataOps Foundation"
+        "description": "Goto company"
     }
 }'
 ```
@@ -93,7 +93,7 @@ curl --location --request POST 'http://localhost:8000/admin/v1beta1/organization
         "name": "gotocompany",
         "slug": "gotocompany",
         "metadata": {
-            "description": "Open DataOps Foundation"
+            "description": "Goto company"
         },
         "createdAt": "2022-12-07T14:10:42.755848Z",
         "updatedAt": "2022-12-07T14:10:42.755848Z"

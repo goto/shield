@@ -14,7 +14,7 @@ A organization in Shield looks like
             "name": "gotocompany",
             "slug": "gotocompany",
             "metadata": {
-                "description": "Open DataOps Foundation"
+                "description": "Goto company"
             },
             "createdAt": "2022-12-07T14:10:42.755848Z",
             "updatedAt": "2022-12-07T14:10:42.755848Z"
@@ -37,7 +37,7 @@ A organization in Shield looks like
   "name": "gotocompany",
   "slug": "gotocompany",
   "metadata": {
-      "description": "Open DataOps Foundation"
+      "description": "Goto company"
   }
 }'`}
     </CodeBlock>

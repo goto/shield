@@ -72,7 +72,7 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
       },
       footer: {
         style: 'light',
-        copyright: `Open DataOps Foundation © ${new Date().getFullYear()}`,
+        copyright: `Gotocompany © ${new Date().getFullYear()}`,
       },
       prism: {
         theme: lightCodeTheme,

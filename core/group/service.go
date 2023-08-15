@@ -41,6 +41,11 @@ func NewService(repository Repository, relationService RelationService, userServ
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
+	_, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	newGroup, err := s.repository.Create(ctx, grp)
 	if err != nil {
 		return Group{}, err

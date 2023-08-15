@@ -25,6 +25,7 @@ require (
 	github.com/jackc/pgx/v4 v4.17.2
 	github.com/jhump/protoreflect v1.14.0
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.7
 	github.com/mcuadros/go-defaults v1.2.0
 	github.com/mitchellh/mapstructure v1.5.0
