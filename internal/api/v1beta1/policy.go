@@ -13,7 +13,6 @@ import (
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
 
-//go:generate mockery --name=PolicyService -r --case underscore --with-expecter --structname PolicyService --filename policy_service.go --output=./mocks
 type PolicyService interface {
 	Get(ctx context.Context, id string) (policy.Policy, error)
 	List(ctx context.Context) ([]policy.Policy, error)

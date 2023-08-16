@@ -9,7 +9,6 @@ import (
 	"google.golang.org/grpc"
 )
 
-//go:generate mockery --name=RelationTransformer -r --case underscore --with-expecter --structname RelationTransformer --filename relation_transformer.go --output=./mocks
 type RelationTransformer interface {
 	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
 }

@@ -22,17 +22,14 @@ import (
 	"github.com/goto/shield/pkg/telemetry"
 )
 
-//go:generate mockery --name=ResourceService -r --case underscore --with-expecter --structname ResourceService --filename resource_service.go --output=./mocks
 type ResourceService interface {
 	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 }
 
-//go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
 	Create(ctx context.Context, relation relation.RelationV2) (relation.RelationV2, error)
 }
 
-//go:generate mockery --name=RelationTransformer -r --case underscore --with-expecter --structname RelationTransformer --filename relation_transformer.go --output=./mocks
 type RelationTransformer interface {
 	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
 }
