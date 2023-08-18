@@ -34,19 +34,24 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 
 	// If Principal is a user, then we will get ID for that user as Subject.ID
 	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
-		fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
-		if err != nil {
-			return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrFetchingUser, err.Error())
+		var userID = rel.Subject.ID
+
+		if !uuid.IsValid(userID) {
+			fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
+			if err != nil {
+				return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrFetchingUser, err.Error())
+			}
+			userID = fetchedUser.ID
 		}
 
 		rel.Subject.Namespace = schema.UserPrincipal
-		rel.Subject.ID = fetchedUser.ID
+		rel.Subject.ID = userID
 	} else if rel.Subject.Namespace == schema.GroupPrincipal || rel.Subject.Namespace == "group" {
 		// If Principal is a group, then we will get ID for that group as Subject.ID
-		groupID := rel.Subject.ID
+		var groupID = rel.Subject.ID
 
 		if !uuid.IsValid(groupID) {
-			fetchedGroup, err := a.groupService.Get(ctx, rel.Subject.ID)
+			fetchedGroup, err := a.groupService.GetBySlug(ctx, rel.Subject.ID)
 			if err != nil {
 				return relation.RelationV2{}, fmt.Errorf("%w on subject conversion: %s", relation.ErrFetchingGroup, err.Error())
 			}
@@ -74,14 +79,3 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 
 	return rel, nil
 }
-
-// // If Principal is a user, then we will get ID for that user as Subject.ID
-// if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
-// 	fetchedUser, err := s.userService.GetByEmail(ctx, rel.Subject.ID)
-// 	if err != nil {
-// 		return RelationV2{}, fmt.Errorf("%w: %s", ErrFetchingUser, err.Error())
-// 	}
-
-// 	rel.Subject.Namespace = schema.UserPrincipal
-// 	rel.Subject.ID = fetchedUser.ID
-// }

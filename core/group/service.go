@@ -65,6 +65,10 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Group, error) {
 	return s.repository.GetBySlug(ctx, idOrSlug)
 }
 
+func (s Service) GetBySlug(ctx context.Context, slug string) (Group, error) {
+	return s.repository.GetBySlug(ctx, slug)
+}
+
 func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {
 	return s.repository.GetByIDs(ctx, groupIDs)
 }
