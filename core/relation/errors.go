@@ -11,4 +11,5 @@ var (
 	ErrCreatingRelationInStore       = errors.New("error while creating relation")
 	ErrCreatingRelationInAuthzEngine = errors.New("error while creating relation in authz engine")
 	ErrFetchingUser                  = errors.New("error while fetching user")
+	ErrFetchingGroup                 = errors.New("error while fetching group")
 )

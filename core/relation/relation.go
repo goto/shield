@@ -7,7 +7,6 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/role"
-	"github.com/goto/shield/core/user"
 )
 
 type Repository interface {
@@ -25,14 +24,6 @@ type AuthzRepository interface {
 	DeleteV2(ctx context.Context, rel RelationV2) error
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	AddV2(ctx context.Context, rel RelationV2) error
-}
-
-type RoleService interface {
-	Get(ctx context.Context, id string) (role.Role, error)
-}
-
-type UserService interface {
-	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
 
 type Relation struct {

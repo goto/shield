@@ -41,6 +41,11 @@ func NewService(repository Repository, relationService RelationService, userServ
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
+	_, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	newGroup, err := s.repository.Create(ctx, grp)
 	if err != nil {
 		return Group{}, err
@@ -58,6 +63,10 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Group, error) {
 		return s.repository.GetByID(ctx, idOrSlug)
 	}
 	return s.repository.GetBySlug(ctx, idOrSlug)
+}
+
+func (s Service) GetBySlug(ctx context.Context, slug string) (Group, error) {
+	return s.repository.GetBySlug(ctx, slug)
 }
 
 func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {

@@ -13,7 +13,9 @@ build: ## build all
 	CGO_ENABLED=0 go build -o shield .
 
 generate: ## run all go generate in the code base (including generating mock files)
-	go generate ./...
+	@go generate ./...
+	@echo " > generating mock files"
+	@mockery
 
 lint: ## Run linters
 	golangci-lint run

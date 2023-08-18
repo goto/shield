@@ -28,13 +28,13 @@ func Serve(
 		Handler: h2c.NewHandler(mux, &http2.Server{}),
 	}
 
-	go func(ctx context.Context, logger log.Logger, cfg Config) {
+	go func(logger log.Logger, cfg Config) {
 		if err := proxySrv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
 			logger.Fatal("failed to serve", "err", err)
 		}
 
 		logger.Info("[shield] proxy stopped", "service", cfg.Name)
-	}(ctx, logger, cfg)
+	}(logger, cfg)
 
 	logger.Info("[shield] proxy ready", "service", cfg.Name)
 	return proxySrv.Shutdown

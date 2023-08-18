@@ -19,7 +19,6 @@ import (
 	"google.golang.org/grpc/status"
 )
 
-//go:generate mockery --name=RelationService -r --case underscore --with-expecter --structname RelationService --filename relation_service.go --output=./mocks
 type RelationService interface {
 	Get(ctx context.Context, id string) (relation.RelationV2, error)
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
@@ -82,7 +81,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
 	}
 
-	newRelation, err := h.relationService.Create(ctx, relation.RelationV2{
+	newRelation, err := h.createRelation(ctx, relation.RelationV2{
 		Object: relation.Object{
 			ID:          request.GetBody().GetObjectId(),
 			NamespaceID: request.GetBody().GetObjectNamespace(),
@@ -113,6 +112,20 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	return &shieldv1beta1.CreateRelationResponse{
 		Relation: &relationPB,
 	}, nil
+}
+
+func (h Handler) createRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error) {
+	rel, err := h.relationAdapter.TransformRelation(ctx, rlt)
+	if err != nil {
+		return relation.RelationV2{}, err
+	}
+
+	rel, err = h.relationService.Create(ctx, rel)
+	if err != nil {
+		return relation.RelationV2{}, err
+	}
+
+	return rel, nil
 }
 
 func (h Handler) GetRelation(ctx context.Context, request *shieldv1beta1.GetRelationRequest) (*shieldv1beta1.GetRelationResponse, error) {

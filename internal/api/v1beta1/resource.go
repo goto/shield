@@ -17,7 +17,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=ResourceService -r --case underscore --with-expecter --structname ResourceService --filename resource_service.go --output=./mocks
 type ResourceService interface {
 	Get(ctx context.Context, id string) (resource.Resource, error)
 	List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error)
@@ -105,7 +104,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 			continue
 		}
 
-		_, err := h.relationService.Create(ctx, relation.RelationV2{
+		_, err := h.createRelation(ctx, relation.RelationV2{
 			Object: relation.Object{
 				ID:          newResource.Idxa,
 				NamespaceID: newResource.NamespaceID,

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"testing"
 	"time"
@@ -16,8 +16,8 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/rule"
-	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/internal/proxy/hook"
+	"github.com/goto/shield/internal/proxy/hook/authz/mocks"
 	shieldlogger "github.com/goto/shield/pkg/logger"
 	"github.com/goto/shield/pkg/uuid"
 )
@@ -102,8 +102,11 @@ func TestCreateResources(t *testing.T) {
 }
 
 func TestServeHook(t *testing.T) {
-	mockRelationService := mocks.RelationService{}
-	mockResourceService := mocks.ResourceService{}
+	var (
+		mockRelationService     = new(mocks.RelationService)
+		mockResourceService     = new(mocks.ResourceService)
+		mockRelationTransformer = new(mocks.RelationTransformer)
+	)
 
 	logger := shieldlogger.InitLogger(shieldlogger.Config{
 		Level:  "info",
@@ -111,7 +114,7 @@ func TestServeHook(t *testing.T) {
 	})
 
 	rootHook := hook.New()
-	a := New(logger, rootHook, rootHook, &mockResourceService, &mockRelationService, "X-Shield-Email")
+	a := New(logger, rootHook, rootHook, mockResourceService, mockRelationService, mockRelationTransformer, "X-Shield-Email")
 
 	t.Run("should return InternalServerError when non-nil error is sent", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
@@ -332,7 +335,7 @@ func TestServeHook(t *testing.T) {
 
 	t.Run("should not change status code if relations are set", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
-		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo" : "bar"}`)))
+		body := io.NopCloser(bytes.NewBuffer([]byte(`{"foo" : "bar"}`)))
 
 		response := &http.Response{
 			Request: req,
@@ -403,6 +406,8 @@ func TestServeHook(t *testing.T) {
 			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
+		mockRelationTransformer.EXPECT().TransformRelation(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(relation.RelationV2{}, nil)
+
 		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
@@ -426,7 +431,7 @@ func TestServeHook(t *testing.T) {
 
 	t.Run("should throw internal server error when header type attributes is missing", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
-		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
+		body := io.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
 
 		response := &http.Response{
 			Request: req,
@@ -525,7 +530,7 @@ func TestServeHook(t *testing.T) {
 
 	t.Run("should throw internal server error when json_payload type attributes is missing", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
-		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{}`)))
+		body := io.NopCloser(bytes.NewBuffer([]byte(`{}`)))
 
 		response := &http.Response{
 			Request: req,
@@ -625,7 +630,7 @@ func TestServeHook(t *testing.T) {
 
 	t.Run("should throw internal server error when constant type attributes is missing", func(t *testing.T) {
 		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
-		body := ioutil.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
+		body := io.NopCloser(bytes.NewBuffer([]byte(`{"foo": "bar"}`)))
 
 		response := &http.Response{
 			Request: req,

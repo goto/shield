@@ -98,7 +98,7 @@ func (s Service) addAdminToOrg(ctx context.Context, user user.User, org Organiza
 			NamespaceID: schema.OrganizationNamespace,
 		},
 		Subject: relation.Subject{
-			ID:        user.Email,
+			ID:        user.ID,
 			Namespace: schema.UserPrincipal,
 			RoleID:    schema.OwnerRole,
 		},

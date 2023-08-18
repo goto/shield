@@ -11,10 +11,13 @@ import (
 	"time"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/proxy/hook"
 	authz_hook "github.com/goto/shield/internal/proxy/hook/authz"
@@ -306,7 +309,8 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &relation.Service{}, "X-Auth-Email")
+	relationAdapter := adapter.NewRelation(&group.Service{}, &user.Service{}, &relation.Service{})
+	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &relation.Service{}, relationAdapter, "X-Auth-Email")
 }
 
 func startTestHTTPServer(port, statusCode int, content, proto string) (ts *httptest.Server) {

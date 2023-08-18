@@ -3,10 +3,15 @@ package v1beta1
 import (
 	"context"
 
+	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/internal/api"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 )
+
+type RelationTransformer interface {
+	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
+}
 
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
@@ -21,6 +26,7 @@ type Handler struct {
 	relationService  RelationService
 	resourceService  ResourceService
 	ruleService      RuleService
+	relationAdapter  RelationTransformer
 	checkAPILimit    int
 }
 
@@ -39,6 +45,7 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit 
 			relationService:  deps.RelationService,
 			resourceService:  deps.ResourceService,
 			ruleService:      deps.RuleService,
+			relationAdapter:  deps.RelationAdapter,
 			checkAPILimit:    checkAPILimit,
 		},
 	)

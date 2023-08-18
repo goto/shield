@@ -1,0 +1,132 @@
+rules:
+  - backends:
+      - name: entropy
+        target: "http://localhost:51266"
+        frontends:
+          - name: ping
+            path: "/api/ping"
+            method: "GET"
+          - name: create_resource
+            path: "/api/resource"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    group:
+                      key: group
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: group
+          - name: create_resource_group_slug
+            path: "/api/resource_slug"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    group:
+                      key: group_slug
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: group
+          - name: create_resource_user_id
+            path: "/api/resource_user_id"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    user:
+                      key: user_id
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/user
+                      subject_id_attribute: user
+          - name: create_resource_user_email
+            path: "/api/resource_user_email"
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    user:
+                      key: user_email
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/user
+                      subject_id_attribute: user

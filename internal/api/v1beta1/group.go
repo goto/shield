@@ -23,7 +23,6 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-//go:generate mockery --name=GroupService -r --case underscore --with-expecter --structname GroupService --filename group_service.go --output=./mocks
 type GroupService interface {
 	Create(ctx context.Context, grp group.Group) (group.Group, error)
 	Get(ctx context.Context, id string) (group.Group, error)

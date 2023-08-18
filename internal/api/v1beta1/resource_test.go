@@ -102,14 +102,14 @@ func TestHandler_CreateResource(t *testing.T) {
 	email := "user@gotocompany.com"
 	tests := []struct {
 		name    string
-		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context
+		setup   func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, rt *mocks.RelationTransformer) context.Context
 		request *shieldv1beta1.CreateResourceRequest
 		want    *shieldv1beta1.CreateResourceResponse
 		wantErr error
 	}{
 		{
 			name: "should return unauthenticated error if auth email in context is empty and org service return invalid user email",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
@@ -137,7 +137,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		},
 		{
 			name: "should return internal error if project service return some error",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -158,7 +158,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		},
 		{
 			name: "should return internal error if resource service return some error",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
@@ -191,7 +191,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
@@ -225,7 +225,7 @@ func TestHandler_CreateResource(t *testing.T) {
 		},
 		{
 			name: "should return success if resource service return nil",
-			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService) context.Context {
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, rt *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
@@ -233,7 +233,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					},
 				}, nil)
 
-				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), relation.RelationV2{
+				theRelation := relation.RelationV2{
 					Object: relation.Object{
 						ID:          testResource.Idxa,
 						NamespaceID: testResource.NamespaceID,
@@ -243,7 +243,10 @@ func TestHandler_CreateResource(t *testing.T) {
 						Namespace: "user",
 						ID:        testUserID,
 					},
-				}).Return(relation.RelationV2{}, nil)
+				}
+				rt.EXPECT().TransformRelation(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(theRelation, nil)
+
+				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), theRelation).Return(relation.RelationV2{}, nil)
 
 				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
@@ -277,11 +280,12 @@ func TestHandler_CreateResource(t *testing.T) {
 			mockResourceSrv := new(mocks.ResourceService)
 			mockProjectSrv := new(mocks.ProjectService)
 			mockRelationSrv := new(mocks.RelationService)
+			relationAdapter := new(mocks.RelationTransformer)
 			ctx := context.Background()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockResourceSrv, mockProjectSrv, mockRelationSrv)
+				ctx = tt.setup(ctx, mockResourceSrv, mockProjectSrv, mockRelationSrv, relationAdapter)
 			}
-			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv, relationService: mockRelationSrv}
+			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv, relationService: mockRelationSrv, relationAdapter: relationAdapter}
 			resp, err := mockDep.CreateResource(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)

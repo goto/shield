@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"net"
+	"os"
 
 	"github.com/goto/shield/pkg/db"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
@@ -16,8 +16,9 @@ import (
 )
 
 const (
-	OrgAdminEmail  = "admin1-group1-org1@gotocompany.com"
-	IdentityHeader = "X-Shield-Email"
+	OrgAdminEmail   = "admin1-group1-org1@gotocompany.com"
+	IdentityHeader  = "X-Shield-Email"
+	userIDHeaderKey = "X-Shield-UserID"
 )
 
 func GetFreePort() (int, error) {
@@ -44,7 +45,7 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 }
 
 func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
-	conn, err := createConnection(context.Background(), host)
+	conn, err := createConnection(ctx, host)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -58,7 +59,7 @@ func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 }
 
 func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-user.json")
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-user.json")
 	if err != nil {
 		return err
 	}
@@ -83,7 +84,7 @@ func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 }
 
 func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-metadata-key.json")
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-metadata-key.json")
 	if err != nil {
 		return err
 	}
@@ -108,7 +109,7 @@ func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceCli
 }
 
 func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-organization.json")
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {
 		return err
 	}
@@ -133,7 +134,7 @@ func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 }
 
 func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-project.json")
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-project.json")
 	if err != nil {
 		return err
 	}
@@ -169,7 +170,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 }
 
 func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
-	testFixtureJSON, err := ioutil.ReadFile(testDataPath + "/mocks/mock-group.json")
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-group.json")
 	if err != nil {
 		return err
 	}

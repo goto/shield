@@ -30,6 +30,10 @@ type RelationService interface {
 	Create(ctx context.Context, relation relation.RelationV2) (relation.RelationV2, error)
 }
 
+type RelationTransformer interface {
+	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
+}
+
 type Authz struct {
 	log log.Logger
 
@@ -44,19 +48,22 @@ type Authz struct {
 	resourceService ResourceService
 
 	relationService RelationService
+
+	relationAdapter RelationTransformer
 }
 
 type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-func New(log log.Logger, next, escape hook.Service, resourceService ResourceService, relationService RelationService, identityProxyHeaderKey string) Authz {
+func New(log log.Logger, next, escape hook.Service, resourceService ResourceService, relationService RelationService, relationAdapter RelationTransformer, identityProxyHeaderKey string) Authz {
 	return Authz{
 		log:                    log,
 		next:                   next,
 		escape:                 escape,
 		resourceService:        resourceService,
 		relationService:        relationService,
+		relationAdapter:        relationAdapter,
 		identityProxyHeaderKey: identityProxyHeaderKey,
 	}
 }
@@ -243,7 +250,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				continue
 			}
 
-			newRelation, err := a.relationService.Create(res.Request.Context(), relation.RelationV2{
+			newRelation, err := a.createRelation(res.Request.Context(), relation.RelationV2{
 				Object: relation.Object{
 					ID:          newResource.Idxa,
 					NamespaceID: newResource.NamespaceID,
@@ -272,6 +279,20 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	}
 
 	return a.next.ServeHook(res, nil)
+}
+
+func (a Authz) createRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error) {
+	rel, err := a.relationAdapter.TransformRelation(ctx, rlt)
+	if err != nil {
+		return relation.RelationV2{}, err
+	}
+
+	rel, err = a.relationService.Create(ctx, rel)
+	if err != nil {
+		return relation.RelationV2{}, err
+	}
+
+	return rel, nil
 }
 
 func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]resource.Resource, error) {
