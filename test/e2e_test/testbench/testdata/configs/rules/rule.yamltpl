@@ -40,6 +40,17 @@ rules:
           - name: create_resource_group_slug
             path: "/api/resource_slug"
             method: "POST"
+            middlewares:
+            - name: authz
+              config:
+                attributes:
+                  owner_group:
+                    value: org1-group1
+                    type: constant
+                permissions:
+                  - name: view
+                    namespace: shield/group
+                    attribute: owner_group
             hooks:
               - name: authz
                 config:

@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
@@ -34,6 +35,7 @@ func serveProxies(
 	resourceService *resource.Service,
 	relationService *relation.Service,
 	userService *user.Service,
+	groupService *group.Service,
 	projectService *project.Service,
 	relationAdapter *adapter.Relation,
 ) ([]func() error, []func(ctx context.Context) error, error) {
@@ -66,7 +68,7 @@ func serveProxies(
 
 		ruleService := rule.NewService(ruleBlobRepository)
 
-		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, ruleService, projectService)
+		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, groupService, ruleService, projectService)
 
 		cps := proxy.Serve(ctx, logger, svcConfig, middlewarePipeline)
 		cleanUpProxies = append(cleanUpProxies, cps)
@@ -93,12 +95,13 @@ func buildMiddlewarePipeline(
 	identityProxyHeaderKey, userIDHeaderKey string,
 	resourceService *resource.Service,
 	userService *user.Service,
+	groupService *group.Service,
 	ruleService *rule.Service,
 	projectService *project.Service,
 ) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService)
+	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService, groupService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
 	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
