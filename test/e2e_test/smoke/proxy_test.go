@@ -130,6 +130,33 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 		s.Assert().Equal("test-resource", resourceName)
 	})
+
+	s.Run("user not part of group will not be authenticated by middleware auth", func() {
+		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
+		s.Require().NoError(err)
+
+		url := fmt.Sprintf("http://localhost:%d/api/resource_slug", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]string{
+			"project":    s.projID,
+			"name":       "test-resource-group-slug",
+			"group_slug": groupDetail.GetGroup().GetSlug(),
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+
+		s.Assert().Equal(401, res.StatusCode)
+	})
 	s.Run("resource created on echo server should persist in shieldDB when using group slug", func() {
 		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
 		s.Require().NoError(err)

@@ -243,7 +243,10 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 	if err := BootstrapGroup(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
-
+	time.Sleep(10 * time.Second)
+	if err := AssignGroupManager(ctx, client, OrgAdminEmail); err != nil {
+		t.Fatal(err)
+	}
 	return client, appConfig, cancelClient, cancelContextFunc
 }
 func migrateShield(appConfig *config.Shield) error {
