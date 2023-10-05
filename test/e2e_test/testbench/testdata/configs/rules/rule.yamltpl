@@ -48,7 +48,7 @@ rules:
                     value: org1-group1
                     type: constant
                 permissions:
-                  - name: view
+                  - name: membership
                     namespace: shield/group
                     attribute: owner_group
             hooks:

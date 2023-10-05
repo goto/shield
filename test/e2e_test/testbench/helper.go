@@ -8,6 +8,7 @@ import (
 	"net"
 	"os"
 
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"google.golang.org/grpc"
@@ -193,13 +194,51 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	data[1].OrgId = orgResp.GetOrganizations()[0].GetId()
 	data[2].OrgId = orgResp.GetOrganizations()[0].GetId()
 
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		IdentityHeader: creatorEmail,
+	}))
+
 	for _, d := range data {
-		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
-			IdentityHeader: creatorEmail,
-		}))
 		if _, err := cl.CreateGroup(ctx, &shieldv1beta1.CreateGroupRequest{
 			Body: d,
 		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func AssignGroupManager(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
+	groupsResp, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+	if err != nil {
+		return err
+	}
+
+	if len(groupsResp.GetGroups()) < 1 {
+		return errors.New("no groups found")
+	}
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		IdentityHeader: creatorEmail,
+	}))
+
+	usr, err := cl.GetCurrentUser(ctx, &shieldv1beta1.GetCurrentUserRequest{})
+	if err != nil {
+		return err
+	}
+
+	for _, grp := range groupsResp.GetGroups() {
+		// assign admin to group
+		_, err = cl.CreateRelation(ctx, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        grp.GetId(),
+				ObjectNamespace: schema.GroupNamespace,
+				Subject:         fmt.Sprintf("%s:%s", schema.UserPrincipal, usr.GetUser().GetId()),
+				RoleName:        schema.ManagerRole,
+			},
+		})
+		if err != nil {
 			return err
 		}
 	}

@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:60127"
+        target: "http://localhost:61587"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -48,7 +48,7 @@ rules:
                     value: org1-group1
                     type: constant
                 permissions:
-                  - name: view
+                  - name: membership
                     namespace: shield/group
                     attribute: owner_group
             hooks:
