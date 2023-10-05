@@ -27,7 +27,7 @@ func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest
 		return err
 	}
 
-	if err := resource.Expire(120); err != nil {
+	if err := resource.Expire(360); err != nil {
 		return err
 	}
 

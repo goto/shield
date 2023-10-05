@@ -11,10 +11,13 @@ import (
 	"github.com/mitchellh/mapstructure"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/proxy/middleware"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/body_extractor"
+	"github.com/goto/shield/pkg/uuid"
 )
 
 type ResourceService interface {
@@ -25,12 +28,17 @@ type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
+type GroupService interface {
+	GetBySlug(ctx context.Context, slug string) (group.Group, error)
+}
+
 type Authz struct {
 	log             log.Logger
 	userIDHeaderKey string
 	next            http.Handler
 	resourceService ResourceService
 	userService     UserService
+	groupService    GroupService
 }
 
 type Config struct {
@@ -50,13 +58,15 @@ func New(
 	next http.Handler,
 	userIDHeaderKey string,
 	resourceService ResourceService,
-	userService UserService) *Authz {
+	userService UserService,
+	groupService GroupService) *Authz {
 	return &Authz{
 		log:             log,
 		userIDHeaderKey: userIDHeaderKey,
 		next:            next,
 		resourceService: resourceService,
 		userService:     userService,
+		groupService:    groupService,
 	}
 }
 
@@ -209,10 +219,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	isAuthorized := false
 	for _, permission := range config.Permissions {
-		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), resource.Resource{
-			Name:        permissionAttributes[permission.Attribute].(string),
-			NamespaceID: permission.Namespace,
-		}, action.Action{
+		res, err := c.preparePermissionResource(req.Context(), permission, permissionAttributes)
+		if err != nil {
+			c.log.Error("error while preparing permission resource", "err", err)
+			c.notAllowed(rw, err)
+			return
+		}
+		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), res, action.Action{
 			ID: permission.Name,
 		})
 		if err != nil {
@@ -233,6 +246,26 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	c.next.ServeHTTP(rw, req)
+}
+
+func (c Authz) preparePermissionResource(ctx context.Context, perm Permission, attrs map[string]interface{}) (resource.Resource, error) {
+	resourceName := attrs[perm.Attribute].(string)
+	res := resource.Resource{
+		Name:        resourceName,
+		NamespaceID: perm.Namespace,
+	}
+
+	if perm.Namespace == schema.GroupNamespace {
+		// resolve group id from slug
+		if !uuid.IsValid(resourceName) {
+			grp, err := c.groupService.GetBySlug(ctx, resourceName)
+			if err != nil {
+				return resource.Resource{}, err
+			}
+			res.Name = grp.ID
+		}
+	}
+	return res, nil
 }
 
 func (w Authz) notAllowed(rw http.ResponseWriter, err error) {

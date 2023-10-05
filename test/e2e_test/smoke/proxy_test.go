@@ -146,7 +146,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
 		s.Require().NoError(err)
 
-		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set(testbench.IdentityHeader, "admin1-group1-org1@gotocompany.com")
 		req.Header.Set("X-Shield-Org", s.orgID)
 
 		res, err := http.DefaultClient.Do(req)
