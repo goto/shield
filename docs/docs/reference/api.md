@@ -1,5 +1,4 @@
-# Shield API
-
+# Shield
 ## Version: 0.1.0
 
 ### /v1beta1/actions
@@ -32,45 +31,6 @@ Create Action
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CreateActionResponse](#v1beta1createactionresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/actions/{id}
-
-#### GET
-##### Summary
-
-Get Action by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetActionResponse](#v1beta1getactionresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Action by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1ActionRequestBody](#v1beta1actionrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateActionResponse](#v1beta1updateactionresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/check
@@ -171,66 +131,6 @@ Update Group by ID
 | 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/groups/{id}/admins
-
-#### GET
-##### Summary
-
-Get all Admins of a Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListGroupAdminsResponse](#v1beta1listgroupadminsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Add Admin to Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1AddGroupAdminRequestBody](#v1beta1addgroupadminrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AddGroupAdminResponse](#v1beta1addgroupadminresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/groups/{id}/admins/{userId}
-
-#### DELETE
-##### Summary
-
-Remove Admin from Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| userId | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1RemoveGroupAdminResponse](#v1beta1removegroupadminresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/groups/{id}/relations
 
 #### GET
@@ -251,66 +151,6 @@ Get all relations for a group
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListGroupRelationsResponse](#v1beta1listgrouprelationsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/groups/{id}/users
-
-#### GET
-##### Summary
-
-Get all Users in a Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1ListGroupUsersResponse](#v1beta1listgroupusersresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Add User to Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1AddGroupUserRequestBody](#v1beta1addgroupuserrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AddGroupUserResponse](#v1beta1addgroupuserresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/groups/{id}/users/{userId}
-
-#### DELETE
-##### Summary
-
-Remove User from Group
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| userId | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1RemoveGroupUserResponse](#v1beta1removegroupuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/metadatakey
@@ -517,46 +357,6 @@ Get all Admins of an Organization
 | 200 | A successful response. | [v1beta1ListOrganizationAdminsResponse](#v1beta1listorganizationadminsresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-#### POST
-##### Summary
-
-Add Admin to Organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1AddOrganizationAdminRequestBody](#v1beta1addorganizationadminrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AddOrganizationAdminResponse](#v1beta1addorganizationadminresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/organizations/{id}/admins/{userId}
-
-#### DELETE
-##### Summary
-
-Remove Admin from Organization
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| userId | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1RemoveOrganizationAdminResponse](#v1beta1removeorganizationadminresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/policies
 
 #### GET
@@ -587,45 +387,6 @@ Create Policy
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1CreatePolicyResponse](#v1beta1createpolicyresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/policies/{id}
-
-#### GET
-##### Summary
-
-Get Policy by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetPolicyResponse](#v1beta1getpolicyresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Policy by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1PolicyRequestBody](#v1beta1policyrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdatePolicyResponse](#v1beta1updatepolicyresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/projects
@@ -717,46 +478,6 @@ Get all Admins of a Project
 | Code | Description | Schema |
 | ---- | ----------- | ------ |
 | 200 | A successful response. | [v1beta1ListProjectAdminsResponse](#v1beta1listprojectadminsresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### POST
-##### Summary
-
-Add Admin to Project
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1AddProjectAdminRequestBody](#v1beta1addprojectadminrequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1AddProjectAdminResponse](#v1beta1addprojectadminresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-### /v1beta1/projects/{id}/admins/{userId}
-
-#### DELETE
-##### Summary
-
-Remove Admin from Project
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| userId | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1RemoveProjectAdminResponse](#v1beta1removeprojectadminresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
 ### /v1beta1/relations
@@ -923,45 +644,6 @@ Create Role
 | 200 | A successful response. | [v1beta1CreateRoleResponse](#v1beta1createroleresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/roles/{id}
-
-#### GET
-##### Summary
-
-Get Role by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1GetRoleResponse](#v1beta1getroleresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
-#### PUT
-##### Summary
-
-Update Role by ID
-
-##### Parameters
-
-| Name | Located in | Description | Required | Schema |
-| ---- | ---------- | ----------- | -------- | ---- |
-| id | path |  | Yes | string |
-| body | body |  | Yes | [v1beta1RoleRequestBody](#v1beta1rolerequestbody) |
-
-##### Responses
-
-| Code | Description | Schema |
-| ---- | ----------- | ------ |
-| 200 | A successful response. | [v1beta1UpdateRoleResponse](#v1beta1updateroleresponse) |
-| default | An unexpected error response. | [rpcStatus](#rpcstatus) |
-
 ### /v1beta1/users
 
 #### GET
@@ -1096,6 +778,15 @@ List Groups of a User
 
 ### Models
 
+#### CheckResourcePermissionResponseResourcePermissionResponse
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| objectId | string |  | No |
+| objectNamespace | string |  | No |
+| permission | string |  | No |
+| allowed | boolean |  | No |
+
 #### protobufAny
 
 | Name | Type | Description | Required |
@@ -1142,54 +833,6 @@ List Groups of a User
 | name | string |  | No |
 | namespaceId | string |  | No |
 
-#### v1beta1AddGroupAdminRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| userIds | [ string ] |  | No |
-
-#### v1beta1AddGroupAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1AddGroupUserRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| userIds | [ string ] |  | No |
-
-#### v1beta1AddGroupUserResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1AddOrganizationAdminRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| userIds | [ string ] |  | No |
-
-#### v1beta1AddOrganizationAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
-#### v1beta1AddProjectAdminRequestBody
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| userIds | [ string ] |  | No |
-
-#### v1beta1AddProjectAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
 #### v1beta1CheckResourcePermissionRequest
 
 | Name | Type | Description | Required |
@@ -1197,12 +840,14 @@ List Groups of a User
 | objectId | string |  | No |
 | objectNamespace | string |  | No |
 | permission | string |  | No |
+| resourcePermissions | [ [v1beta1ResourcePermission](#v1beta1resourcepermission) ] |  | No |
 
 #### v1beta1CheckResourcePermissionResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | status | boolean |  | No |
+| resourcePermissions | [ [CheckResourcePermissionResponseResourcePermissionResponse](#checkresourcepermissionresponseresourcepermissionresponse) ] |  | No |
 
 #### v1beta1CreateActionResponse
 
@@ -1276,12 +921,6 @@ List Groups of a User
 | ---- | ---- | ----------- | -------- |
 | message | string |  | No |
 
-#### v1beta1GetActionResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| action | [v1beta1Action](#v1beta1action) |  | No |
-
 #### v1beta1GetCurrentUserResponse
 
 | Name | Type | Description | Required |
@@ -1306,12 +945,6 @@ List Groups of a User
 | ---- | ---- | ----------- | -------- |
 | organization | [v1beta1Organization](#v1beta1organization) |  | No |
 
-#### v1beta1GetPolicyResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| policy | [v1beta1Policy](#v1beta1policy) |  | No |
-
 #### v1beta1GetProjectResponse
 
 | Name | Type | Description | Required |
@@ -1329,12 +962,6 @@ List Groups of a User
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | resource | [v1beta1Resource](#v1beta1resource) |  | No |
-
-#### v1beta1GetRoleResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| role | [v1beta1Role](#v1beta1role) |  | No |
 
 #### v1beta1GetUserResponse
 
@@ -1378,23 +1005,11 @@ List Groups of a User
 | ---- | ---- | ----------- | -------- |
 | actions | [ [v1beta1Action](#v1beta1action) ] |  | No |
 
-#### v1beta1ListGroupAdminsResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
-
 #### v1beta1ListGroupRelationsResponse
 
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | relations | [ [v1beta1GroupRelation](#v1beta1grouprelation) ] |  | No |
-
-#### v1beta1ListGroupUsersResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| users | [ [v1beta1User](#v1beta1user) ] |  | No |
 
 #### v1beta1ListGroupsResponse
 
@@ -1582,30 +1197,6 @@ List Groups of a User
 | subject | string |  | No |
 | roleName | string |  | No |
 
-#### v1beta1RemoveGroupAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| message | string |  | No |
-
-#### v1beta1RemoveGroupUserResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| message | string |  | No |
-
-#### v1beta1RemoveOrganizationAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| message | string |  | No |
-
-#### v1beta1RemoveProjectAdminResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| message | string |  | No |
-
 #### v1beta1Resource
 
 | Name | Type | Description | Required |
@@ -1619,6 +1210,14 @@ List Groups of a User
 | updatedAt | dateTime |  | No |
 | user | [v1beta1User](#v1beta1user) |  | No |
 | urn | string |  | No |
+
+#### v1beta1ResourcePermission
+
+| Name | Type | Description | Required |
+| ---- | ---- | ----------- | -------- |
+| objectId | string |  | No |
+| objectNamespace | string |  | No |
+| permission | string |  | No |
 
 #### v1beta1ResourceRequestBody
 
@@ -1652,12 +1251,6 @@ List Groups of a User
 | namespaceId | string |  | No |
 | metadata | object |  | No |
 
-#### v1beta1UpdateActionResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| action | [v1beta1Action](#v1beta1action) |  | No |
-
 #### v1beta1UpdateCurrentUserResponse
 
 | Name | Type | Description | Required |
@@ -1682,12 +1275,6 @@ List Groups of a User
 | ---- | ---- | ----------- | -------- |
 | organization | [v1beta1Organization](#v1beta1organization) |  | No |
 
-#### v1beta1UpdatePolicyResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| policies | [ [v1beta1Policy](#v1beta1policy) ] |  | No |
-
 #### v1beta1UpdateProjectResponse
 
 | Name | Type | Description | Required |
@@ -1699,12 +1286,6 @@ List Groups of a User
 | Name | Type | Description | Required |
 | ---- | ---- | ----------- | -------- |
 | resource | [v1beta1Resource](#v1beta1resource) |  | No |
-
-#### v1beta1UpdateRoleResponse
-
-| Name | Type | Description | Required |
-| ---- | ---- | ----------- | -------- |
-| role | [v1beta1Role](#v1beta1role) |  | No |
 
 #### v1beta1UpdateUserResponse
 

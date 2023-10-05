@@ -52,3 +52,6 @@ proto: ## Generate the protobuf files
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+update-swagger-md:
+	@echo "> updating reference api docs"
+	@npx swagger-markdown -i proto/apidocs.swagger.json -o docs/docs/reference/api.md
