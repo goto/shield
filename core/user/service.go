@@ -3,6 +3,8 @@ package user
 import (
 	"context"
 	"strings"
+
+	"github.com/goto/shield/pkg/uuid"
 )
 
 type Service struct {
@@ -13,6 +15,13 @@ func NewService(repository Repository) *Service {
 	return &Service{
 		repository: repository,
 	}
+}
+
+func (s Service) Get(ctx context.Context, idOrEmail string) (User, error) {
+	if uuid.IsValid(idOrEmail) {
+		return s.repository.GetByID(ctx, idOrEmail)
+	}
+	return s.repository.GetByEmail(ctx, idOrEmail)
 }
 
 func (s Service) GetByID(ctx context.Context, id string) (User, error) {

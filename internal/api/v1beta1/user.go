@@ -23,7 +23,7 @@ import (
 var grpcUserNotFoundError = status.Errorf(codes.NotFound, "user doesn't exist")
 
 type UserService interface {
-	GetByID(ctx context.Context, id string) (user.User, error)
+	Get(ctx context.Context, idOrEmail string) (user.User, error)
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 	Create(ctx context.Context, user user.User) (user.User, error)
@@ -165,7 +165,7 @@ func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.C
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	fetchedUser, err := h.userService.GetByID(ctx, request.GetId())
+	fetchedUser, err := h.userService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
