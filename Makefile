@@ -7,7 +7,7 @@ PROTON_COMMIT := "a1795affeb3f5a6bd8431234e7eb69df253a72c9"
 install:
 	@echo "Clean up imports..."
 	@go mod download
-	@go get -d github.com/vektra/mockery/v2@v2.13.1
+	@go get -d github.com/vektra/mockery/v2@v2.38.0
 
 build: ## build all
 	CGO_ENABLED=0 go build -o shield .

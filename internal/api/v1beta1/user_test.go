@@ -302,7 +302,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user does not exist",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
+				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: randomID,
@@ -313,7 +313,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is not uuid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
+				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: "some-id",
@@ -324,7 +324,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is invalid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
+				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
 			req:  &shieldv1beta1.GetUserRequest{},
 			want: nil,
@@ -333,7 +333,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return user if user service return nil error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().GetByID(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
+				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
 					user.User{
 						ID:    randomID,
 						Name:  "some user",
