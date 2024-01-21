@@ -24,6 +24,7 @@ import (
 	"golang.org/x/net/http2/h2c"
 
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 const (
@@ -184,7 +185,7 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 
 	b.Run("unary call with basic rpc credential and payload authorization", func(b *testing.B) {
 		conn, err := grpc.Dial(fmt.Sprintf("127.0.0.1:%d", grpcProxyPort),
-			grpc.WithInsecure(),
+			grpc.WithTransportCredentials(insecure.NewCredentials()),
 			grpc.WithPerRPCCredentials(&BasicAuthentication{
 				Token: "dXNlcjpwYXNzd29yZA==", // user:password
 			}))

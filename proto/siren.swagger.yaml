@@ -1,0 +1,1588 @@
+swagger: "2.0"
+info:
+  title: Shield
+  version: 0.1.0
+tags:
+  - name: ShieldService
+schemes:
+  - http
+consumes:
+  - application/json
+produces:
+  - application/json
+paths:
+  /v1beta1/actions:
+    get:
+      summary: Get all Actions
+      operationId: ShieldService_ListActions
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListActionsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Action
+    post:
+      summary: Create Action
+      operationId: ShieldService_CreateAction
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateActionResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ActionRequestBody'
+      tags:
+        - Action
+  /v1beta1/check:
+    post:
+      summary: check permission for action on a resource by an user
+      operationId: ShieldService_CheckResourcePermission
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CheckResourcePermissionResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CheckResourcePermissionRequest'
+      tags:
+        - Authz
+  /v1beta1/groups:
+    get:
+      summary: Get all Groups
+      operationId: ShieldService_ListGroups
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListGroupsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: user_id
+          in: query
+          required: false
+          type: string
+        - name: org_id
+          in: query
+          required: false
+          type: string
+      tags:
+        - Group
+    post:
+      summary: Create Group
+      operationId: ShieldService_CreateGroup
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateGroupResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GroupRequestBody'
+      tags:
+        - Group
+  /v1beta1/groups/{id}:
+    get:
+      summary: Get Group by ID
+      operationId: ShieldService_GetGroup
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetGroupResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Group
+    put:
+      summary: Update Group by ID
+      operationId: ShieldService_UpdateGroup
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateGroupResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/GroupRequestBody'
+      tags:
+        - Group
+  /v1beta1/groups/{id}/relations:
+    get:
+      summary: Get all relations for a group
+      operationId: ShieldService_ListGroupRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListGroupRelationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: subject_type
+          in: query
+          required: false
+          type: string
+        - name: role
+          in: query
+          required: false
+          type: string
+      tags:
+        - Group
+  /v1beta1/metadatakey:
+    post:
+      summary: Create Metadata Key
+      operationId: ShieldService_CreateMetadataKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateMetadataKeyResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/MetadataKeyRequestBody'
+      tags:
+        - Metadata Key
+  /v1beta1/namespaces:
+    get:
+      summary: Get all Namespaces
+      operationId: ShieldService_ListNamespaces
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListNamespacesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Namespace
+    post:
+      summary: Create Namespace
+      operationId: ShieldService_CreateNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/NamespaceRequestBody'
+      tags:
+        - Namespace
+  /v1beta1/namespaces/{id}:
+    get:
+      summary: Get Namespace by ID
+      operationId: ShieldService_GetNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Namespace
+    put:
+      summary: Update Namespace by ID
+      operationId: ShieldService_UpdateNamespace
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateNamespaceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/NamespaceRequestBody'
+      tags:
+        - Namespace
+  /v1beta1/object/{object_id}/subject/{subject_id}/role/{role}:
+    delete:
+      summary: Remove a subject having a role from an object
+      operationId: ShieldService_DeleteRelation
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/DeleteRelationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: object_id
+          in: path
+          required: true
+          type: string
+        - name: subject_id
+          in: path
+          required: true
+          type: string
+        - name: role
+          in: path
+          required: true
+          type: string
+      tags:
+        - Relation
+  /v1beta1/organizations:
+    get:
+      summary: Get all Organization
+      operationId: ShieldService_ListOrganizations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListOrganizationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Organization
+    post:
+      summary: Create Organization
+      operationId: ShieldService_CreateOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateOrganizationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/OrganizationRequestBody'
+      tags:
+        - Organization
+  /v1beta1/organizations/{id}:
+    get:
+      summary: Get Organization by ID
+      operationId: ShieldService_GetOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetOrganizationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+    put:
+      summary: Update Organization by ID
+      operationId: ShieldService_UpdateOrganization
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateOrganizationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/OrganizationRequestBody'
+      tags:
+        - Organization
+  /v1beta1/organizations/{id}/admins:
+    get:
+      summary: Get all Admins of an Organization
+      operationId: ShieldService_ListOrganizationAdmins
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListOrganizationAdminsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Organization
+  /v1beta1/policies:
+    get:
+      summary: Get all Policy
+      operationId: ShieldService_ListPolicies
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListPoliciesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Policy
+    post:
+      summary: Create Policy
+      operationId: ShieldService_CreatePolicy
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreatePolicyResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/PolicyRequestBody'
+      tags:
+        - Policy
+  /v1beta1/projects:
+    get:
+      summary: Get all Project
+      operationId: ShieldService_ListProjects
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListProjectsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Project
+    post:
+      summary: Create Project
+      operationId: ShieldService_CreateProject
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateProjectResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProjectRequestBody'
+      tags:
+        - Project
+  /v1beta1/projects/{id}:
+    get:
+      summary: Get Project by ID
+      operationId: ShieldService_GetProject
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetProjectResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Project
+    put:
+      summary: Update Project by ID
+      operationId: ShieldService_UpdateProject
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateProjectResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ProjectRequestBody'
+      tags:
+        - Project
+  /v1beta1/projects/{id}/admins:
+    get:
+      summary: Get all Admins of a Project
+      operationId: ShieldService_ListProjectAdmins
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListProjectAdminsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Project
+  /v1beta1/relations:
+    get:
+      summary: Get all Relations
+      operationId: ShieldService_ListRelations
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListRelationsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Relation
+    post:
+      summary: Create Relation
+      operationId: ShieldService_CreateRelation
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateRelationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RelationRequestBody'
+      tags:
+        - Relation
+  /v1beta1/relations/{id}:
+    get:
+      summary: Get Relation by ID
+      operationId: ShieldService_GetRelation
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetRelationResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Relation
+  /v1beta1/resources:
+    get:
+      summary: Get all Resources
+      operationId: ShieldService_ListResources
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListResourcesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: group_id
+          in: query
+          required: false
+          type: string
+        - name: project_id
+          in: query
+          required: false
+          type: string
+        - name: organization_id
+          in: query
+          required: false
+          type: string
+        - name: namespace_id
+          in: query
+          required: false
+          type: string
+      tags:
+        - Resource
+    post:
+      summary: Create Resource
+      operationId: ShieldService_CreateResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResourceRequestBody'
+      tags:
+        - Resource
+  /v1beta1/resources/{id}:
+    get:
+      summary: Get Resource by ID
+      operationId: ShieldService_GetResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - Resource
+    put:
+      summary: Update Resource by ID
+      operationId: ShieldService_UpdateResource
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateResourceResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ResourceRequestBody'
+      tags:
+        - Resource
+  /v1beta1/roles:
+    get:
+      summary: Get all Roles
+      operationId: ShieldService_ListRoles
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListRolesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - Role
+    post:
+      summary: Create Role
+      operationId: ShieldService_CreateRole
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateRoleResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/RoleRequestBody'
+      tags:
+        - Role
+  /v1beta1/users:
+    get:
+      summary: Get All Users
+      operationId: ShieldService_ListUsers
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListUsersResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: page_size
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: page_num
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: keyword
+          in: query
+          required: false
+          type: string
+      tags:
+        - User
+    post:
+      summary: Create User
+      operationId: ShieldService_CreateUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserRequestBody'
+      tags:
+        - User
+  /v1beta1/users/self:
+    get:
+      summary: Get current user
+      operationId: ShieldService_GetCurrentUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetCurrentUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      tags:
+        - User
+    put:
+      summary: Update current User
+      operationId: ShieldService_UpdateCurrentUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateCurrentUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserRequestBody'
+      tags:
+        - User
+  /v1beta1/users/{id}:
+    get:
+      summary: Get a User by id
+      operationId: ShieldService_GetUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - User
+    put:
+      summary: Update User by ID
+      operationId: ShieldService_UpdateUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UserRequestBody'
+      tags:
+        - User
+  /v1beta1/users/{id}/check:
+    post:
+      summary: check permission for action on a resource by an user
+      operationId: ShieldService_CheckResourceUserPermission
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CheckResourceUserPermissionResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/CheckResourceUserPermissionBody'
+      tags:
+        - Authz
+  /v1beta1/users/{id}/groups:
+    get:
+      summary: List Groups of a User
+      operationId: ShieldService_ListUserGroups
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListUserGroupsResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: role
+          in: query
+          required: false
+          type: string
+      tags:
+        - User
+definitions:
+  Action:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      namespace:
+        $ref: '#/definitions/Namespace'
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      namespace_id:
+        type: string
+  ActionRequestBody:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      namespace_id:
+        type: string
+  Any:
+    type: object
+    properties:
+      '@type':
+        type: string
+    additionalProperties: {}
+  CheckResourcePermissionRequest:
+    type: object
+    properties:
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      permission:
+        type: string
+      resource_permissions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/ResourcePermission'
+  CheckResourcePermissionResponse:
+    type: object
+    properties:
+      status:
+        type: boolean
+      resource_permissions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/CheckResourcePermissionResponse.ResourcePermissionResponse'
+  CheckResourcePermissionResponse.ResourcePermissionResponse:
+    type: object
+    properties:
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      permission:
+        type: string
+      allowed:
+        type: boolean
+  CheckResourceUserPermissionBody:
+    type: object
+    properties:
+      resource_permissions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/ResourcePermission'
+  CheckResourceUserPermissionResponse:
+    type: object
+    properties:
+      resource_permissions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/CheckResourceUserPermissionResponse.ResourcePermissionResponse'
+  CheckResourceUserPermissionResponse.ResourcePermissionResponse:
+    type: object
+    properties:
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      permission:
+        type: string
+      allowed:
+        type: boolean
+  CreateActionResponse:
+    type: object
+    properties:
+      action:
+        $ref: '#/definitions/Action'
+  CreateGroupResponse:
+    type: object
+    properties:
+      group:
+        $ref: '#/definitions/Group'
+  CreateMetadataKeyResponse:
+    type: object
+    properties:
+      metadatakey:
+        $ref: '#/definitions/MetadataKey'
+  CreateNamespaceResponse:
+    type: object
+    properties:
+      namespace:
+        $ref: '#/definitions/Namespace'
+  CreateOrganizationResponse:
+    type: object
+    properties:
+      organization:
+        $ref: '#/definitions/Organization'
+  CreatePolicyResponse:
+    type: object
+    properties:
+      policies:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Policy'
+  CreateProjectResponse:
+    type: object
+    properties:
+      project:
+        $ref: '#/definitions/Project'
+  CreateRelationResponse:
+    type: object
+    properties:
+      relation:
+        $ref: '#/definitions/Relation'
+  CreateResourceResponse:
+    type: object
+    properties:
+      resource:
+        $ref: '#/definitions/Resource'
+  CreateRoleResponse:
+    type: object
+    properties:
+      role:
+        $ref: '#/definitions/Role'
+  CreateUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  DeleteRelationResponse:
+    type: object
+    properties:
+      message:
+        type: string
+  GetCurrentUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  GetGroupResponse:
+    type: object
+    properties:
+      group:
+        $ref: '#/definitions/Group'
+  GetNamespaceResponse:
+    type: object
+    properties:
+      namespace:
+        $ref: '#/definitions/Namespace'
+  GetOrganizationResponse:
+    type: object
+    properties:
+      organization:
+        $ref: '#/definitions/Organization'
+  GetProjectResponse:
+    type: object
+    properties:
+      project:
+        $ref: '#/definitions/Project'
+  GetRelationResponse:
+    type: object
+    properties:
+      relation:
+        $ref: '#/definitions/Relation'
+  GetResourceResponse:
+    type: object
+    properties:
+      resource:
+        $ref: '#/definitions/Resource'
+  GetUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  Group:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      org_id:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  GroupRelation:
+    type: object
+    properties:
+      subject_type:
+        type: string
+      role:
+        type: string
+      user:
+        $ref: '#/definitions/User'
+      group:
+        $ref: '#/definitions/Group'
+  GroupRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+      metadata:
+        type: object
+      org_id:
+        type: string
+  ListActionsResponse:
+    type: object
+    properties:
+      actions:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Action'
+  ListGroupRelationsResponse:
+    type: object
+    properties:
+      relations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/GroupRelation'
+  ListGroupsResponse:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Group'
+  ListNamespacesResponse:
+    type: object
+    properties:
+      namespaces:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Namespace'
+  ListOrganizationAdminsResponse:
+    type: object
+    properties:
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/User'
+  ListOrganizationsResponse:
+    type: object
+    properties:
+      organizations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Organization'
+  ListPoliciesResponse:
+    type: object
+    properties:
+      policies:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Policy'
+  ListProjectAdminsResponse:
+    type: object
+    properties:
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/User'
+  ListProjectsResponse:
+    type: object
+    properties:
+      projects:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Project'
+  ListRelationsResponse:
+    type: object
+    properties:
+      relations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Relation'
+  ListResourcesResponse:
+    type: object
+    properties:
+      resources:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Resource'
+  ListRolesResponse:
+    type: object
+    properties:
+      roles:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Role'
+  ListUserGroupsResponse:
+    type: object
+    properties:
+      groups:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Group'
+  ListUsersResponse:
+    type: object
+    properties:
+      count:
+        type: integer
+        format: int32
+      users:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/User'
+  MetadataKey:
+    type: object
+    properties:
+      key:
+        type: string
+      description:
+        type: string
+  MetadataKeyRequestBody:
+    type: object
+    properties:
+      key:
+        type: string
+      description:
+        type: string
+  Namespace:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  NamespaceRequestBody:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+  NullValue:
+    type: string
+    enum:
+      - NULL_VALUE
+    default: NULL_VALUE
+    description: |-
+      `NullValue` is a singleton enumeration to represent the null value for the
+      `Value` type union.
+
+      The JSON representation for `NullValue` is JSON `null`.
+
+       - NULL_VALUE: Null value.
+  Organization:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  OrganizationRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+      metadata:
+        type: object
+  Policy:
+    type: object
+    properties:
+      id:
+        type: string
+      role:
+        $ref: '#/definitions/Role'
+      action:
+        $ref: '#/definitions/Action'
+      namespace:
+        $ref: '#/definitions/Namespace'
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      namespace_id:
+        type: string
+      role_id:
+        type: string
+      action_id:
+        type: string
+  PolicyRequestBody:
+    type: object
+    properties:
+      role_id:
+        type: string
+      action_id:
+        type: string
+      namespace_id:
+        type: string
+  Project:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      org_id:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  ProjectRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      slug:
+        type: string
+      metadata:
+        type: object
+      org_id:
+        type: string
+  Relation:
+    type: object
+    properties:
+      id:
+        type: string
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      subject:
+        type: string
+      role_name:
+        type: string
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  RelationRequestBody:
+    type: object
+    properties:
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      subject:
+        type: string
+      role_name:
+        type: string
+  Resource:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      project:
+        $ref: '#/definitions/Project'
+      organization:
+        $ref: '#/definitions/Organization'
+      namespace:
+        $ref: '#/definitions/Namespace'
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      user:
+        $ref: '#/definitions/User'
+      urn:
+        type: string
+  ResourcePermission:
+    type: object
+    properties:
+      object_id:
+        type: string
+      object_namespace:
+        type: string
+      permission:
+        type: string
+  ResourceRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      project_id:
+        type: string
+      namespace_id:
+        type: string
+      relations:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Relation'
+  Role:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      types:
+        type: array
+        items:
+          type: string
+      namespace:
+        $ref: '#/definitions/Namespace'
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+      namespace_id:
+        type: string
+  RoleRequestBody:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      types:
+        type: array
+        items:
+          type: string
+      namespace_id:
+        type: string
+      metadata:
+        type: object
+  Status:
+    type: object
+    properties:
+      code:
+        type: integer
+        format: int32
+      message:
+        type: string
+      details:
+        type: array
+        items:
+          type: object
+          $ref: '#/definitions/Any'
+  UpdateCurrentUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  UpdateGroupResponse:
+    type: object
+    properties:
+      group:
+        $ref: '#/definitions/Group'
+  UpdateNamespaceResponse:
+    type: object
+    properties:
+      namespace:
+        $ref: '#/definitions/Namespace'
+  UpdateOrganizationResponse:
+    type: object
+    properties:
+      organization:
+        $ref: '#/definitions/Organization'
+  UpdateProjectResponse:
+    type: object
+    properties:
+      project:
+        $ref: '#/definitions/Project'
+  UpdateResourceResponse:
+    type: object
+    properties:
+      resource:
+        $ref: '#/definitions/Resource'
+  UpdateUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  User:
+    type: object
+    properties:
+      id:
+        type: string
+      name:
+        type: string
+      slug:
+        type: string
+      email:
+        type: string
+      metadata:
+        type: object
+      created_at:
+        type: string
+        format: date-time
+      updated_at:
+        type: string
+        format: date-time
+  UserRequestBody:
+    type: object
+    properties:
+      name:
+        type: string
+      email:
+        type: string
+      metadata:
+        type: object
