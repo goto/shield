@@ -22,6 +22,30 @@ type resourcePermissionResult struct {
 	allowed         bool
 }
 
+func (h Handler) CheckResourceUserPermission(ctx context.Context, req *shieldv1beta1.CheckResourceUserPermissionRequest) (*shieldv1beta1.CheckResourceUserPermissionResponse, error) {
+	userCtx := user.SetContextWithEmail(ctx, req.GetId()) // id is e-mail here
+	resp, err := h.CheckResourcePermission(userCtx, &shieldv1beta1.CheckResourcePermissionRequest{
+		ResourcePermissions: req.GetResourcePermissions(),
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	var permissionResponses []*shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse
+	for _, permissionResp := range resp.GetResourcePermissions() {
+		permissionResponses = append(permissionResponses, &shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse{
+			ObjectId:        permissionResp.GetObjectId(),
+			ObjectNamespace: permissionResp.GetObjectNamespace(),
+			Permission:      permissionResp.GetPermission(),
+			Allowed:         permissionResp.GetAllowed(),
+		})
+	}
+
+	return &shieldv1beta1.CheckResourceUserPermissionResponse{
+		ResourcePermissions: permissionResponses,
+	}, nil
+}
+
 func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1.CheckResourcePermissionRequest) (*shieldv1beta1.CheckResourcePermissionResponse, error) {
 	logger := grpczap.Extract(ctx)
 	//if err := req.ValidateAll(); err != nil {

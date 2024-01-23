@@ -255,3 +255,282 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		})
 	}
 }
+
+func TestHandler_CheckResourceUserPermission(t *testing.T) {
+	var userEmail = "john.doe@gotocompany.com"
+	tests := []struct {
+		name    string
+		setup   func(res *mocks.ResourceService)
+		request *shieldv1beta1.CheckResourceUserPermissionRequest
+		want    *shieldv1beta1.CheckResourceUserPermissionResponse
+		wantErr error
+	}{
+		{
+			name: "Deprecated check single resource permission: should return internal error if relation service's CheckAuthz function returns some error",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "Deprecated check single resource permission: should return true when CheckAuthz function returns true bool",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want: &shieldv1beta1.CheckResourceUserPermissionResponse{
+				ResourcePermissions: []*shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+						Allowed:         true,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Deprecated check single resource permission: should return false when CheckAuthz function returns false bool",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want: &shieldv1beta1.CheckResourceUserPermissionResponse{
+				ResourcePermissions: []*shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+						Allowed:         false,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "Deprecated check single resource permission: should return unauthenticated error if relation service's CheckAuthz function returns auth error",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
+			name: "should return internal error if relation service's CheckAuthz function returns some error",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return unauthenticated error if relation service's CheckAuthz function returns auth error",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
+			name: "should return validation error if the request has empty resource permission list",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id:                  userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{},
+			},
+			want:    nil,
+			wantErr: fmt.Errorf("%s: %s", ErrRequestBodyValidation, "resource_permissions"),
+		},
+		{
+			name: "should return true when CheckAuthz function returns true bool",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want: &shieldv1beta1.CheckResourceUserPermissionResponse{
+				ResourcePermissions: []*shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+						Allowed:         true,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return false when CheckAuthz function returns false bool",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+				},
+			},
+			want: &shieldv1beta1.CheckResourceUserPermissionResponse{
+				ResourcePermissions: []*shieldv1beta1.CheckResourceUserPermissionResponse_ResourcePermissionResponse{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+						Allowed:         false,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return internal error if resource service's CheckAuthz returns some error even with multiple resource check failures",
+			setup: func(res *mocks.ResourceService) {
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.ViewPermission}).Return(false, errors.New("some error")).Twice()
+			},
+			request: &shieldv1beta1.CheckResourceUserPermissionRequest{
+				Id: userEmail,
+				ResourcePermissions: []*shieldv1beta1.ResourcePermission{
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.EditPermission,
+					},
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.ViewPermission,
+					},
+					{
+						ObjectId:        testRelationV2.Object.ID,
+						ObjectNamespace: testRelationV2.Object.NamespaceID,
+						Permission:      schema.ViewPermission,
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+
+			mockDep := Handler{resourceService: mockResourceSrv, checkAPILimit: 5}
+			resp, err := mockDep.CheckResourceUserPermission(context.Background(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
