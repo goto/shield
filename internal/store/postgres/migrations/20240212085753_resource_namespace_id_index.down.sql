@@ -1,0 +1,1 @@
+DROP INDEX IF EXISTS resource_namespace_id_index;
