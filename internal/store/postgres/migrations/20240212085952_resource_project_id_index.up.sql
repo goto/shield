@@ -1,0 +1,1 @@
+CREATE INDEX resource_project_id_index ON resources (project_id);

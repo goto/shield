@@ -1,0 +1,1 @@
+CREATE INDEX resource_namespace_id_index ON resources (namespace_id);

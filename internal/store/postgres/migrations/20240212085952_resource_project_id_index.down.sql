@@ -1,0 +1,1 @@
+DROP INDEX resource_project_id_index;
