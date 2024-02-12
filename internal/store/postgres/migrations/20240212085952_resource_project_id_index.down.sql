@@ -1,1 +1,1 @@
-DROP INDEX resource_project_id_index;
+DROP INDEX IF EXISTS resource_project_id_index;
