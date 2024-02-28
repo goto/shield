@@ -6,6 +6,7 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
+	github.com/antonmedv/expr v1.15.3
 	github.com/authzed/authzed-go v0.7.1-0.20221109204547-1aa903788b3b
 	github.com/authzed/grpcutil v0.0.0-20230109193425-40ce0530e048
 	github.com/authzed/spicedb v1.15.0
@@ -37,7 +38,7 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/spf13/afero v1.9.3
 	github.com/spf13/cobra v1.7.0
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/tidwall/gjson v1.14.4
 	go.opencensus.io v0.24.0
 	go.uber.org/zap v1.24.0
