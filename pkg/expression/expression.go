@@ -2,6 +2,7 @@ package expression
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/antonmedv/expr"
 )
@@ -17,7 +18,7 @@ type Comparison struct {
 }
 
 func (e Expression) Evaluate() (any, error) {
-	if e.Comparison != (Comparison{}) {
+	if !reflect.ValueOf(e.Comparison).IsZero() {
 		code := fmt.Sprintf("Key %s Value", e.Comparison.Operator)
 
 		program, err := expr.Compile(code, expr.Env(Comparison{}))
@@ -30,12 +31,11 @@ func (e Expression) Evaluate() (any, error) {
 			return nil, err
 		}
 
-		fmt.Println(output)
 		return output, nil
 	}
 	return nil, nil
 }
 
 func (e Expression) IsEmpty() bool {
-	return e == (Expression{})
+	return reflect.ValueOf(e).IsZero()
 }
