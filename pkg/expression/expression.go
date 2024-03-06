@@ -1,10 +1,9 @@
 package expression
 
 import (
+	"errors"
 	"fmt"
 	"reflect"
-
-	"github.com/antonmedv/expr"
 )
 
 type Expression struct {
@@ -19,21 +18,20 @@ type Comparison struct {
 
 func (e Expression) Evaluate() (any, error) {
 	if !reflect.ValueOf(e.Comparison).IsZero() {
-		code := fmt.Sprintf("Key %s Value", e.Comparison.Operator)
-
-		program, err := expr.Compile(code, expr.Env(Comparison{}))
-		if err != nil {
-			return nil, err
+		var output any
+		var err error
+		switch e.Comparison.Operator {
+		case "==":
+			output = reflect.DeepEqual(e.Comparison.Key, e.Comparison.Value)
+			err = nil
+		default:
+			err = errors.New(fmt.Sprintf("unsupported comparison operator %s", e.Comparison.Operator))
+			output = nil
 		}
 
-		output, err := expr.Run(program, e.Comparison)
-		if err != nil {
-			return nil, err
-		}
-
-		return output, nil
+		return output, err
 	}
-	return nil, nil
+	return nil, errors.New("no supported operators configured")
 }
 
 func (e Expression) IsEmpty() bool {

@@ -54,30 +54,6 @@ func TestExpression_Evaluate(t *testing.T) {
 			wantNilErr: true,
 			wantOutput: false,
 		},
-		{
-			name: "comparison expression, 3 > 5",
-			expression: Expression{
-				Comparison: Comparison{
-					Key:      "3",
-					Operator: ">",
-					Value:    "5",
-				},
-			},
-			wantNilErr: true,
-			wantOutput: false,
-		},
-		{
-			name: "comparison expression, 2 > A",
-			expression: Expression{
-				Comparison: Comparison{
-					Key:      2,
-					Operator: ">",
-					Value:    "A",
-				},
-			},
-			wantNilErr: false,
-			wantOutput: nil,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
