@@ -16,9 +16,9 @@ type Comparison struct {
 	Value    any    `yaml:"value" mapstructure:"value"`
 }
 
-func (e Expression) Evaluate() (any, error) {
+func (e Expression) Evaluate() (bool, error) {
 	if !reflect.ValueOf(e.Comparison).IsZero() {
-		var output any
+		output := false
 		var err error
 		switch e.Comparison.Operator {
 		case "==":
@@ -26,12 +26,11 @@ func (e Expression) Evaluate() (any, error) {
 			err = nil
 		default:
 			err = errors.New(fmt.Sprintf("unsupported comparison operator %s", e.Comparison.Operator))
-			output = nil
 		}
 
 		return output, err
 	}
-	return nil, errors.New("no supported operators configured")
+	return false, errors.New("no supported operators configured")
 }
 
 func (e Expression) IsEmpty() bool {
