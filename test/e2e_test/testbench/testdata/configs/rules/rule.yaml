@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:61587"
+        target: "http://localhost:54809"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -79,6 +79,36 @@ rules:
                     - role: owner
                       subject_principal: shield/group
                       subject_id_attribute: group
+          - name: create_firehose_based_on_sink
+            path: "/api/create_firehose_based_on_sink"
+            method: "POST"
+            middlewares:
+              - name: authz
+                config:
+                  attributes:
+                    organization:
+                      key: organization
+                      type: json_payload
+                    sink:
+                      key: configs.env_vars.SINK_TYPE
+                      type: json_payload
+                  permissions:
+                    - name: manage_gcs_firehose
+                      namespace: shield/organization
+                      attribute: organization
+                      expression:
+                        comparison:
+                          key: sink
+                          operator: ==
+                          value: "blob"
+                    - name: manage_bq_firehose
+                      namespace: shield/organization
+                      attribute: organization
+                      expression:
+                        comparison:
+                          key: sink
+                          operator: ==
+                          value: "bigquery"
           - name: create_resource_user_id
             path: "/api/resource_user_id"
             method: "POST"

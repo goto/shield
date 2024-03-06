@@ -222,6 +222,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	isAuthorized := false
 	for _, permission := range config.Permissions {
+		c.log.Info("checking permission", "permission", permission.Name)
 		if !permission.Expression.IsEmpty() {
 			permission.Expression = enrichExpression(permission.Expression, permissionAttributes)
 			c.log.Info("evaluating expression", "expr", permission.Expression)
@@ -237,7 +238,6 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		c.log.Info("checking permission", "permission", permission.Name)
 		res, err := c.preparePermissionResource(req.Context(), permission, permissionAttributes)
 		if err != nil {
 			c.log.Error("error while preparing permission resource", "err", err)
