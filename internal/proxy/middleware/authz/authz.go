@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"reflect"
 	"strings"
 
 	"github.com/goto/salt/log"
@@ -299,10 +298,8 @@ func (w Authz) notAllowed(rw http.ResponseWriter, err error) {
 }
 
 func enrichExpression(exp expression.Expression, attributes map[string]interface{}) expression.Expression {
-	if !reflect.ValueOf(exp.Comparison).IsZero() {
-		if val, ok := attributes[exp.Comparison.Key.(string)]; ok {
-			exp.Comparison.Key = val
-		}
+	if val, ok := attributes[exp.Attribute.(string)]; ok {
+		exp.Attribute = val
 	}
 	return exp
 }

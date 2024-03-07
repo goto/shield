@@ -33,11 +33,9 @@ func TestExpression_Evaluate(t *testing.T) {
 		{
 			name: "comparison expression, A == A",
 			expression: Expression{
-				Comparison: Comparison{
-					Key:      "A",
-					Operator: "==",
-					Value:    "A",
-				},
+				Attribute: "A",
+				Operator:  "==",
+				Value:     "A",
 			},
 			wantNilErr: true,
 			wantOutput: true,
@@ -45,11 +43,9 @@ func TestExpression_Evaluate(t *testing.T) {
 		{
 			name: "comparison expression, A == B",
 			expression: Expression{
-				Comparison: Comparison{
-					Key:      "A",
-					Operator: "==",
-					Value:    "B",
-				},
+				Attribute: "A",
+				Operator:  "==",
+				Value:     "B",
 			},
 			wantNilErr: true,
 			wantOutput: false,
