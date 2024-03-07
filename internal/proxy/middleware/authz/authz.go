@@ -116,7 +116,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	if valid, err := config.validate(); !valid {
-		c.log.Error("middleware", c.Info().Name, "err", err)
+		c.log.Error("middleware", c.Info().Name, "rule", rule.Frontend.URLRx, "backend", rule.Backend.Namespace, "err", err)
 		c.notAllowed(rw, nil)
 		return
 	}
