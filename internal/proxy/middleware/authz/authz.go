@@ -17,6 +17,7 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/body_extractor"
+	"github.com/goto/shield/pkg/expression"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -48,9 +49,10 @@ type Config struct {
 }
 
 type Permission struct {
-	Name      string `yaml:"name" mapstructure:"name"`
-	Namespace string `yaml:"namespace" mapstructure:"namespace"`
-	Attribute string `yaml:"attribute" mapstructure:"attribute"`
+	Name       string                `yaml:"name" mapstructure:"name"`
+	Namespace  string                `yaml:"namespace" mapstructure:"namespace"`
+	Attribute  string                `yaml:"attribute" mapstructure:"attribute"`
+	Expression expression.Expression `yaml:"expression" mapstructure:"expression"`
 }
 
 func New(
@@ -219,6 +221,22 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	isAuthorized := false
 	for _, permission := range config.Permissions {
+		c.log.Info("checking permission", "permission", permission.Name)
+		if !permission.Expression.IsEmpty() {
+			permission.Expression = enrichExpression(permission.Expression, permissionAttributes)
+			c.log.Info("evaluating expression", "expr", permission.Expression)
+			output, err := permission.Expression.Evaluate()
+			if err != nil {
+				c.log.Error("error evaluating expression", "err", err)
+				continue
+			}
+			c.log.Info("successfully evaluated expression", "result", output)
+
+			if output == false {
+				continue
+			}
+		}
+
 		res, err := c.preparePermissionResource(req.Context(), permission, permissionAttributes)
 		if err != nil {
 			c.log.Error("error while preparing permission resource", "err", err)
@@ -277,4 +295,11 @@ func (w Authz) notAllowed(rw http.ResponseWriter, err error) {
 		}
 	}
 	rw.WriteHeader(http.StatusUnauthorized)
+}
+
+func enrichExpression(exp expression.Expression, attributes map[string]interface{}) expression.Expression {
+	if val, ok := attributes[exp.Attribute.(string)]; ok {
+		exp.Attribute = val
+	}
+	return exp
 }

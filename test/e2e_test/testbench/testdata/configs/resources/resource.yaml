@@ -43,3 +43,18 @@ shield/organization:
       principals:
         - shield/user
         - shield/group
+    - name: firehose_bq_admin
+      principals:
+        - shield/user
+        - shield/group
+    - name: firehose_gcs_admin
+      principals:
+        - shield/user
+        - shield/group
+  permissions:
+    - name: manage_bq_firehose
+      roles:
+        - firehose_bq_admin
+    - name: manage_gcs_firehose
+      roles:
+        - firehose_gcs_admin

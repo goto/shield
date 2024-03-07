@@ -8,11 +8,12 @@ import (
 	"net/http"
 	"testing"
 
+	"github.com/stretchr/testify/suite"
+
 	"github.com/goto/shield/config"
 	"github.com/goto/shield/pkg/db"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/goto/shield/test/e2e_test/testbench"
-	"github.com/stretchr/testify/suite"
 )
 
 type EndToEndProxySmokeTestSuite struct {
@@ -157,6 +158,32 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 
 		s.Assert().Equal(401, res.StatusCode)
 	})
+
+	s.Run("permission expression: user not having permission at org level will not be authenticated by middleware auth", func() {
+		url := fmt.Sprintf("http://localhost:%d/api/create_firehose_based_on_sink", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]any{
+			"organization": s.orgID,
+			"configs": map[string]any{
+				"env_vars": map[string]any{
+					"SINK_TYPE": "bigquery",
+				},
+			},
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+		s.Assert().Equal(401, res.StatusCode)
+	})
+
 	s.Run("resource created on echo server should persist in shieldDB when using group slug", func() {
 		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
 		s.Require().NoError(err)
