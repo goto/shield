@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:54809"
+        target: "http://localhost:63758"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -97,16 +97,14 @@ rules:
                       namespace: shield/organization
                       attribute: organization
                       expression:
-                        comparison:
-                          key: sink
+                          attribute: sink
                           operator: ==
                           value: "blob"
                     - name: manage_bq_firehose
                       namespace: shield/organization
                       attribute: organization
                       expression:
-                        comparison:
-                          key: sink
+                          attribute: sink
                           operator: ==
                           value: "bigquery"
           - name: create_resource_user_id
