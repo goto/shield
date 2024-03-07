@@ -219,7 +219,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		permissionAttributes[key] = value
 	}
 
-	isAuthorized := false
+	isAuthorized := true
 	for _, permission := range config.Permissions {
 		c.log.Info("checking permission", "permission", permission.Name)
 		if !permission.Expression.IsEmpty() {
