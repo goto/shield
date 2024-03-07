@@ -115,6 +115,12 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
+	if valid, err := config.validate(); !valid {
+		c.log.Error("middleware", c.Info().Name, "path", rule.Frontend.URLRx, "backend", rule.Backend.Namespace, "err", err)
+		c.notAllowed(rw, nil)
+		return
+	}
+
 	permissionAttributes := map[string]interface{}{}
 
 	permissionAttributes["namespace"] = rule.Backend.Namespace
@@ -219,7 +225,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		permissionAttributes[key] = value
 	}
 
-	isAuthorized := false
+	isAuthorized := true
 	for _, permission := range config.Permissions {
 		c.log.Info("checking permission", "permission", permission.Name)
 		if !permission.Expression.IsEmpty() {
@@ -295,6 +301,14 @@ func (w Authz) notAllowed(rw http.ResponseWriter, err error) {
 		}
 	}
 	rw.WriteHeader(http.StatusUnauthorized)
+}
+
+func (cg Config) validate() (bool, error) {
+	if len(cg.Permissions) == 0 {
+		return false, errors.New("no permissions configured")
+	}
+
+	return true, nil
 }
 
 func enrichExpression(exp expression.Expression, attributes map[string]interface{}) expression.Expression {
