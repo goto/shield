@@ -4,18 +4,20 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/goto/salt/log"
+	"github.com/ory/dockertest"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/metadata"
-	"github.com/ory/dockertest"
-	"github.com/stretchr/testify/suite"
 )
 
 type UserRepositoryTestSuite struct {
@@ -241,7 +243,27 @@ func (s *UserRepositoryTestSuite) TestList() {
 		{
 			Description: "should return empty users if keyword not match any",
 			Filter: user.Filter{
-				Keyword: "some-keyword",
+				Keyword: "random=keyword",
+			},
+		},
+		{
+			Description: "should return list of users if keyword match",
+			Filter: user.Filter{
+				Keyword: "alex",
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[2].Name,
+					Email: s.users[2].Email,
+				},
+				{
+					Name:  s.users[3].Name,
+					Email: s.users[3].Email,
+				},
+				{
+					Name:  s.users[5].Name,
+					Email: s.users[5].Email,
+				},
 			},
 		},
 		{
@@ -252,8 +274,56 @@ func (s *UserRepositoryTestSuite) TestList() {
 			},
 			ExpectedUsers: []user.User{
 				{
-					Name:  s.users[0].Name,
-					Email: s.users[0].Email,
+					Name:  s.users[3].Name,
+					Email: s.users[3].Email,
+				},
+			},
+		},
+		{
+			Description: "should return 1st page after filtering the users based on keywords",
+			Filter: user.Filter{
+				Keyword: "alex",
+				Page:    1,
+				Limit:   2,
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[2].Name,
+					Email: s.users[2].Email,
+				},
+				{
+					Name:  s.users[3].Name,
+					Email: s.users[3].Email,
+				},
+			},
+		},
+		{
+			Description: "should return 2nd page after filtering the users based on keywords",
+			Filter: user.Filter{
+				Keyword: "alex",
+				Page:    2,
+				Limit:   2,
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[5].Name,
+					Email: s.users[5].Email,
+				},
+			},
+		},
+		{
+			Description: "should return all users with keyword matching email or name",
+			Filter: user.Filter{
+				Keyword: "xu",
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[2].Name,
+					Email: s.users[2].Email,
+				},
+				{
+					Name:  s.users[3].Name,
+					Email: s.users[3].Email,
 				},
 			},
 		},
@@ -269,6 +339,20 @@ func (s *UserRepositoryTestSuite) TestList() {
 			}
 			if !(len(got) == len(tc.ExpectedUsers)) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedUsers)
+			}
+
+			sort.Slice(got, func(i, j int) bool {
+				return got[i].Email < got[j].Email
+			})
+
+			sort.Slice(tc.ExpectedUsers, func(i, j int) bool {
+				return tc.ExpectedUsers[i].Email < tc.ExpectedUsers[j].Email
+			})
+
+			for idx := 0; idx < len(got); idx++ {
+				if got[idx].Name != tc.ExpectedUsers[idx].Name || got[idx].Email != tc.ExpectedUsers[idx].Email {
+					s.T().Fatalf("got user %+v, expected was %+v", got[idx], tc.ExpectedUsers[idx])
+				}
 			}
 		})
 	}

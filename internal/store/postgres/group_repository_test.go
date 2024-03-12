@@ -9,6 +9,9 @@ import (
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
 	"github.com/goto/salt/log"
+	"github.com/ory/dockertest"
+	"github.com/stretchr/testify/suite"
+
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/relation"
@@ -16,8 +19,6 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
-	"github.com/ory/dockertest"
-	"github.com/stretchr/testify/suite"
 )
 
 type GroupRepositoryTestSuite struct {
@@ -708,6 +709,50 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 					},
 					Subject: relation.Subject{
 						ID:        s.users[1].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[2].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[3].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[4].ID,
+						Namespace: schema.UserPrincipal,
+						RoleID:    "shield/group:member",
+					},
+				},
+				{
+					Object: relation.Object{
+						ID:          s.groups[0].ID,
+						NamespaceID: schema.GroupNamespace,
+					},
+					Subject: relation.Subject{
+						ID:        s.users[5].ID,
 						Namespace: schema.UserPrincipal,
 						RoleID:    "shield/group:member",
 					},
