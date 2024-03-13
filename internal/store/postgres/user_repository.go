@@ -11,11 +11,12 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/jmoiron/sqlx"
+	newrelic "github.com/newrelic/go-agent"
+
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
-	"github.com/jmoiron/sqlx"
-	newrelic "github.com/newrelic/go-agent"
 )
 
 type UserRepository struct {
@@ -279,10 +280,20 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	query, params, err := dialect.From(TABLE_USERS).LeftOuterJoin(
 		goqu.T(TABLE_METADATA),
-		goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at").Where(goqu.Or(
-		goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-		goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-	)).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
+		goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at").Where(
+		goqu.I("users.email").In(
+			goqu.From("users").
+				Select(goqu.DISTINCT("email")).
+				Where(
+					goqu.Or(
+						goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+						goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+					),
+				).
+				Limit(uint(flt.Limit)).
+				Offset(uint(offset)),
+		),
+	).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

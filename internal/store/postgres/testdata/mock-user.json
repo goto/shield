@@ -14,5 +14,29 @@
                 "bar": "v2"
             }
         }
+    },
+    {
+        "name": "Alex Xu",
+        "email": "alex.xu@gotocompany.com"
+    },
+    {
+        "name": "Alexa Xu",
+        "email": "alexa@gotocompany.com",
+        "metadata": {
+            "k1": "value-string",
+            "k2": 123,
+            "k3": {
+                "foo": "v1",
+                "bar": "v2"
+            }
+        }
+    },
+    {
+        "name": "Bella Anto",
+        "email": "bella.anto@gotocompany.com"
+    },
+    {
+        "name": "Balex Ro",
+        "email": "balex.ro@gotocompany.com"
     }
 ]
