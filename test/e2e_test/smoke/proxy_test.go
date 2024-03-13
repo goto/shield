@@ -22,6 +22,7 @@ type EndToEndProxySmokeTestSuite struct {
 	orgID        string
 	orgSlug      string
 	projID       string
+	projSlug     string
 	groupID      string
 	client       shieldv1beta1.ShieldServiceClient
 	cancelClient func()
@@ -57,6 +58,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	s.Require().NoError(err)
 	s.Require().Equal(1, len(pRes.GetProjects()))
 	s.projID = pRes.GetProjects()[0].GetId()
+	s.projSlug = pRes.GetProjects()[0].GetSlug()
 
 	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
@@ -161,13 +163,40 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(401, res.StatusCode)
 	})
 
+	s.Run("permission expression: user not having permission at proj level will not be authenticated by middleware auth", func() {
+		url := fmt.Sprintf("http://localhost:%d/api/create_firehose_based_on_sink", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]any{
+			"organization": s.orgID,
+			"project":      s.projID,
+			"configs": map[string]any{
+				"env_vars": map[string]any{
+					"SINK_TYPE": "bigquery",
+				},
+			},
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+		s.Assert().Equal(401, res.StatusCode)
+	})
+
 	s.Run("permission expression: user not having permission at org level will not be authenticated by middleware auth", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/create_firehose_based_on_sink", s.appConfig.Proxy.Services[0].Port)
 		reqBodyMap := map[string]any{
 			"organization": s.orgID,
+			"project":      s.projID,
 			"configs": map[string]any{
 				"env_vars": map[string]any{
-					"SINK_TYPE": "bigquery",
+					"SINK_TYPE": "blob",
 				},
 			},
 		}
@@ -190,6 +219,33 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		url := fmt.Sprintf("http://localhost:%d/api/create_firehose_based_on_sink", s.appConfig.Proxy.Services[0].Port)
 		reqBodyMap := map[string]any{
 			"organization": s.orgSlug,
+			"project":      s.projSlug,
+			"configs": map[string]any{
+				"env_vars": map[string]any{
+					"SINK_TYPE": "blob",
+				},
+			},
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+		s.Assert().Equal(401, res.StatusCode)
+	})
+
+	s.Run("permission expression: user not having permission at proj level will not be authenticated by middleware auth with proj passed as slug", func() {
+		url := fmt.Sprintf("http://localhost:%d/api/create_firehose_based_on_sink", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]any{
+			"organization": s.orgSlug,
+			"project":      s.projSlug,
 			"configs": map[string]any{
 				"env_vars": map[string]any{
 					"SINK_TYPE": "bigquery",

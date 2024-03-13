@@ -58,3 +58,26 @@ shield/organization:
     - name: manage_gcs_firehose
       roles:
         - firehose_gcs_admin
+
+shield/project:
+  type: system
+  roles:
+    - name: sink_editor
+      principals:
+        - shield/user
+        - shield/group
+    - name: firehose_project_bq_admin
+      principals:
+        - shield/user
+        - shield/group
+    - name: firehose_project_gcs_admin
+      principals:
+        - shield/user
+        - shield/group
+  permissions:
+    - name: manage_bq_firehose
+      roles:
+        - firehose_project_bq_admin
+    - name: manage_gcs_firehose
+      roles:
+        - firehose_project_bq_admin
