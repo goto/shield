@@ -5,12 +5,14 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/uuid"
 )
 
 type RelationService interface {
@@ -28,21 +30,33 @@ type ProjectService interface {
 	Get(ctx context.Context, id string) (project.Project, error)
 }
 
-type Service struct {
-	repository       Repository
-	configRepository ConfigRepository
-	relationService  RelationService
-	userService      UserService
-	projectService   ProjectService
+type OrganizationService interface {
+	Get(ctx context.Context, id string) (organization.Organization, error)
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService) *Service {
+type GroupService interface {
+	Get(ctx context.Context, id string) (group.Group, error)
+}
+
+type Service struct {
+	repository          Repository
+	configRepository    ConfigRepository
+	relationService     RelationService
+	userService         UserService
+	projectService      ProjectService
+	organizationService OrganizationService
+	groupService        GroupService
+}
+
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService) *Service {
 	return &Service{
-		repository:       repository,
-		configRepository: configRepository,
-		relationService:  relationService,
-		userService:      userService,
-		projectService:   projectService,
+		repository:          repository,
+		configRepository:    configRepository,
+		relationService:     relationService,
+		userService:         userService,
+		projectService:      projectService,
+		organizationService: organizationService,
+		groupService:        groupService,
 	}
 }
 
@@ -158,6 +172,28 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	fetchedResource := res
 
 	if isSystemNS {
+		if !uuid.IsValid(res.Name) {
+			switch res.NamespaceID {
+			case namespace.DefinitionProject.ID:
+				project, err := s.projectService.Get(ctx, res.Name)
+				if err != nil {
+					return false, err
+				}
+				res.Name = project.ID
+			case namespace.DefinitionOrg.ID:
+				organization, err := s.organizationService.Get(ctx, res.Name)
+				if err != nil {
+					return false, err
+				}
+				res.Name = organization.ID
+			case namespace.DefinitionTeam.ID:
+				group, err := s.groupService.Get(ctx, res.Name)
+				if err != nil {
+					return false, err
+				}
+				res.Name = group.ID
+			}
+		}
 		fetchedResource.Idxa = res.Name
 	} else {
 		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
