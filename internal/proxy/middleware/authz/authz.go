@@ -257,6 +257,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			c.notAllowed(rw, err)
 			return
 		}
+		c.log.Info("successfully checked permission", "permission", permission.Name, "result", isAuthorized)
 		if isAuthorized {
 			break
 		}

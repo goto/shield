@@ -189,11 +189,7 @@ func BuildAPIDependencies(
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		resourcePGRepository,
-		resourceBlobRepository,
-		relationService,
-		userService,
-		projectService)
+		resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
 
