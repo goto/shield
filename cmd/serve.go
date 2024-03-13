@@ -193,7 +193,9 @@ func BuildAPIDependencies(
 		resourceBlobRepository,
 		relationService,
 		userService,
-		projectService)
+		projectService,
+		organizationService,
+		groupService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
 
