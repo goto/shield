@@ -62,7 +62,7 @@ func TestHandler_ListResources(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return([]resource.Resource{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return(resource.PagedResources{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListResourcesRequest{},
 			want:    nil,
@@ -71,12 +71,20 @@ func TestHandler_ListResources(t *testing.T) {
 		{
 			name: "should return resources if resource service return nil error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return([]resource.Resource{
-					testResource,
-				}, nil)
+				testResourceList := []resource.Resource{testResource}
+				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return(
+					resource.PagedResources{
+						Count:     int32(len(testResourceList)),
+						Resources: testResourceList,
+					}, nil)
 			},
 			request: &shieldv1beta1.ListResourcesRequest{},
 			want: &shieldv1beta1.ListResourcesResponse{
+				Count: int32(
+					len([]*shieldv1beta1.Resource{
+						testResourcePB,
+					},
+					)),
 				Resources: []*shieldv1beta1.Resource{
 					testResourcePB,
 				},

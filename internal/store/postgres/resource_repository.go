@@ -84,6 +84,17 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]resource.Resource, error) {
 	var fetchedResources []Resource
 
+	var defaultLimit int32 = 50
+	var defaultPage int32 = 1
+	if flt.Limit < 1 {
+		flt.Limit = defaultLimit
+	}
+	if flt.Page < 1 {
+		flt.Page = defaultPage
+	}
+
+	offset := (flt.Page - 1) * flt.Limit
+
 	sqlStatement := dialect.From(TABLE_RESOURCES)
 	if flt.ProjectID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
@@ -97,6 +108,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if flt.NamespaceID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"namespace_id": flt.NamespaceID})
 	}
+	sqlStatement = sqlStatement.Limit(uint(flt.Limit)).Offset(uint(offset))
 	query, params, err := sqlStatement.ToSQL()
 	if err != nil {
 		return nil, err
