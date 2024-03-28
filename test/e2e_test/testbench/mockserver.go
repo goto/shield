@@ -39,6 +39,38 @@ func startMockServer(ctx context.Context, logger *log.Zap, port int) {
 
 			reqBody["org"] = orgName
 			reqBody["urn"] = reqBody["name"]
+			reqBody["api"] = "POST"
+
+			respBytes, err := json.Marshal(reqBody)
+			if err != nil {
+				internalServerErrorWriter(w)
+				return
+			}
+
+			w.Write(respBytes)
+		}
+		updateResourceFn = func(w http.ResponseWriter, r *http.Request, p httprouter.Params) {
+			b, err := io.ReadAll(r.Body)
+			defer r.Body.Close()
+			if err != nil {
+				internalServerErrorWriter(w)
+				return
+			}
+
+			var reqBody map[string]string
+			if err := json.Unmarshal(b, &reqBody); err != nil {
+				internalServerErrorWriter(w)
+				return
+			}
+
+			var orgName = ""
+			if hOrg, ok := r.Header["X-Shield-Org"]; ok {
+				orgName = hOrg[0]
+			}
+
+			reqBody["org"] = orgName
+			reqBody["urn"] = reqBody["name"]
+			reqBody["api"] = "PUT"
 
 			respBytes, err := json.Marshal(reqBody)
 			if err != nil {
@@ -54,6 +86,8 @@ func startMockServer(ctx context.Context, logger *log.Zap, port int) {
 		w.Write([]byte("pong"))
 	})
 	router.POST("/api/resource", createResourceFn)
+	router.PUT("/api/resource", updateResourceFn)
+
 	router.POST("/api/resource_slug", createResourceFn)
 	router.POST("/api/resource_user_id", createResourceFn)
 	router.POST("/api/resource_user_email", createResourceFn)

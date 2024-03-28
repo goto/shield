@@ -33,6 +33,43 @@ rules:
                     resource_type:
                       value: "firehose"
                       type: constant
+                    additional_group:
+                      value: 6b591fe0-fc94-4fd2-82bc-45f8a5d12a88
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: group
+                    - role: owner
+                      subject_principal: shield/group
+                      subject_id_attribute: additional_group
+          - name: update_resource
+            path: "/api/resource"
+            method: "PUT"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      key: urn
+                      type: json_payload
+                      source: response
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    group:
+                      key: group
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
                   relations:
                     - role: owner
                       subject_principal: shield/group

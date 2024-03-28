@@ -104,8 +104,8 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort
 		URL:                 connMainPGExternal,
 		MaxIdleConns:        10,
 		MaxOpenConns:        10,
-		ConnMaxLifeTime:     time.Millisecond * 100,
-		MaxQueryTimeoutInMS: time.Millisecond * 100,
+		ConnMaxLifeTime:     time.Millisecond * 1000,
+		MaxQueryTimeoutInMS: time.Millisecond * 1000,
 	}
 
 	te.SpiceDBConfig = spicedb.Config{
@@ -256,7 +256,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 	if err := BootstrapGroup(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
-	time.Sleep(10 * time.Second)
+	time.Sleep(5 * time.Second)
 	if err := AssignGroupManager(ctx, client, OrgAdminEmail); err != nil {
 		t.Fatal(err)
 	}
