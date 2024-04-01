@@ -51,6 +51,8 @@ type Filter struct {
 	GroupID        string
 	OrganizationID string
 	NamespaceID    string
+	Limit          int32
+	Page           int32
 }
 
 type YAML struct {
@@ -58,4 +60,9 @@ type YAML struct {
 	Backend      string              `json:"backend" yaml:"backend"`
 	ResourceType string              `json:"resource_type" yaml:"resource_type"`
 	Actions      map[string][]string `json:"actions" yaml:"actions"`
+}
+
+type PagedResources struct {
+	Count     int32
+	Resources []Resource
 }

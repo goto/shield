@@ -372,6 +372,99 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		{
+			Description: "should return the page given if filter page given is 1 or greater",
+			Filter: resource.Filter{
+				Page:  1,
+				Limit: 2,
+			},
+			ExpectedResources: []resource.Resource{
+				{
+					Idxa:           s.resources[0].Idxa,
+					URN:            s.resources[0].URN,
+					Name:           s.resources[0].Name,
+					ProjectID:      s.resources[0].ProjectID,
+					OrganizationID: s.resources[0].OrganizationID,
+					NamespaceID:    s.resources[0].NamespaceID,
+					UserID:         s.resources[0].UserID,
+				},
+				{
+					Idxa:           s.resources[1].Idxa,
+					URN:            s.resources[1].URN,
+					Name:           s.resources[1].Name,
+					ProjectID:      s.resources[1].ProjectID,
+					OrganizationID: s.resources[1].OrganizationID,
+					NamespaceID:    s.resources[1].NamespaceID,
+					UserID:         s.resources[1].UserID,
+				},
+			},
+		},
+		{
+			Description: "should return 1st page if filter page given is 0 or less",
+			Filter: resource.Filter{
+				Page:  0,
+				Limit: 2,
+			},
+			ExpectedResources: []resource.Resource{
+				{
+					Idxa:           s.resources[0].Idxa,
+					URN:            s.resources[0].URN,
+					Name:           s.resources[0].Name,
+					ProjectID:      s.resources[0].ProjectID,
+					OrganizationID: s.resources[0].OrganizationID,
+					NamespaceID:    s.resources[0].NamespaceID,
+					UserID:         s.resources[0].UserID,
+				},
+				{
+					Idxa:           s.resources[1].Idxa,
+					URN:            s.resources[1].URN,
+					Name:           s.resources[1].Name,
+					ProjectID:      s.resources[1].ProjectID,
+					OrganizationID: s.resources[1].OrganizationID,
+					NamespaceID:    s.resources[1].NamespaceID,
+					UserID:         s.resources[1].UserID,
+				},
+			},
+		},
+		{
+			Description: "should return list of users with maximum 50 data if limit given is 0 or less",
+			Filter: resource.Filter{
+				Limit: 0,
+				Page:  1,
+			},
+			ExpectedResources: s.resources,
+		},
+		{
+			Description: "should return first page of filtered resources based on search filters",
+			Filter: resource.Filter{
+				Page:           1,
+				Limit:          2,
+				ProjectID:      s.projects[1].ID,
+				OrganizationID: s.orgs[1].ID,
+				NamespaceID:    s.namespaces[1].ID,
+			},
+			ExpectedResources: []resource.Resource{
+				{
+					Idxa:           s.resources[1].Idxa,
+					URN:            s.resources[1].URN,
+					Name:           s.resources[1].Name,
+					ProjectID:      s.resources[1].ProjectID,
+					OrganizationID: s.resources[1].OrganizationID,
+					NamespaceID:    s.resources[1].NamespaceID,
+					UserID:         s.resources[1].UserID,
+				},
+			},
+		},
+		{
+			Description: "should return second page of filtered resources based on search filters",
+			Filter: resource.Filter{
+				Page:           2,
+				Limit:          2,
+				ProjectID:      s.projects[1].ID,
+				OrganizationID: s.orgs[1].ID,
+				NamespaceID:    s.namespaces[1].ID,
+			},
+		},
 	}
 
 	for _, tc := range testCases {

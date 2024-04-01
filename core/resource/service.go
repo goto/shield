@@ -109,8 +109,15 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	return newResource, nil
 }
 
-func (s Service) List(ctx context.Context, flt Filter) ([]Resource, error) {
-	return s.repository.List(ctx, flt)
+func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
+	resources, err := s.repository.List(ctx, flt)
+	if err != nil {
+		return PagedResources{}, err
+	}
+	return PagedResources{
+		Count:     int32(len(resources)),
+		Resources: resources,
+	}, nil
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {

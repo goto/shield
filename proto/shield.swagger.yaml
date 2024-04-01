@@ -629,6 +629,16 @@ paths:
           in: query
           required: false
           type: string
+        - name: page_size
+          in: query
+          required: false
+          type: integer
+          format: int32
+        - name: page_num
+          in: query
+          required: false
+          type: integer
+          format: int32
       tags:
         - Resource
     post:
@@ -1235,6 +1245,9 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Resource'
+      count:
+        type: integer
+        format: int32
   ListRolesResponse:
     type: object
     properties:
