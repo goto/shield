@@ -46,8 +46,7 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 		return nil, grpcInternalServerError
 	}
 
-	resourcesList := resourcesResp.Resources
-	for _, r := range resourcesList {
+	for _, r := range resourcesResp.Resources {
 		resourcePB, err := transformResourceToPB(r)
 		if err != nil {
 			logger.Error(err.Error())
