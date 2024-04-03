@@ -781,8 +781,9 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	data := make(map[string]any)
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
-		goqu.I("LOWER(email)").Eq(strings.ToLower(email)),
-	).ToSQL()
+		goqu.Ex{
+			"email": email,
+		}).ToSQL()
 
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
