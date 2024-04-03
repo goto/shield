@@ -3,6 +3,7 @@ package project
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
@@ -11,6 +12,14 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+)
+
+const (
+	AuditKeyProjectCreate = "project.create"
+	AuditKeyProjectUpdate = "project.update"
+
+	AuditEntity = "project"
 )
 
 type RelationService interface {
@@ -25,17 +34,23 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -47,7 +62,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
-	_, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -66,6 +81,19 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     newProject.ID,
+		"name":   newProject.Name,
+		"slug":   newProject.Slug,
+		"orgId":  newProject.Organization.ID,
+	}
+	maps.Copy(logData, newProject.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
 	return newProject, nil
 }
 
@@ -77,7 +105,27 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	if prj.ID != "" {
 		return s.repository.UpdateByID(ctx, prj)
 	}
-	return s.repository.UpdateBySlug(ctx, prj)
+
+	updatedProject, err := s.repository.UpdateBySlug(ctx, prj)
+	if err != nil {
+		return Project{}, err
+	}
+
+	logger := grpczap.Extract(ctx)
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     updatedProject.ID,
+		"name":   updatedProject.Name,
+		"slug":   updatedProject.Slug,
+		"orgId":  updatedProject.Organization.ID,
+	}
+	maps.Copy(logData, updatedProject.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logData); err != nil {
+		logger.Error(ErrLogActivity.Error())
+	}
+
+	return updatedProject, err
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {

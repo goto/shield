@@ -3,6 +3,7 @@ package group
 import (
 	"context"
 	"fmt"
+	"maps"
 	"strings"
 
 	"github.com/goto/shield/core/action"
@@ -12,6 +13,14 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+)
+
+const (
+	AuditKeyGroupCreate = "group.create"
+	AuditKeyGroupUpdate = "group.update"
+
+	AuditEntity = "group"
 )
 
 type RelationService interface {
@@ -26,22 +35,28 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
-	_, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -53,6 +68,19 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 
 	if err = s.addTeamToOrg(ctx, newGroup); err != nil {
 		return Group{}, err
+	}
+
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     newGroup.ID,
+		"name":   newGroup.Name,
+		"slug":   newGroup.Slug,
+		"orgId":  newGroup.OrganizationID,
+	}
+	maps.Copy(logData, newGroup.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyGroupCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
 	}
 
 	return newGroup, nil
@@ -81,7 +109,27 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	if strings.TrimSpace(grp.ID) != "" {
 		return s.repository.UpdateByID(ctx, grp)
 	}
-	return s.repository.UpdateBySlug(ctx, grp)
+
+	updatedGroup, err := s.repository.UpdateBySlug(ctx, grp)
+	if err != nil {
+		return Group{}, err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     updatedGroup.ID,
+		"name":   updatedGroup.Name,
+		"slug":   updatedGroup.Slug,
+		"orgId":  updatedGroup.ID,
+	}
+	maps.Copy(logData, updatedGroup.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyGroupUpdate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
+	return updatedGroup, nil
 }
 
 func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {

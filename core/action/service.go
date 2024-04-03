@@ -2,15 +2,37 @@ package action
 
 import (
 	"context"
+
+	"github.com/goto/shield/core/user"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
-type Service struct {
-	repository Repository
+const (
+	AuditKeyActionCreate = "action.create"
+	AuditKeyActionUpdate = "action.update"
+
+	AuditEntity = "action"
+)
+
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
-func NewService(repository Repository) *Service {
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
+
+type Service struct {
+	repository      Repository
+	userService     UserService
+	activityService ActivityService
+}
+
+func NewService(repository Repository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
-		repository: repository,
+		repository:      repository,
+		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -22,6 +44,18 @@ func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 	newAction, err := s.repository.Create(ctx, action)
 	if err != nil {
 		return Action{}, err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity":      AuditEntity,
+		"id":          newAction.ID,
+		"name":        newAction.Name,
+		"namespaceId": newAction.NamespaceID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
 	}
 
 	return newAction, nil
@@ -39,6 +73,18 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 	})
 	if err != nil {
 		return Action{}, err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity":      AuditEntity,
+		"id":          updatedAction.ID,
+		"name":        updatedAction.Name,
+		"namespaceId": updatedAction.NamespaceID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
 	}
 
 	return updatedAction, nil

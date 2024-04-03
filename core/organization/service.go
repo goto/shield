@@ -3,6 +3,7 @@ package organization
 import (
 	"context"
 	"fmt"
+	"maps"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
@@ -10,6 +11,14 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+)
+
+const (
+	AuditKeyOrganizationCreate = "organization.create"
+	AuditKeyOrganizationUpdate = "organization.update"
+
+	AuditEntity = "organization"
 )
 
 type RelationService interface {
@@ -24,17 +33,23 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
+
 type Service struct {
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -64,6 +79,18 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     newOrg.ID,
+		"name":   newOrg.Name,
+		"slug":   newOrg.Slug,
+	}
+	maps.Copy(logData, newOrg.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyOrganizationCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
 	return newOrg, nil
 }
 
@@ -75,7 +102,26 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	if org.ID != "" {
 		return s.repository.UpdateByID(ctx, org)
 	}
-	return s.repository.UpdateBySlug(ctx, org)
+
+	updatedOrg, err := s.repository.UpdateBySlug(ctx, org)
+	if err != nil {
+		return Organization{}, err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     updatedOrg.ID,
+		"name":   updatedOrg.Name,
+		"slug":   updatedOrg.Slug,
+	}
+	maps.Copy(logData, updatedOrg.Metadata.ToStringValueMap())
+	if err := s.activityService.Log(ctx, AuditKeyOrganizationUpdate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
+	return updatedOrg, nil
 }
 
 func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {

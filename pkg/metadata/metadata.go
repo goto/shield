@@ -22,6 +22,16 @@ func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 	return structpb.NewStruct(newMap)
 }
 
+func (m Metadata) ToStringValueMap() map[string]string {
+	newMap := make(map[string]string)
+
+	for key, value := range m {
+		newMap[key] = value.(string)
+	}
+
+	return newMap
+}
+
 // Build transforms a Metadata from map[string]interface{}
 func Build(m map[string]interface{}) (Metadata, error) {
 	newMap := make(Metadata)

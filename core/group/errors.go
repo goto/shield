@@ -11,4 +11,5 @@ var (
 	ErrListingGroupRelations = errors.New("error while listing relations")
 	ErrFetchingUsers         = errors.New("error while fetching users")
 	ErrFetchingGroups        = errors.New("error while fetching groups")
+	ErrLogActivity           = errors.New("error while logging activity")
 )

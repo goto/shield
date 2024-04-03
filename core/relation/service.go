@@ -7,17 +7,39 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/user"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
+
+const (
+	AuditKeyRelationCreate        = "relation.create"
+	AuditKeyRelationDelete        = "relation.delete"
+	AuditKeyRelationSubjectDelete = "relation_subject.delete"
+
+	AuditEntityRelation        = "relation"
+	AuditEntityRelationSubject = "relation_subject"
+)
+
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
+}
+
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
 
 type Service struct {
 	repository      Repository
 	authzRepository AuthzRepository
+	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		repository:      repository,
 		authzRepository: authzRepository,
+		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -36,6 +58,21 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity":            AuditEntityRelation,
+		"id":                createdRelation.ID,
+		"objectId":          createdRelation.Object.ID,
+		"objectNamespaceId": createdRelation.Object.NamespaceID,
+		"subjectId":         createdRelation.Subject.ID,
+		"subjectNamespace":  createdRelation.Subject.Namespace,
+		"roleId":            createdRelation.Subject.RoleID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
 	return createdRelation, nil
 }
 
@@ -44,6 +81,7 @@ func (s Service) List(ctx context.Context) ([]RelationV2, error) {
 }
 
 // TODO: Update & Delete planned for v0.6
+// TODO: Audit log
 func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
 	//oldRelation, err := s.repository.Get(ctx, toUpdate.ID)
 	//if err != nil {
@@ -112,5 +150,21 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 }
 
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
-	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+	err := s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+	if err != nil {
+		return err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity":             AuditEntityRelationSubject,
+		"resourceType":       resourceType,
+		"optionalResourceId": optionalResourceID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
+	return nil
 }

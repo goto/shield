@@ -13,6 +13,14 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+)
+
+const (
+	AuditKeyResourceCreate = "resource.create"
+	AuditKeyResourceUpdate = "resource.update"
+
+	AuditEntity = "resource"
 )
 
 type RelationService interface {
@@ -38,6 +46,10 @@ type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data map[string]string) error
+}
+
 type Service struct {
 	repository          Repository
 	configRepository    ConfigRepository
@@ -46,9 +58,10 @@ type Service struct {
 	projectService      ProjectService
 	organizationService OrganizationService
 	groupService        GroupService
+	activityService     ActivityService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
 	return &Service{
 		repository:          repository,
 		configRepository:    configRepository,
@@ -57,6 +70,7 @@ func NewService(repository Repository, configRepository ConfigRepository, relati
 		projectService:      projectService,
 		organizationService: organizationService,
 		groupService:        groupService,
+		activityService:     activityService,
 	}
 }
 
@@ -106,6 +120,20 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
+	logData := map[string]string{
+		"entity":         AuditEntity,
+		"urn":            newResource.URN,
+		"name":           newResource.Name,
+		"organizationID": newResource.OrganizationID,
+		"projectID":      newResource.ProjectID,
+		"namespaceID":    newResource.NamespaceID,
+		"userID":         newResource.UserID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
 	return newResource, nil
 }
 
@@ -122,7 +150,27 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
 	// TODO there should be an update logic like create here
-	return s.repository.Update(ctx, id, resource)
+	updatedResource, err := s.repository.Update(ctx, id, resource)
+	if err != nil {
+		return Resource{}, err
+	}
+
+	currentUser, _ := s.userService.FetchCurrentUser(ctx)
+	logData := map[string]string{
+		"entity":         AuditEntity,
+		"urn":            updatedResource.URN,
+		"name":           updatedResource.Name,
+		"organizationID": updatedResource.OrganizationID,
+		"projectID":      updatedResource.ProjectID,
+		"namespaceID":    updatedResource.NamespaceID,
+		"userID":         updatedResource.UserID,
+	}
+	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logData); err != nil {
+		logger := grpczap.Extract(ctx)
+		logger.Error(ErrLogActivity.Error())
+	}
+
+	return updatedResource, nil
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {
