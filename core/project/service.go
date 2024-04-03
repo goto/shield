@@ -3,7 +3,8 @@ package project
 import (
 	"context"
 	"fmt"
-	"maps"
+
+	"golang.org/x/exp/maps"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"

@@ -2,8 +2,9 @@ package user
 
 import (
 	"context"
-	"maps"
 	"strings"
+
+	"golang.org/x/exp/maps"
 
 	"github.com/goto/shield/pkg/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"

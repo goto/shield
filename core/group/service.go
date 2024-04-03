@@ -3,8 +3,9 @@ package group
 import (
 	"context"
 	"fmt"
-	"maps"
 	"strings"
+
+	"golang.org/x/exp/maps"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
