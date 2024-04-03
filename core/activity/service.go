@@ -5,16 +5,17 @@ import (
 	"time"
 
 	"github.com/goto/salt/audit"
-	"github.com/goto/shield/config"
 	"github.com/mitchellh/mapstructure"
 )
 
 type Service struct {
+	appConfig  AppConfig
 	repository Repository
 }
 
-func NewService(repository Repository) *Service {
+func NewService(appConfig AppConfig, repository Repository) *Service {
 	return &Service{
+		appConfig:  appConfig,
 		repository: repository,
 	}
 }
@@ -31,7 +32,7 @@ func (s Service) Log(ctx context.Context, action string, actor string, data any)
 
 	metadata := map[string]string{
 		"app_name":    "shield",
-		"app_version": config.Version,
+		"app_version": s.appConfig.Version,
 	}
 
 	log := &audit.Log{
@@ -43,4 +44,24 @@ func (s Service) Log(ctx context.Context, action string, actor string, data any)
 	}
 
 	return s.repository.Insert(ctx, log)
+}
+
+func (s Service) List(ctx context.Context, filter Filter) (PagedActivity, error) {
+	if filter.EndTime.IsZero() {
+		filter.EndTime = time.Now()
+	}
+
+	if filter.EndTime.Before(filter.StartTime) {
+		return PagedActivity{}, ErrInvalidFilter
+	}
+
+	activities, err := s.repository.List(ctx, filter)
+	if err != nil {
+		return PagedActivity{}, err
+	}
+
+	return PagedActivity{
+		Count:      int32(len(activities)),
+		Activities: activities,
+	}, nil
 }

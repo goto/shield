@@ -8,8 +8,10 @@ import (
 	"io/ioutil"
 	"time"
 
+	"github.com/goto/salt/audit"
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
@@ -459,4 +461,37 @@ func bootstrapResource(
 	}
 
 	return insertedData, nil
+}
+
+func bootstrapActivity(
+	client *db.Client,
+) ([]audit.Log, error) {
+	activityRepository := postgres.NewActivityRepository(client)
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-activity.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []audit.Log
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	data[2].Timestamp = time.Date(2024, time.January, 10, 10, 0, 0, 0, time.UTC)
+	data[1].Timestamp = time.Date(2024, time.January, 10, 20, 0, 0, 0, time.UTC)
+	data[0].Timestamp = time.Date(2024, time.January, 10, 30, 0, 0, 0, time.UTC)
+
+	for _, d := range data {
+		err := activityRepository.Insert(context.Background(), &d)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	returnData, err := activityRepository.List(context.Background(), activity.Filter{EndTime: time.Now()})
+	if err != nil {
+		return nil, err
+	}
+
+	return returnData, nil
 }

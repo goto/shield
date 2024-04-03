@@ -1,0 +1,38 @@
+[
+    {
+        "actor": "actor-1-uuid",
+        "action": "user.create",
+        "data": {
+            "id": "actor-1-id",
+            "entity": "user"
+        },
+        "metadata": {
+            "app_name": "shield",
+            "version": "v0.1.1"
+        }
+    },
+    {
+        "actor": "actor-2-uuid",
+        "action": "project.update",
+        "data": {
+            "id": "project-1-id",
+            "entity": "project"
+        },
+        "metadata": {
+            "app_name": "shield",
+            "version": "v0.1.2"
+        }
+    },
+    {
+        "actor": "actor-3-uuid",
+        "action": "role.create",
+        "data": {
+            "id": "role-1-id",
+            "entity": "role"
+        },
+        "metadata": {
+            "app_name": "shield",
+            "version": "v0.1.3"
+        }
+    }
+]

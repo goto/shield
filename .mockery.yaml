@@ -9,6 +9,9 @@ packages:
       ActionService:
         config:
           filename: "action_service.go"
+      ActivityService:
+        config:
+          filename: "activity_service.go"
       GroupService:
         config:
           filename: "group_service.go"

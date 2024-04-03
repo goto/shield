@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
@@ -28,4 +29,5 @@ type Deps struct {
 	RelationAdapter  *adapter.Relation
 	ResourceService  *resource.Service
 	RuleService      *rule.Service
+	ActivityService  *activity.Service
 }

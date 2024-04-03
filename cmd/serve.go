@@ -94,6 +94,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail)
 
+	appConfig := activity.AppConfig{Version: config.Version}
 	var activityRepository activity.Repository
 	switch cfg.Log.Activity.Sink {
 	case activity.SinkTypeDB:
@@ -107,7 +108,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	default:
 		activityRepository = activity.NewStdoutRepository(io.Discard)
 	}
-	activityService := activity.NewService(activityRepository)
+	activityService := activity.NewService(appConfig, activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbClient)
 	userService := user.NewService(logger, userRepository, activityService)
@@ -184,7 +185,8 @@ func BuildAPIDependencies(
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
-	activityService := activity.NewService(activityRepository)
+	appConfig := activity.AppConfig{Version: config.Version}
+	activityService := activity.NewService(appConfig, activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbc)
 	userService := user.NewService(logger, userRepository, activityService)
@@ -232,6 +234,7 @@ func BuildAPIDependencies(
 		ActionService:    actionService,
 		NamespaceService: namespaceService,
 		RelationAdapter:  relationAdapter,
+		ActivityService:  activityService,
 	}
 	return dependencies, nil
 }
