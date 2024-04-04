@@ -203,7 +203,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			ExpectedEmail: "new.user@gotocompany.com",
 		},
 		{
-			Description: "should create a user with upper case",
+			Description: "should create a user with normalized email",
 			UserToCreate: user.User{
 				Name:  "new user 2",
 				Email: "New.User2@gotocompany.com",
@@ -495,7 +495,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
-			Description: "should update a user email with upper case email",
+			Description: "should update a user email while normalizing email",
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
