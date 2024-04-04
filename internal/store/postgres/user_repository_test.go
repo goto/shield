@@ -495,6 +495,25 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			},
 		},
 		{
+			Description: "should update a user email with upper case email",
+			UserToUpdate: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: "Doe.John@gotocompany.com",
+				Metadata: metadata.Metadata{
+					"k2": "v2",
+				},
+			},
+			ExpectedUser: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: "doe.john@gotocompany.com",
+				Metadata: metadata.Metadata{
+					"k2": "v2",
+				},
+			},
+		},
+		{
 			Description: "should return error if user not found",
 			UserToUpdate: user.User{
 				ID:    uuid.NewString(),
