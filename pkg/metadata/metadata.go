@@ -1,6 +1,7 @@
 package metadata
 
 import (
+	"encoding/json"
 	"fmt"
 
 	"google.golang.org/protobuf/types/known/structpb"
@@ -26,7 +27,8 @@ func (m Metadata) ToStringValueMap() map[string]string {
 	newMap := make(map[string]string)
 
 	for key, value := range m {
-		newMap[key] = value.(string)
+		val, _ := json.Marshal(value)
+		newMap[key] = string(val)
 	}
 
 	return newMap
