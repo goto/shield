@@ -205,10 +205,10 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should create a user with upper case",
 			UserToCreate: user.User{
-				Name:  "new user",
-				Email: "New.User@gotocompany.com",
+				Name:  "new user 2",
+				Email: "New.User2@gotocompany.com",
 			},
-			ExpectedEmail: "new.user@gotocompany.com",
+			ExpectedEmail: "new.user2@gotocompany.com",
 		},
 		{
 			Description: "should return error if user already exist",
