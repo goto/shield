@@ -76,10 +76,13 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	logData := newOrg.ToOrganizationAuditData()
+	logger := grpczap.Extract(ctx)
+	logData, err := newOrg.ToOrganizationAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyOrganizationCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newOrg, nil
@@ -90,6 +93,11 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 }
 
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	if org.ID != "" {
 		return s.repository.UpdateByID(ctx, org)
 	}
@@ -99,11 +107,13 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := updatedOrg.ToOrganizationAuditData()
+	logger := grpczap.Extract(ctx)
+	logData, err := updatedOrg.ToOrganizationAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyOrganizationUpdate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedOrg, nil

@@ -198,6 +198,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 			GRPC: server.GRPCConfig{
 				Port: apiGRPCPort,
 			},
+			DefaultSystemEmail:  OrgAdminEmail,
 			IdentityProxyHeader: IdentityHeader,
 			UserIDHeader:        userIDHeaderKey,
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),

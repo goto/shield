@@ -117,6 +117,8 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		actionService,
 		policyService,
 		policySpiceRepository,
+		userRepository,
+		cfg.App.DefaultSystemEmail,
 	)
 
 	err = s.RunMigrations(ctx)

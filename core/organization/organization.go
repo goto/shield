@@ -30,14 +30,18 @@ type Organization struct {
 	UpdatedAt time.Time
 }
 
-func (organization Organization) ToOrganizationAuditData() map[string]string {
+func (organization Organization) ToOrganizationAuditData() (map[string]string, error) {
 	logData := map[string]string{
 		"entity": AuditEntity,
 		"id":     organization.ID,
 		"name":   organization.Name,
 		"slug":   organization.Slug,
 	}
-	maps.Copy(logData, organization.Metadata.ToStringValueMap())
+	orgMetadata, err := organization.Metadata.ToStringValueMap()
+	if err != nil {
+		return logData, err
+	}
 
-	return logData
+	maps.Copy(logData, orgMetadata)
+	return logData, nil
 }

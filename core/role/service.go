@@ -2,6 +2,7 @@ package role
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goto/shield/core/user"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -35,6 +36,11 @@ func NewService(repository Repository, userService UserService, activityService 
 }
 
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Role{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	roleID, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
 		return Role{}, err
@@ -45,11 +51,10 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := newRole.ToRoleAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newRole, nil
@@ -64,6 +69,11 @@ func (s Service) List(ctx context.Context) ([]Role, error) {
 }
 
 func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Role{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	roleID, err := s.repository.Update(ctx, toUpdate)
 	if err != nil {
 		return Role{}, err
@@ -74,11 +84,10 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := updatedRole.ToRoleAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedRole, nil

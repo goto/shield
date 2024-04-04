@@ -23,15 +23,18 @@ func (m Metadata) ToStructPB() (*structpb.Struct, error) {
 	return structpb.NewStruct(newMap)
 }
 
-func (m Metadata) ToStringValueMap() map[string]string {
+func (m Metadata) ToStringValueMap() (map[string]string, error) {
 	newMap := make(map[string]string)
 
 	for key, value := range m {
-		val, _ := json.Marshal(value)
+		val, err := json.Marshal(value)
+		if err != nil {
+			return map[string]string{}, err
+		}
 		newMap[key] = string(val)
 	}
 
-	return newMap
+	return newMap, nil
 }
 
 // Build transforms a Metadata from map[string]interface{}

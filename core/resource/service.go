@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/goto/shield/core/action"
@@ -77,9 +78,13 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	urn := res.CreateURN()
 
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Resource{}, err
 	}
@@ -121,7 +126,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	logData := newResource.ToResourceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newResource, nil
@@ -139,17 +144,21 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	// TODO there should be an update logic like create here
 	updatedResource, err := s.repository.Update(ctx, id, resource)
 	if err != nil {
 		return Resource{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := updatedResource.ToResourceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedResource, nil

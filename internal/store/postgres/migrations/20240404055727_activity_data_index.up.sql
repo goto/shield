@@ -1,0 +1,1 @@
+CREATE INDEX activity_data_index ON activities USING gin (data);

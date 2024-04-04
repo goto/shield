@@ -34,7 +34,7 @@ type Group struct {
 	UpdatedAt      time.Time
 }
 
-func (group Group) ToGroupAuditData() map[string]string {
+func (group Group) ToGroupAuditData() (map[string]string, error) {
 	logData := map[string]string{
 		"entity": AuditEntity,
 		"id":     group.ID,
@@ -42,7 +42,11 @@ func (group Group) ToGroupAuditData() map[string]string {
 		"slug":   group.Slug,
 		"orgId":  group.OrganizationID,
 	}
-	maps.Copy(logData, group.Metadata.ToStringValueMap())
+	groupMetadata, err := group.Metadata.ToStringValueMap()
+	if err != nil {
+		return logData, err
+	}
 
-	return logData
+	maps.Copy(logData, groupMetadata)
+	return logData, nil
 }

@@ -2,6 +2,7 @@ package policy
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goto/shield/core/user"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -43,6 +44,11 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 }
 
 func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	policyId, err := s.repository.Create(ctx, policy)
 	if err != nil {
 		return []Policy{}, err
@@ -52,17 +58,21 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := policy.ToPolicyLogData(policyId)
 	if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return policies, err
 }
 
 func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	policyId, err := s.repository.Update(ctx, pol)
 	if err != nil {
 		return []Policy{}, err
@@ -73,11 +83,10 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := pol.ToPolicyLogData(policyId)
 	if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return policies, err

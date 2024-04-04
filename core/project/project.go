@@ -32,7 +32,7 @@ type Project struct {
 	UpdatedAt    time.Time
 }
 
-func (project Project) ToProjectAuditData() map[string]string {
+func (project Project) ToProjectAuditData() (map[string]string, error) {
 	logData := map[string]string{
 		"entity": AuditEntity,
 		"id":     project.ID,
@@ -40,7 +40,11 @@ func (project Project) ToProjectAuditData() map[string]string {
 		"slug":   project.Slug,
 		"orgId":  project.Organization.ID,
 	}
-	maps.Copy(logData, project.Metadata.ToStringValueMap())
+	projectMetatadata, err := project.Metadata.ToStringValueMap()
+	if err != nil {
+		return logData, err
+	}
 
-	return logData
+	maps.Copy(logData, projectMetatadata)
+	return logData, nil
 }

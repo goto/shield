@@ -67,10 +67,13 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	logData := newGroup.ToGroupAuditData()
+	logger := grpczap.Extract(ctx)
+	logData, err := newGroup.ToGroupAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyGroupCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newGroup, nil
@@ -96,6 +99,11 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	if strings.TrimSpace(grp.ID) != "" {
 		return s.repository.UpdateByID(ctx, grp)
 	}
@@ -105,11 +113,13 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := updatedGroup.ToGroupAuditData()
+	logger := grpczap.Extract(ctx)
+	logData, err := updatedGroup.ToGroupAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyGroupUpdate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedGroup, nil

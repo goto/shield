@@ -78,10 +78,13 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	logData := newProject.ToProjectAuditData()
+	logger := grpczap.Extract(ctx)
+	logData, err := newProject.ToProjectAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newProject, nil
@@ -92,6 +95,11 @@ func (s Service) List(ctx context.Context) ([]Project, error) {
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	if prj.ID != "" {
 		return s.repository.UpdateByID(ctx, prj)
 	}
@@ -102,10 +110,12 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	}
 
 	logger := grpczap.Extract(ctx)
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := updatedProject.ToProjectAuditData()
+	logData, err := updatedProject.ToProjectAuditData()
+	if err != nil {
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	}
 	if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logData); err != nil {
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedProject, err

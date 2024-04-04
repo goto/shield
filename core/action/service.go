@@ -2,6 +2,7 @@ package action
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/goto/shield/core/user"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -39,16 +40,20 @@ func (s Service) Get(ctx context.Context, id string) (Action, error) {
 }
 
 func (s Service) Create(ctx context.Context, action Action) (Action, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	newAction, err := s.repository.Create(ctx, action)
 	if err != nil {
 		return Action{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := newAction.ToActionLogData()
 	if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return newAction, nil
@@ -59,6 +64,11 @@ func (s Service) List(ctx context.Context) ([]Action, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, action Action) (Action, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	updatedAction, err := s.repository.Update(ctx, Action{
 		Name:        action.Name,
 		ID:          id,
@@ -68,11 +78,10 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 		return Action{}, err
 	}
 
-	currentUser, _ := s.userService.FetchCurrentUser(ctx)
 	logData := updatedAction.ToActionLogData()
 	if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
-		logger.Error(ErrLogActivity.Error())
+		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 	}
 
 	return updatedAction, nil

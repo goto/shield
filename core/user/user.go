@@ -45,14 +45,19 @@ type PagedUsers struct {
 	Users []User
 }
 
-func (user User) ToUserAuditData() map[string]string {
+func (user User) ToUserAuditData() (map[string]string, error) {
 	logData := map[string]string{
 		"entity": AuditEntityUser,
 		"name":   user.Name,
 		"email":  user.Email,
 	}
-	maps.Copy(logData, user.Metadata.ToStringValueMap())
-	return logData
+	userMetadata, err := user.Metadata.ToStringValueMap()
+	if err != nil {
+		return logData, err
+	}
+
+	maps.Copy(logData, userMetadata)
+	return logData, nil
 }
 
 func (userMetadataKey UserMetadataKey) ToUserMetadataKey() map[string]string {

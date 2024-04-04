@@ -1,0 +1,1 @@
+CREATE INDEX activity_action_index ON activities (action);

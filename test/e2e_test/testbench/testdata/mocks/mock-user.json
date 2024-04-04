@@ -1,9 +1,5 @@
 [
     {
-        "name": "admin1-group1-org1",
-        "email": "admin1-group1-org1@gotocompany.com"
-    },
-    {
         "name": "member2-group1",
         "email": "member2-group1@gotocompany.com"
     },
