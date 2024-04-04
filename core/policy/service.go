@@ -10,8 +10,6 @@ import (
 const (
 	AuditKeyPolicyCreate = "policy.create"
 	AuditKeyPolicyUpdate = "policy.update"
-
-	AuditEntity = "policy"
 )
 
 type UserService interface {
@@ -55,13 +53,7 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          policyId,
-		"roleId":      policy.RoleID,
-		"namespaceId": policy.NamespaceID,
-		"actionId":    policy.ActionID,
-	}
+	logData := policy.ToPolicyLogData(policyId)
 	if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -82,13 +74,7 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          policyId,
-		"roleId":      pol.RoleID,
-		"namespaceId": pol.NamespaceID,
-		"actionId":    pol.ActionID,
-	}
+	logData := pol.ToPolicyLogData(policyId)
 	if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

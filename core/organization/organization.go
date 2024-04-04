@@ -6,7 +6,10 @@ import (
 
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/metadata"
+	"golang.org/x/exp/maps"
 )
+
+const AuditEntity = "organization"
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Organization, error)
@@ -25,4 +28,16 @@ type Organization struct {
 	Metadata  metadata.Metadata
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+func (organization Organization) ToOrganizationAuditData() map[string]string {
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     organization.ID,
+		"name":   organization.Name,
+		"slug":   organization.Slug,
+	}
+	maps.Copy(logData, organization.Metadata.ToStringValueMap())
+
+	return logData
 }

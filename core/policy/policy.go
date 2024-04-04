@@ -4,6 +4,8 @@ import (
 	"context"
 )
 
+const AuditEntity = "policy"
+
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
 	List(ctx context.Context) ([]Policy, error)
@@ -24,4 +26,14 @@ type Policy struct {
 
 type Filters struct {
 	NamespaceID string
+}
+
+func (policy Policy) ToPolicyLogData(policyId string) map[string]string {
+	return map[string]string{
+		"entity":      AuditEntity,
+		"id":          policyId,
+		"roleId":      policy.RoleID,
+		"namespaceId": policy.NamespaceID,
+		"actionId":    policy.ActionID,
+	}
 }

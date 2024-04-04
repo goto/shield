@@ -19,8 +19,6 @@ import (
 const (
 	AuditKeyResourceCreate = "resource.create"
 	AuditKeyResourceUpdate = "resource.update"
-
-	AuditEntity = "resource"
 )
 
 type RelationService interface {
@@ -120,15 +118,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	logData := map[string]string{
-		"entity":         AuditEntity,
-		"urn":            newResource.URN,
-		"name":           newResource.Name,
-		"organizationID": newResource.OrganizationID,
-		"projectID":      newResource.ProjectID,
-		"namespaceID":    newResource.NamespaceID,
-		"userID":         newResource.UserID,
-	}
+	logData := newResource.ToResourceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -156,15 +146,7 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":         AuditEntity,
-		"urn":            updatedResource.URN,
-		"name":           updatedResource.Name,
-		"organizationID": updatedResource.OrganizationID,
-		"projectID":      updatedResource.ProjectID,
-		"namespaceID":    updatedResource.NamespaceID,
-		"userID":         updatedResource.UserID,
-	}
+	logData := updatedResource.ToResourceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

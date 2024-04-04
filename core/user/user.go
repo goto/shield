@@ -5,6 +5,12 @@ import (
 	"time"
 
 	"github.com/goto/shield/pkg/metadata"
+	"golang.org/x/exp/maps"
+)
+
+const (
+	AuditEntityUser         = "user"
+	AuditEntityUserMetadata = "user_metadata_key"
 )
 
 type Repository interface {
@@ -37,4 +43,22 @@ type UserMetadataKey struct {
 type PagedUsers struct {
 	Count int32
 	Users []User
+}
+
+func (user User) ToUserAuditData() map[string]string {
+	logData := map[string]string{
+		"entity": AuditEntityUser,
+		"name":   user.Name,
+		"email":  user.Email,
+	}
+	maps.Copy(logData, user.Metadata.ToStringValueMap())
+	return logData
+}
+
+func (userMetadataKey UserMetadataKey) ToUserMetadataKey() map[string]string {
+	return map[string]string{
+		"entity":      AuditEntityUserMetadata,
+		"key":         userMetadataKey.Key,
+		"description": userMetadataKey.Description,
+	}
 }

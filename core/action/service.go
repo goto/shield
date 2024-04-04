@@ -10,8 +10,6 @@ import (
 const (
 	AuditKeyActionCreate = "action.create"
 	AuditKeyActionUpdate = "action.update"
-
-	AuditEntity = "action"
 )
 
 type UserService interface {
@@ -47,12 +45,7 @@ func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          newAction.ID,
-		"name":        newAction.Name,
-		"namespaceId": newAction.NamespaceID,
-	}
+	logData := newAction.ToActionLogData()
 	if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -76,12 +69,7 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          updatedAction.ID,
-		"name":        updatedAction.Name,
-		"namespaceId": updatedAction.NamespaceID,
-	}
+	logData := updatedAction.ToActionLogData()
 	if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

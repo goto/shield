@@ -14,9 +14,6 @@ const (
 	AuditKeyRelationCreate        = "relation.create"
 	AuditKeyRelationDelete        = "relation.delete"
 	AuditKeyRelationSubjectDelete = "relation_subject.delete"
-
-	AuditEntityRelation        = "relation"
-	AuditEntityRelationSubject = "relation_subject"
 )
 
 type UserService interface {
@@ -59,15 +56,7 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":            AuditEntityRelation,
-		"id":                createdRelation.ID,
-		"objectId":          createdRelation.Object.ID,
-		"objectNamespaceId": createdRelation.Object.NamespaceID,
-		"subjectId":         createdRelation.Subject.ID,
-		"subjectNamespace":  createdRelation.Subject.Namespace,
-		"roleId":            createdRelation.Subject.RoleID,
-	}
+	logData := createdRelation.ToRelationAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -156,11 +145,7 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":             AuditEntityRelationSubject,
-		"resourceType":       resourceType,
-		"optionalResourceId": optionalResourceID,
-	}
+	logData := ToRelationSubjectAuditData(resourceType, optionalResourceID)
 	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

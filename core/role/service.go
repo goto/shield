@@ -2,7 +2,6 @@ package role
 
 import (
 	"context"
-	"strings"
 
 	"github.com/goto/shield/core/user"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -11,8 +10,6 @@ import (
 const (
 	AuditKeyRoleCreate = "role.create"
 	AuditKeyRoleUpdate = "role.update"
-
-	AuditEntity = "role"
 )
 
 type UserService interface {
@@ -49,14 +46,8 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          newRole.ID,
-		"name":        newRole.Name,
-		"types":       strings.Join(newRole.Types, " "),
-		"namespaceId": newRole.NamespaceID,
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.Email, logData); err != nil {
+	logData := newRole.ToRoleAuditData()
+	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
 	}
@@ -84,14 +75,8 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntity,
-		"id":          updatedRole.ID,
-		"name":        updatedRole.Name,
-		"types":       strings.Join(updatedRole.Types, " "),
-		"namespaceId": updatedRole.NamespaceID,
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.Email, logData); err != nil {
+	logData := updatedRole.ToRoleAuditData()
+	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
 	}

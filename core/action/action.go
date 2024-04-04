@@ -5,6 +5,8 @@ import (
 	"time"
 )
 
+const AuditEntity = "action"
+
 type Repository interface {
 	Get(ctx context.Context, id string) (Action, error)
 	Create(ctx context.Context, action Action) (Action, error)
@@ -18,4 +20,13 @@ type Action struct {
 	NamespaceID string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+func (action Action) ToActionLogData() map[string]string {
+	return map[string]string{
+		"entity":      AuditEntity,
+		"id":          action.ID,
+		"name":        action.Name,
+		"namespaceId": action.NamespaceID,
+	}
 }

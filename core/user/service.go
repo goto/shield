@@ -4,8 +4,6 @@ import (
 	"context"
 	"strings"
 
-	"golang.org/x/exp/maps"
-
 	"github.com/goto/shield/pkg/uuid"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
@@ -14,9 +12,6 @@ const (
 	AuditKeyUserCreate            = "user.create"
 	AuditKeyUserUpdate            = "user.update"
 	AuditKeyUserMetadataKeyCreate = "user_metadata_key.create"
-
-	AuditEntityUser         = "user"
-	AuditEntityUserMetadata = "user_metadata_key"
 )
 
 type ActivityService interface {
@@ -65,12 +60,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	}
 
 	currentUser, _ := s.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity": AuditEntityUser,
-		"name":   newUser.Name,
-		"email":  newUser.Email,
-	}
-	maps.Copy(logData, newUser.Metadata.ToStringValueMap())
+	logData := newUser.ToUserAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyUserCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -89,11 +79,7 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	}
 
 	currentUser, _ := s.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":      AuditEntityUserMetadata,
-		"key":         newUserMetadataKey.Key,
-		"description": newUserMetadataKey.Description,
-	}
+	logData := newUserMetadataKey.ToUserMetadataKey()
 	if err := s.activityService.Log(ctx, AuditKeyUserMetadataKeyCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -121,12 +107,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	}
 
 	currentUser, _ := s.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity": AuditEntityUser,
-		"name":   updatedUser.Name,
-		"email":  updatedUser.Email,
-	}
-	maps.Copy(logData, updatedUser.Metadata.ToStringValueMap())
+	logData := updatedUser.ToUserAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(err.Error())
@@ -142,12 +123,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	}
 
 	currentUser, _ := s.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity": AuditEntityUser,
-		"name":   updatedUser.Name,
-		"email":  updatedUser.Email,
-	}
-	maps.Copy(logData, updatedUser.Metadata.ToStringValueMap())
+	logData := updatedUser.ToUserAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

@@ -4,9 +4,13 @@ import (
 	"context"
 	"time"
 
+	"golang.org/x/exp/maps"
+
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/pkg/metadata"
 )
+
+const AuditEntity = "group"
 
 type Repository interface {
 	Create(ctx context.Context, grp Group) (Group, error)
@@ -28,4 +32,17 @@ type Group struct {
 	Metadata       metadata.Metadata
 	CreatedAt      time.Time
 	UpdatedAt      time.Time
+}
+
+func (group Group) ToGroupAuditData() map[string]string {
+	logData := map[string]string{
+		"entity": AuditEntity,
+		"id":     group.ID,
+		"name":   group.Name,
+		"slug":   group.Slug,
+		"orgId":  group.OrganizationID,
+	}
+	maps.Copy(logData, group.Metadata.ToStringValueMap())
+
+	return logData
 }

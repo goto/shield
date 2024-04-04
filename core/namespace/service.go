@@ -10,8 +10,6 @@ import (
 const (
 	AuditKeyNamespaceCreate = "namespace.create"
 	AuditKeyNamespaceUpdate = "namespace.update"
-
-	AuditEntity = "namespace"
 )
 
 type UserService interface {
@@ -47,13 +45,7 @@ func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":       AuditEntity,
-		"id":           newNamespace.ID,
-		"name":         newNamespace.Name,
-		"backend":      newNamespace.Backend,
-		"resourceType": newNamespace.ResourceType,
-	}
+	logData := newNamespace.ToNameSpaceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyNamespaceCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -73,13 +65,7 @@ func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity":       AuditEntity,
-		"id":           updatedNamespace.ID,
-		"name":         updatedNamespace.Name,
-		"backend":      updatedNamespace.Backend,
-		"resourceType": updatedNamespace.ResourceType,
-	}
+	logData := updatedNamespace.ToNameSpaceAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyNamespaceUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())

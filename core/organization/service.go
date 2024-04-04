@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"golang.org/x/exp/maps"
-
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
@@ -18,8 +16,6 @@ import (
 const (
 	AuditKeyOrganizationCreate = "organization.create"
 	AuditKeyOrganizationUpdate = "organization.update"
-
-	AuditEntity = "organization"
 )
 
 type RelationService interface {
@@ -80,13 +76,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	logData := map[string]string{
-		"entity": AuditEntity,
-		"id":     newOrg.ID,
-		"name":   newOrg.Name,
-		"slug":   newOrg.Slug,
-	}
-	maps.Copy(logData, newOrg.Metadata.ToStringValueMap())
+	logData := newOrg.ToOrganizationAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyOrganizationCreate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
@@ -110,13 +100,7 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 	}
 
 	currentUser, _ := s.userService.FetchCurrentUser(ctx)
-	logData := map[string]string{
-		"entity": AuditEntity,
-		"id":     updatedOrg.ID,
-		"name":   updatedOrg.Name,
-		"slug":   updatedOrg.Slug,
-	}
-	maps.Copy(logData, updatedOrg.Metadata.ToStringValueMap())
+	logData := updatedOrg.ToOrganizationAuditData()
 	if err := s.activityService.Log(ctx, AuditKeyOrganizationUpdate, currentUser.ID, logData); err != nil {
 		logger := grpczap.Extract(ctx)
 		logger.Error(ErrLogActivity.Error())
