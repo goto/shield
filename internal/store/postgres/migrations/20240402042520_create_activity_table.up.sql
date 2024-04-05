@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS activities (
     timestamp   timestamptz,
     action      varchar,
-    actor       varchar,
+    actor       uuid,
     data        jsonb,
     metadata    jsonb
 );
