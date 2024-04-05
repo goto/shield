@@ -18,7 +18,7 @@ func NewService(repository Repository) *Service {
 	}
 }
 
-func (s Service) Log(ctx context.Context, action string, actor string, data map[string]string) error {
+func (s Service) Log(ctx context.Context, action string, actor string, data map[string]interface{}) error {
 	metadata := map[string]string{
 		"app_name":    "shield",
 		"app_version": config.Version,

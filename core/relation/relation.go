@@ -76,22 +76,38 @@ var RelationTypes = struct {
 	Namespace: "namespace",
 }
 
-func (relation RelationV2) ToRelationAuditData() map[string]string {
-	return map[string]string{
-		"entity":           AuditEntityRelation,
-		"id":               relation.ID,
-		"objectId":         relation.Object.ID,
-		"objectNamespace":  relation.Object.NamespaceID,
-		"subjectId":        relation.Subject.ID,
-		"subjectNamespace": relation.Subject.Namespace,
-		"roleId":           relation.Subject.RoleID,
+type RelationLogData struct {
+	Entity           string
+	ID               string
+	ObjectID         string
+	ObjectNamespace  string
+	SubjectID        string
+	SubjectNamespace string
+	RoleID           string
+}
+
+type RelationSubjectLogData struct {
+	Entity             string
+	ResourceType       string
+	OptionalResourceID string
+}
+
+func (relation RelationV2) ToRelationLogData() RelationLogData {
+	return RelationLogData{
+		Entity:           AuditEntityRelation,
+		ID:               relation.ID,
+		ObjectID:         relation.Object.ID,
+		ObjectNamespace:  relation.Object.NamespaceID,
+		SubjectID:        relation.Subject.ID,
+		SubjectNamespace: relation.Subject.Namespace,
+		RoleID:           relation.Subject.RoleID,
 	}
 }
 
-func ToRelationSubjectAuditData(resourceType, optionalResourceID string) map[string]string {
-	return map[string]string{
-		"entity":             AuditEntityRelationSubject,
-		"resourceType":       resourceType,
-		"optionalResourceId": optionalResourceID,
+func ToRelationSubjectLogData(resourceType, optionalResourceID string) RelationSubjectLogData {
+	return RelationSubjectLogData{
+		Entity:             AuditEntityRelationSubject,
+		ResourceType:       resourceType,
+		OptionalResourceID: optionalResourceID,
 	}
 }

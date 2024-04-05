@@ -36,6 +36,7 @@ import (
 	"github.com/goto/shield/pkg/db"
 
 	"github.com/goto/salt/log"
+	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"github.com/pkg/profile"
 	"google.golang.org/grpc/codes"
 )
@@ -90,25 +91,29 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
+	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail)
+
 	//
+	serviceLogger := grpczap.Extract(ctx).Sugar()
+
 	activityRepository := postgres.NewActivityRepository(dbClient)
 	activityService := activity.NewService(activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbClient)
-	userService := user.NewService(userRepository, activityService)
+	userService := user.NewService(userRepository, activityService, serviceLogger)
 
 	actionRepository := postgres.NewActionRepository(dbClient)
-	actionService := action.NewService(actionRepository, userService, activityService)
+	actionService := action.NewService(actionRepository, userService, activityService, serviceLogger)
 
 	roleRepository := postgres.NewRoleRepository(dbClient)
-	roleService := role.NewService(roleRepository, userService, activityService)
+	roleService := role.NewService(roleRepository, userService, activityService, serviceLogger)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbClient)
 	policySpiceRepository := spicedb.NewPolicyRepository(spiceDBClient)
-	policyService := policy.NewService(policyPGRepository, userService, activityService)
+	policyService := policy.NewService(policyPGRepository, userService, activityService, serviceLogger)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
-	namespaceService := namespace.NewService(namespaceRepository, userService, activityService)
+	namespaceService := namespace.NewService(namespaceRepository, userService, activityService, serviceLogger)
 
 	s := schema.NewSchemaMigrationService(
 		blob.NewSchemaConfigRepository(resourceBlobFS),
@@ -118,7 +123,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		policyService,
 		policySpiceRepository,
 		userRepository,
-		cfg.App.DefaultSystemEmail,
+		schemaMigrationConfig,
 	)
 
 	err = s.RunMigrations(ctx)
@@ -168,40 +173,42 @@ func BuildAPIDependencies(
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
+	serviceLogger := grpczap.Extract(ctx).Sugar()
+
 	activityRepository := postgres.NewActivityRepository(dbc)
 	activityService := activity.NewService(activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(userRepository, activityService)
+	userService := user.NewService(userRepository, activityService, serviceLogger)
 
 	actionRepository := postgres.NewActionRepository(dbc)
-	actionService := action.NewService(actionRepository, userService, activityService)
+	actionService := action.NewService(actionRepository, userService, activityService, serviceLogger)
 
 	namespaceRepository := postgres.NewNamespaceRepository(dbc)
-	namespaceService := namespace.NewService(namespaceRepository, userService, activityService)
+	namespaceService := namespace.NewService(namespaceRepository, userService, activityService, serviceLogger)
 
 	roleRepository := postgres.NewRoleRepository(dbc)
-	roleService := role.NewService(roleRepository, userService, activityService)
+	roleService := role.NewService(roleRepository, userService, activityService, serviceLogger)
 
 	relationPGRepository := postgres.NewRelationRepository(dbc)
 	relationSpiceRepository := spicedb.NewRelationRepository(sdb)
-	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, userService, activityService)
+	relationService := relation.NewService(relationPGRepository, relationSpiceRepository, userService, activityService, serviceLogger)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(groupRepository, relationService, userService, activityService)
+	groupService := group.NewService(groupRepository, relationService, userService, activityService, serviceLogger)
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
-	organizationService := organization.NewService(organizationRepository, relationService, userService, activityService)
+	organizationService := organization.NewService(organizationRepository, relationService, userService, activityService, serviceLogger)
 
 	projectRepository := postgres.NewProjectRepository(dbc)
-	projectService := project.NewService(projectRepository, relationService, userService, activityService)
+	projectService := project.NewService(projectRepository, relationService, userService, activityService, serviceLogger)
 
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
-	policyService := policy.NewService(policyPGRepository, userService, activityService)
+	policyService := policy.NewService(policyPGRepository, userService, activityService, serviceLogger)
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, activityService)
+		resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, activityService, serviceLogger)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
 

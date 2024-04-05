@@ -14,7 +14,8 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 )
 
 const (
@@ -46,7 +47,7 @@ type GroupService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]string) error
+	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
 }
 
 type Service struct {
@@ -58,9 +59,10 @@ type Service struct {
 	organizationService OrganizationService
 	groupService        GroupService
 	activityService     ActivityService
+	logger              *zap.SugaredLogger
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
+func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
 	return &Service{
 		repository:          repository,
 		configRepository:    configRepository,
@@ -70,6 +72,7 @@ func NewService(repository Repository, configRepository ConfigRepository, relati
 		organizationService: organizationService,
 		groupService:        groupService,
 		activityService:     activityService,
+		logger:              logger,
 	}
 }
 
@@ -123,10 +126,13 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	logData := newResource.ToResourceAuditData()
-	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	resourceLogData := newResource.ToResourceLogData()
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return newResource, nil
@@ -155,10 +161,13 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 		return Resource{}, err
 	}
 
-	logData := updatedResource.ToResourceAuditData()
-	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	resourceLogData := updatedResource.ToResourceLogData()
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return updatedResource, nil

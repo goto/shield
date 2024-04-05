@@ -1,1 +1,0 @@
-CREATE INDEX activity_metadata_index ON activities USING gin (metadata);

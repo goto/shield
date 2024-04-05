@@ -4,8 +4,6 @@ import (
 	"context"
 	"time"
 
-	"golang.org/x/exp/maps"
-
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/pkg/metadata"
 )
@@ -34,19 +32,22 @@ type Group struct {
 	UpdatedAt      time.Time
 }
 
-func (group Group) ToGroupAuditData() (map[string]string, error) {
-	logData := map[string]string{
-		"entity": AuditEntity,
-		"id":     group.ID,
-		"name":   group.Name,
-		"slug":   group.Slug,
-		"orgId":  group.OrganizationID,
-	}
-	groupMetadata, err := group.Metadata.ToStringValueMap()
-	if err != nil {
-		return logData, err
+type GroupLogData struct {
+	Entity string
+	ID     string
+	Name   string
+	Slug   string
+	OrgID  string
+}
+
+func (group Group) ToGroupLogData() GroupLogData {
+	logData := GroupLogData{
+		Entity: AuditEntity,
+		ID:     group.ID,
+		Name:   group.Name,
+		Slug:   group.Slug,
+		OrgID:  group.OrganizationID,
 	}
 
-	maps.Copy(logData, groupMetadata)
-	return logData, nil
+	return logData
 }

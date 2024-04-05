@@ -71,14 +71,24 @@ type PagedResources struct {
 	Resources []Resource
 }
 
-func (resource Resource) ToResourceAuditData() map[string]string {
-	return map[string]string{
-		"entity":         AuditEntity,
-		"urn":            resource.URN,
-		"name":           resource.Name,
-		"organizationID": resource.OrganizationID,
-		"projectID":      resource.ProjectID,
-		"namespaceID":    resource.NamespaceID,
-		"userID":         resource.UserID,
+type ResourceLogData struct {
+	Entity         string
+	URN            string
+	Name           string
+	OrganizationID string
+	ProjectID      string
+	NamespaceID    string
+	UserID         string
+}
+
+func (resource Resource) ToResourceLogData() ResourceLogData {
+	return ResourceLogData{
+		Entity:         AuditEntity,
+		URN:            resource.URN,
+		Name:           resource.Name,
+		OrganizationID: resource.OrganizationID,
+		ProjectID:      resource.ProjectID,
+		NamespaceID:    resource.NamespaceID,
+		UserID:         resource.UserID,
 	}
 }

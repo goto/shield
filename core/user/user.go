@@ -5,7 +5,6 @@ import (
 	"time"
 
 	"github.com/goto/shield/pkg/metadata"
-	"golang.org/x/exp/maps"
 )
 
 const (
@@ -45,25 +44,30 @@ type PagedUsers struct {
 	Users []User
 }
 
-func (user User) ToUserAuditData() (map[string]string, error) {
-	logData := map[string]string{
-		"entity": AuditEntityUser,
-		"name":   user.Name,
-		"email":  user.Email,
-	}
-	userMetadata, err := user.Metadata.ToStringValueMap()
-	if err != nil {
-		return logData, err
-	}
-
-	maps.Copy(logData, userMetadata)
-	return logData, nil
+type UserLogData struct {
+	Entity string
+	Name   string
+	Email  string
 }
 
-func (userMetadataKey UserMetadataKey) ToUserMetadataKey() map[string]string {
-	return map[string]string{
-		"entity":      AuditEntityUserMetadata,
-		"key":         userMetadataKey.Key,
-		"description": userMetadataKey.Description,
+type UserMetadataKeyLogData struct {
+	Entity      string
+	Key         string
+	Description string
+}
+
+func (user User) ToUserLogData() UserLogData {
+	return UserLogData{
+		Entity: AuditEntityUser,
+		Name:   user.Name,
+		Email:  user.Email,
+	}
+}
+
+func (userMetadataKey UserMetadataKey) ToUserMetadataKeyLogData() UserMetadataKeyLogData {
+	return UserMetadataKeyLogData{
+		Entity:      AuditEntityUserMetadata,
+		Key:         userMetadataKey.Key,
+		Description: userMetadataKey.Description,
 	}
 }

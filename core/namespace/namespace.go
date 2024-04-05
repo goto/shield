@@ -24,13 +24,21 @@ type Namespace struct {
 	UpdatedAt    time.Time
 }
 
-func (namespace Namespace) ToNameSpaceAuditData() map[string]string {
-	return map[string]string{
-		"entity":       AuditEntity,
-		"id":           namespace.ID,
-		"name":         namespace.Name,
-		"backend":      namespace.Backend,
-		"resourceType": namespace.ResourceType,
+type NamspaceLogData struct {
+	Entity       string
+	ID           string
+	Name         string
+	Backend      string
+	ResourceType string
+}
+
+func (namespace Namespace) ToNameSpaceLogData() NamspaceLogData {
+	return NamspaceLogData{
+		Entity:       AuditEntity,
+		ID:           namespace.ID,
+		Name:         namespace.Name,
+		Backend:      namespace.Backend,
+		ResourceType: namespace.ResourceType,
 	}
 }
 

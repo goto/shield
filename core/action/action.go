@@ -22,11 +22,18 @@ type Action struct {
 	UpdatedAt   time.Time
 }
 
-func (action Action) ToActionLogData() map[string]string {
-	return map[string]string{
-		"entity":      AuditEntity,
-		"id":          action.ID,
-		"name":        action.Name,
-		"namespaceId": action.NamespaceID,
+type ActionLogData struct {
+	Entity      string
+	ID          string
+	Name        string
+	NamespaceID string
+}
+
+func (action Action) ToActionLogData() ActionLogData {
+	return ActionLogData{
+		Entity:      AuditEntity,
+		ID:          action.ID,
+		Name:        action.Name,
+		NamespaceID: action.NamespaceID,
 	}
 }

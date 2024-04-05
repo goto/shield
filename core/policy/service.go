@@ -5,7 +5,8 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/user"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 )
 
 const (
@@ -18,20 +19,22 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]string) error
+	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
 }
 
 type Service struct {
 	repository      Repository
 	userService     UserService
 	activityService ActivityService
+	logger          *zap.SugaredLogger
 }
 
-func NewService(repository Repository, userService UserService, activityService ActivityService) *Service {
+func NewService(repository Repository, userService UserService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
 	return &Service{
 		repository:      repository,
 		userService:     userService,
 		activityService: activityService,
+		logger:          logger,
 	}
 }
 
@@ -58,10 +61,13 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	logData := policy.ToPolicyLogData(policyId)
-	if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	policyLogData := policy.ToPolicyLogData(policyId)
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return policies, err
@@ -83,10 +89,13 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	logData := pol.ToPolicyLogData(policyId)
-	if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	policyLogData := pol.ToPolicyLogData(policyId)
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return policies, err

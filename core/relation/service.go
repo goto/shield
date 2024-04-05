@@ -7,7 +7,8 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/user"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 )
 
 const (
@@ -21,7 +22,7 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]string) error
+	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
 }
 
 type Service struct {
@@ -29,14 +30,16 @@ type Service struct {
 	authzRepository AuthzRepository
 	userService     UserService
 	activityService ActivityService
+	logger          *zap.SugaredLogger
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository, userService UserService, activityService ActivityService) *Service {
+func NewService(repository Repository, authzRepository AuthzRepository, userService UserService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
 	return &Service{
 		repository:      repository,
 		authzRepository: authzRepository,
 		userService:     userService,
 		activityService: activityService,
+		logger:          logger,
 	}
 }
 
@@ -60,10 +63,13 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 
-	logData := createdRelation.ToRelationAuditData()
-	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	relationLogData := createdRelation.ToRelationLogData()
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(relationLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return createdRelation, nil
@@ -153,10 +159,13 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 		return err
 	}
 
-	logData := ToRelationSubjectAuditData(resourceType, optionalResourceID)
-	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logData); err != nil {
-		logger := grpczap.Extract(ctx)
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	relationSubjectlogData := ToRelationSubjectLogData(resourceType, optionalResourceID)
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(relationSubjectlogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+	}
+	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return nil

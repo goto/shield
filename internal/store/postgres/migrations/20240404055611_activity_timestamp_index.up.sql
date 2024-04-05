@@ -1,1 +1,0 @@
-CREATE INDEX activity_timestamp_index ON activities (timestamp);

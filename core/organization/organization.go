@@ -6,7 +6,6 @@ import (
 
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/metadata"
-	"golang.org/x/exp/maps"
 )
 
 const AuditEntity = "organization"
@@ -30,18 +29,20 @@ type Organization struct {
 	UpdatedAt time.Time
 }
 
-func (organization Organization) ToOrganizationAuditData() (map[string]string, error) {
-	logData := map[string]string{
-		"entity": AuditEntity,
-		"id":     organization.ID,
-		"name":   organization.Name,
-		"slug":   organization.Slug,
-	}
-	orgMetadata, err := organization.Metadata.ToStringValueMap()
-	if err != nil {
-		return logData, err
+type OrganizationLogData struct {
+	Entity string
+	ID     string
+	Name   string
+	Slug   string
+}
+
+func (organization Organization) ToOrganizationLogData() OrganizationLogData {
+	logData := OrganizationLogData{
+		Entity: AuditEntity,
+		ID:     organization.ID,
+		Name:   organization.Name,
+		Slug:   organization.Slug,
 	}
 
-	maps.Copy(logData, orgMetadata)
-	return logData, nil
+	return logData
 }

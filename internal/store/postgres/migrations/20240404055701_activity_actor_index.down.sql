@@ -1,1 +1,0 @@
-DROP INDEX IF EXISTS activity_actor_index;

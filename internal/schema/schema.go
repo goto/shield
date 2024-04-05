@@ -67,15 +67,20 @@ type UserRepository interface {
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 }
 
+type SchemaMigrationConfig struct {
+	DefaultSystemEmail string
+}
+
 type SchemaService struct {
-	schemaConfig       FileService
-	namespaceService   NamespaceService
-	roleService        RoleService
-	actionService      ActionService
-	policyService      PolicyService
-	authzEngine        AuthzEngine
-	userRepository     UserRepository
-	defaultSystemEmail string
+	schemaConfig          FileService
+	namespaceService      NamespaceService
+	roleService           RoleService
+	actionService         ActionService
+	policyService         PolicyService
+	authzEngine           AuthzEngine
+	userRepository        UserRepository
+	schemaMigrationConfig SchemaMigrationConfig
+	defaultSystemEmail    string
 }
 
 func NewSchemaMigrationService(
@@ -86,30 +91,33 @@ func NewSchemaMigrationService(
 	policyService PolicyService,
 	authzEngine AuthzEngine,
 	userRepository UserRepository,
-	defaultSystemEmail string) *SchemaService {
+	schemaMigrationConfig SchemaMigrationConfig) *SchemaService {
 	return &SchemaService{
-		schemaConfig:       schemaConfig,
-		namespaceService:   namespaceService,
-		roleService:        roleService,
-		actionService:      actionService,
-		policyService:      policyService,
-		authzEngine:        authzEngine,
-		userRepository:     userRepository,
-		defaultSystemEmail: defaultSystemEmail,
+		schemaConfig:          schemaConfig,
+		namespaceService:      namespaceService,
+		roleService:           roleService,
+		actionService:         actionService,
+		policyService:         policyService,
+		authzEngine:           authzEngine,
+		userRepository:        userRepository,
+		schemaMigrationConfig: schemaMigrationConfig,
 	}
 }
 
 func (s SchemaService) RunMigrations(ctx context.Context) error {
 	defaultUser := user.User{
-		Name:  s.defaultSystemEmail,
-		Email: s.defaultSystemEmail,
+		Name:  s.schemaMigrationConfig.DefaultSystemEmail,
+		Email: s.schemaMigrationConfig.DefaultSystemEmail,
 	}
 
-	switch _, err := s.userRepository.GetByEmail(ctx, defaultUser.Email); err {
-	// creating predefined user for log activity if user not exist
-	case user.ErrNotExist:
-		_, err := s.userRepository.Create(ctx, defaultUser)
-		if err != nil {
+	if _, err := s.userRepository.GetByEmail(ctx, defaultUser.Email); err != nil {
+		// creating predefined user for log activity if user not exist
+		if err == user.ErrNotExist {
+			if _, err := s.userRepository.Create(ctx, defaultUser); err != nil {
+				return err
+			}
+		} else {
+			// if other error occured, return the error
 			return err
 		}
 	}
@@ -259,4 +267,10 @@ func MergeNamespaceConfigMap(smallMap, largeMap NamespaceConfigMapType) Namespac
 	}
 
 	return combinedMap
+}
+
+func NewSchemaMigrationConfig(defaultSystemEmail string) SchemaMigrationConfig {
+	return SchemaMigrationConfig{
+		DefaultSystemEmail: defaultSystemEmail,
+	}
 }

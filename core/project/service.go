@@ -11,7 +11,8 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
-	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"github.com/mitchellh/mapstructure"
+	"go.uber.org/zap"
 )
 
 const (
@@ -32,7 +33,7 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]string) error
+	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
 }
 
 type Service struct {
@@ -40,14 +41,16 @@ type Service struct {
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
+	logger          *zap.SugaredLogger
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
+func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
 	return &Service{
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 		activityService: activityService,
+		logger:          logger,
 	}
 }
 
@@ -78,13 +81,13 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	logger := grpczap.Extract(ctx)
-	logData, err := newProject.ToProjectAuditData()
-	if err != nil {
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	projectLogData := newProject.ToProjectLogData()
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
-	if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logData); err != nil {
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return newProject, nil
@@ -109,13 +112,13 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	logger := grpczap.Extract(ctx)
-	logData, err := updatedProject.ToProjectAuditData()
-	if err != nil {
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	projectLogData := updatedProject.ToProjectLogData()
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
-	if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logData); err != nil {
-		logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+	if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logDataMap); err != nil {
+		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 	}
 
 	return updatedProject, err

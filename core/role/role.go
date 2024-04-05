@@ -29,13 +29,21 @@ type Role struct {
 	UpdatedAt   time.Time
 }
 
-func (role Role) ToRoleAuditData() map[string]string {
-	return map[string]string{
-		"entity":      AuditEntity,
-		"id":          role.ID,
-		"name":        role.Name,
-		"types":       strings.Join(role.Types, " "),
-		"namespaceId": role.NamespaceID,
+type RoleLogData struct {
+	Entity      string
+	ID          string
+	Name        string
+	Types       []string
+	NamespaceID string
+}
+
+func (role Role) ToRoleLogData() RoleLogData {
+	return RoleLogData{
+		Entity:      AuditEntity,
+		ID:          role.ID,
+		Name:        role.Name,
+		Types:       role.Types,
+		NamespaceID: role.NamespaceID,
 	}
 }
 

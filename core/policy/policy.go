@@ -28,12 +28,20 @@ type Filters struct {
 	NamespaceID string
 }
 
-func (policy Policy) ToPolicyLogData(policyId string) map[string]string {
-	return map[string]string{
-		"entity":      AuditEntity,
-		"id":          policyId,
-		"roleId":      policy.RoleID,
-		"namespaceId": policy.NamespaceID,
-		"actionId":    policy.ActionID,
+type PolicyLogData struct {
+	Entity      string
+	ID          string
+	RoleID      string
+	NamespaceID string
+	ActionID    string
+}
+
+func (policy Policy) ToPolicyLogData(policyId string) PolicyLogData {
+	return PolicyLogData{
+		Entity:      AuditEntity,
+		ID:          policyId,
+		RoleID:      policy.RoleID,
+		NamespaceID: policy.NamespaceID,
+		ActionID:    policy.ActionID,
 	}
 }
