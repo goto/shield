@@ -45,15 +45,15 @@ type PagedUsers struct {
 }
 
 type UserLogData struct {
-	Entity string
-	Name   string
-	Email  string
+	Entity string `mapstructure:"entity"`
+	Name   string `mapstructure:"name"`
+	Email  string `mapstructure:"email"`
 }
 
 type UserMetadataKeyLogData struct {
-	Entity      string
-	Key         string
-	Description string
+	Entity      string `mapstructure:"entity"`
+	Key         string `mapstructure:"key"`
+	Description string `mapstructure:"description"`
 }
 
 func (user User) ToUserLogData() UserLogData {

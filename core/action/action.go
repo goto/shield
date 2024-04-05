@@ -23,10 +23,10 @@ type Action struct {
 }
 
 type ActionLogData struct {
-	Entity      string
-	ID          string
-	Name        string
-	NamespaceID string
+	Entity      string `mapstructure:"entity"`
+	ID          string `mapstructure:"id"`
+	Name        string `mapstructure:"name"`
+	NamespaceID string `mapstructure:"namespace_id"`
 }
 
 func (action Action) ToActionLogData() ActionLogData {

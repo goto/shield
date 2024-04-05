@@ -77,19 +77,19 @@ var RelationTypes = struct {
 }
 
 type RelationLogData struct {
-	Entity           string
-	ID               string
-	ObjectID         string
-	ObjectNamespace  string
-	SubjectID        string
-	SubjectNamespace string
-	RoleID           string
+	Entity           string `mapstructure:"entity"`
+	ID               string `mapstructure:"id"`
+	ObjectID         string `mapstructure:"object_id"`
+	ObjectNamespace  string `mapstructure:"object_namespace"`
+	SubjectID        string `mapstructure:"subject_id"`
+	SubjectNamespace string `mapstructure:"subject_namespace"`
+	RoleID           string `mapstructure:"role"`
 }
 
 type RelationSubjectLogData struct {
-	Entity             string
-	ResourceType       string
-	OptionalResourceID string
+	Entity             string `mapstructure:"entity"`
+	ResourceType       string `mapstructure:"resource_type"`
+	OptionalResourceID string `mapstructure:"optional_resource_id"`
 }
 
 func (relation RelationV2) ToRelationLogData() RelationLogData {

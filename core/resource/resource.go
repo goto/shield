@@ -72,13 +72,13 @@ type PagedResources struct {
 }
 
 type ResourceLogData struct {
-	Entity         string
-	URN            string
-	Name           string
-	OrganizationID string
-	ProjectID      string
-	NamespaceID    string
-	UserID         string
+	Entity         string `mapstructure:"entity"`
+	URN            string `mapstructure:"urn"`
+	Name           string `mapstructure:"name"`
+	OrganizationID string `mapstructure:"organization_id"`
+	ProjectID      string `mapstructure:"project_id"`
+	NamespaceID    string `mapstructure:"namespace_id"`
+	UserID         string `mapstructure:"user_id"`
 }
 
 func (resource Resource) ToResourceLogData() ResourceLogData {

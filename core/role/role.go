@@ -30,11 +30,11 @@ type Role struct {
 }
 
 type RoleLogData struct {
-	Entity      string
-	ID          string
-	Name        string
-	Types       []string
-	NamespaceID string
+	Entity      string   `mapstructure:"entity"`
+	ID          string   `mapstructure:"id"`
+	Name        string   `mapstructure:"name"`
+	Types       []string `mapstructure:"types"`
+	NamespaceID string   `mapstructure:"namespace_id"`
 }
 
 func (role Role) ToRoleLogData() RoleLogData {

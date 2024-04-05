@@ -25,11 +25,11 @@ type Namespace struct {
 }
 
 type NamspaceLogData struct {
-	Entity       string
-	ID           string
-	Name         string
-	Backend      string
-	ResourceType string
+	Entity       string `mapstructure:"entity"`
+	ID           string `mapstructure:"id"`
+	Name         string `mapstructure:"name"`
+	Backend      string `mapstructure:"backend"`
+	ResourceType string `mapstructure:"resource_type"`
 }
 
 func (namespace Namespace) ToNameSpaceLogData() NamspaceLogData {

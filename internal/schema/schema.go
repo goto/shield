@@ -116,7 +116,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				return err
 			}
 		} else {
-			// if other error occured, return the error
+			// if other error occurred, return the error
 			return err
 		}
 	}

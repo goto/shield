@@ -32,11 +32,11 @@ type Project struct {
 }
 
 type ProjectLogData struct {
-	Entity string
-	ID     string
-	Name   string
-	Slug   string
-	OrgID  string
+	Entity string `mapstructure:"entity"`
+	ID     string `mapstructure:"id"`
+	Name   string `mapstructure:"name"`
+	Slug   string `mapstructure:"slug"`
+	OrgID  string `mapstructure:"organization_id"`
 }
 
 func (project Project) ToProjectLogData() ProjectLogData {

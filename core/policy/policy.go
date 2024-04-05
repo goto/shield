@@ -29,11 +29,11 @@ type Filters struct {
 }
 
 type PolicyLogData struct {
-	Entity      string
-	ID          string
-	RoleID      string
-	NamespaceID string
-	ActionID    string
+	Entity      string `mapstructure:"entity"`
+	ID          string `mapstructure:"id"`
+	RoleID      string `mapstructure:"role_id"`
+	NamespaceID string `mapstructure:"namespace_id"`
+	ActionID    string `mapstructure:"action_id"`
 }
 
 func (policy Policy) ToPolicyLogData(policyId string) PolicyLogData {

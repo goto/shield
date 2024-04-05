@@ -30,10 +30,10 @@ type Organization struct {
 }
 
 type OrganizationLogData struct {
-	Entity string
-	ID     string
-	Name   string
-	Slug   string
+	Entity string `mapstructure:"entity"`
+	ID     string `mapstructure:"id"`
+	Name   string `mapstructure:"name"`
+	Slug   string `mapstructure:"slug"`
 }
 
 func (organization Organization) ToOrganizationLogData() OrganizationLogData {
