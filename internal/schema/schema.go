@@ -80,7 +80,6 @@ type SchemaService struct {
 	authzEngine           AuthzEngine
 	userRepository        UserRepository
 	schemaMigrationConfig SchemaMigrationConfig
-	defaultSystemEmail    string
 }
 
 func NewSchemaMigrationService(
