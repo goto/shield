@@ -91,7 +91,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	}
 
 	if !isValidEmail(email) {
-		return nil, ErrInvalidEmailID
+		return nil, user.ErrInvalidEmail
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -246,7 +246,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	}
 
 	if !isValidEmail(email) {
-		return nil, ErrInvalidEmailID
+		return nil, user.ErrInvalidEmail
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
