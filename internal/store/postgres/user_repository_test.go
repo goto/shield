@@ -203,14 +203,6 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			ExpectedEmail: "new.user@gotocompany.com",
 		},
 		{
-			Description: "should create a user with normalized email",
-			UserToCreate: user.User{
-				Name:  "new user 2",
-				Email: "New.User2@gotocompany.com",
-			},
-			ExpectedEmail: "new.user2@gotocompany.com",
-		},
-		{
 			Description: "should return error if user already exist",
 			UserToCreate: user.User{
 				Name:  "new user",
@@ -489,25 +481,6 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
-			},
-		},
-		{
-			Description: "should update a user email while normalizing email",
-			UserToUpdate: user.User{
-				ID:    s.users[0].ID,
-				Name:  "Doe John",
-				Email: "Doe.John@gotocompany.com",
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
-			},
-			ExpectedUser: user.User{
-				ID:    s.users[0].ID,
-				Name:  "Doe John",
-				Email: "doe.john@gotocompany.com",
 				Metadata: metadata.Metadata{
 					"k2": "v2",
 				},

@@ -158,7 +158,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	createQuery, params, err := dialect.Insert(TABLE_USERS).Rows(
 		goqu.Record{
 			"name":  usr.Name,
-			"email": strings.ToLower(usr.Email),
+			"email": usr.Email,
 		}).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -629,7 +629,7 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		query, params, err := dialect.Update(TABLE_USERS).Set(
 			goqu.Record{
 				"name":       usr.Name,
-				"email":      strings.ToLower(usr.Email),
+				"email":      usr.Email,
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{

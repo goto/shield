@@ -39,7 +39,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 func (s Service) Create(ctx context.Context, user User) (User, error) {
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
-		Email:    user.Email,
+		Email:    strings.ToLower(user.Email),
 		Metadata: user.Metadata,
 	})
 	if err != nil {
@@ -74,11 +74,20 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
 }
 
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
-	return s.repository.UpdateByID(ctx, toUpdate)
+	return s.repository.UpdateByID(ctx, User{
+		ID:       toUpdate.ID,
+		Name:     toUpdate.Name,
+		Email:    strings.ToLower(toUpdate.Email),
+		Metadata: toUpdate.Metadata,
+	})
 }
 
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
-	return s.repository.UpdateByEmail(ctx, toUpdate)
+	return s.repository.UpdateByEmail(ctx, User{
+		Name:     toUpdate.Name,
+		Email:    strings.ToLower(toUpdate.Email),
+		Metadata: toUpdate.Metadata,
+	})
 }
 
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {

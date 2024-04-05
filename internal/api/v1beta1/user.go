@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"net/mail"
 	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
@@ -87,6 +88,10 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
 		email = currentUserEmail
+	}
+
+	if !isValidEmail(email) {
+		return nil, ErrInvalidEmailID
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
@@ -240,6 +245,10 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
+	if !isValidEmail(email) {
+		return nil, ErrInvalidEmailID
+	}
+
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
@@ -248,9 +257,9 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	id := request.GetId()
 	if uuid.IsValid(id) {
 		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
-			ID:       request.GetId(),
+			ID:       id,
 			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
+			Email:    email,
 			Metadata: metaDataMap,
 		})
 		if err != nil {
@@ -282,7 +291,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 
 		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
 			Name:     request.GetBody().GetName(),
-			Email:    request.GetBody().GetEmail(),
+			Email:    email,
 			Metadata: metaDataMap,
 		})
 		if err != nil {
@@ -391,4 +400,9 @@ func transformUserToPB(usr user.User) (shieldv1beta1.User, error) {
 		CreatedAt: timestamppb.New(usr.CreatedAt),
 		UpdatedAt: timestamppb.New(usr.UpdatedAt),
 	}, nil
+}
+
+func isValidEmail(email string) bool {
+	_, err := mail.ParseAddress(email)
+	return err == nil
 }
