@@ -517,6 +517,15 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 			Err:         user.ErrInvalidID,
 		},
 		{
+			Description: "should return error if user id is not uuid",
+			UserToUpdate: user.User{
+				ID:    "abc",
+				Name:  "Doe John",
+				Email: s.users[1].Email,
+			},
+			Err: user.ErrInvalidID,
+		},
+		{
 			Description: "should return error if email is empty",
 			UserToUpdate: user.User{
 				ID:    s.users[0].ID,
