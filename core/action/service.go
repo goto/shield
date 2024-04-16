@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
@@ -53,14 +54,17 @@ func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 		return Action{}, err
 	}
 
-	actionLogData := newAction.ToActionLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		actionLogData := newAction.ToActionLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newAction, nil
 }
@@ -84,14 +88,17 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 		return Action{}, err
 	}
 
-	actionLogData := updatedAction.ToActionLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		actionLogData := updatedAction.ToActionLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedAction, nil
 }

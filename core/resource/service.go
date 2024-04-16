@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
@@ -126,14 +127,17 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	resourceLogData := newResource.ToResourceLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		resourceLogData := newResource.ToResourceLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newResource, nil
 }
@@ -161,14 +165,17 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 		return Resource{}, err
 	}
 
-	resourceLogData := updatedResource.ToResourceLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		resourceLogData := updatedResource.ToResourceLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedResource, nil
 }

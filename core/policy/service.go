@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
@@ -61,14 +62,17 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	policyLogData := policy.ToPolicyLogData(policyId)
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		policyLogData := policy.ToPolicyLogData(policyId)
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return policies, err
 }
@@ -89,14 +93,17 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 		return []Policy{}, err
 	}
 
-	policyLogData := pol.ToPolicyLogData(policyId)
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		policyLogData := pol.ToPolicyLogData(policyId)
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return policies, err
 }

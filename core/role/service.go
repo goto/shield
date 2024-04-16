@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
@@ -54,14 +55,17 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	roleLogData := newRole.ToRoleLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		roleLogData := newRole.ToRoleLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newRole, nil
 }
@@ -90,14 +94,17 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	roleLogData := updatedRole.ToRoleLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRoleUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		roleLogData := updatedRole.ToRoleLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyRoleUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedRole, nil
 }

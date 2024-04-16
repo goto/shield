@@ -9,6 +9,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
@@ -79,14 +80,18 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	organizationLogData := newOrg.ToOrganizationLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(organizationLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyOrganizationCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		organizationLogData := newOrg.ToOrganizationLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(organizationLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyOrganizationCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
+
 	return newOrg, nil
 }
 
@@ -109,14 +114,17 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
-	organizationLogData := updatedOrg.ToOrganizationLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(organizationLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyOrganizationUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		organizationLogData := updatedOrg.ToOrganizationLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(organizationLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyOrganizationUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedOrg, nil
 }

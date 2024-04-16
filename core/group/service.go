@@ -10,6 +10,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
 	"github.com/mitchellh/mapstructure"
@@ -70,14 +71,17 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	groupLogData := newGroup.ToGroupLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyGroupCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		groupLogData := newGroup.ToGroupLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyGroupCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newGroup, nil
 }
@@ -116,14 +120,17 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 		return Group{}, err
 	}
 
-	groupLogData := updatedGroup.ToGroupLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyGroupUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		groupLogData := updatedGroup.ToGroupLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyGroupUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedGroup, nil
 }

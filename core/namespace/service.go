@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
@@ -53,14 +54,17 @@ func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 		return Namespace{}, err
 	}
 
-	namespaceLogData := newNamespace.ToNameSpaceLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyNamespaceCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		namespaceLogData := newNamespace.ToNameSpaceLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyNamespaceCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newNamespace, nil
 }
@@ -80,14 +84,17 @@ func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 		return Namespace{}, err
 	}
 
-	namespaceLogData := updatedNamespace.ToNameSpaceLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyNamespaceUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		namespaceLogData := updatedNamespace.ToNameSpaceLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyNamespaceUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedNamespace, nil
 }

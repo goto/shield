@@ -10,6 +10,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
@@ -81,14 +82,17 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	projectLogData := newProject.ToProjectLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		projectLogData := newProject.ToProjectLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return newProject, nil
 }
@@ -112,14 +116,17 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
-	projectLogData := updatedProject.ToProjectLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		projectLogData := updatedProject.ToProjectLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return updatedProject, err
 }

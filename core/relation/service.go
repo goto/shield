@@ -7,6 +7,7 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
@@ -63,14 +64,17 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 
-	relationLogData := createdRelation.ToRelationLogData()
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(relationLogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		relationLogData := createdRelation.ToRelationLogData()
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(relationLogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return createdRelation, nil
 }
@@ -159,14 +163,17 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 		return err
 	}
 
-	relationSubjectlogData := ToRelationSubjectLogData(resourceType, optionalResourceID)
-	var logDataMap map[string]interface{}
-	if err := mapstructure.Decode(relationSubjectlogData, &logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
-	if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
-		s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-	}
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		relationSubjectlogData := ToRelationSubjectLogData(resourceType, optionalResourceID)
+		var logDataMap map[string]interface{}
+		if err := mapstructure.Decode(relationSubjectlogData, &logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+		if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+		}
+	}()
 
 	return nil
 }
