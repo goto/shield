@@ -23,6 +23,7 @@ import (
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
+	"google.golang.org/grpc/metadata"
 )
 
 const (
@@ -198,7 +199,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 			GRPC: server.GRPCConfig{
 				Port: apiGRPCPort,
 			},
-			DefaultSystemEmail:  OrgAdminEmail,
+			DefaultSystemEmail:  DefaultSystemEmail,
 			IdentityProxyHeader: IdentityHeader,
 			UserIDHeader:        userIDHeaderKey,
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
@@ -226,6 +227,18 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 	client, cancelClient, err := CreateClient(ctx, shieldHost)
 	if err != nil {
 		t.Fatal(err)
+	}
+
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		IdentityHeader: DefaultSystemEmail,
+	}))
+	if _, err := client.CreateUser(ctx, &shieldv1beta1.CreateUserRequest{
+		Body: &shieldv1beta1.UserRequestBody{
+			Name:  OrgAdminEmail,
+			Email: OrgAdminEmail,
+		},
+	}); err != nil {
+		t.Fatal(err.Error())
 	}
 
 	if err := BootstrapMetadataKey(ctx, client, OrgAdminEmail, testDataPath); err != nil {
