@@ -15,7 +15,6 @@ import (
 	"github.com/goto/shield/internal/schema"
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
-	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
 
@@ -48,10 +47,11 @@ type GroupService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
+	Log(ctx context.Context, action string, actor string, data any) error
 }
 
 type Service struct {
+	logger              *zap.SugaredLogger
 	repository          Repository
 	configRepository    ConfigRepository
 	relationService     RelationService
@@ -60,11 +60,11 @@ type Service struct {
 	organizationService OrganizationService
 	groupService        GroupService
 	activityService     ActivityService
-	logger              *zap.SugaredLogger
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
+func NewService(logger *zap.SugaredLogger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
 	return &Service{
+		logger:              logger,
 		repository:          repository,
 		configRepository:    configRepository,
 		relationService:     relationService,
@@ -73,7 +73,6 @@ func NewService(repository Repository, configRepository ConfigRepository, relati
 		organizationService: organizationService,
 		groupService:        groupService,
 		activityService:     activityService,
-		logger:              logger,
 	}
 }
 
@@ -130,11 +129,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := newResource.ToResourceLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, resourceLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -168,11 +163,7 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := updatedResource.ToResourceLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, resourceLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

@@ -7,7 +7,6 @@ import (
 
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
-	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
 
@@ -18,20 +17,20 @@ const (
 )
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
+	Log(ctx context.Context, action string, actor string, data any) error
 }
 
 type Service struct {
+	logger          *zap.SugaredLogger
 	repository      Repository
 	activityService ActivityService
-	logger          *zap.SugaredLogger
 }
 
-func NewService(repository Repository, activityService ActivityService, logger *zap.SugaredLogger) *Service {
+func NewService(logger *zap.SugaredLogger, repository Repository, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		activityService: activityService,
-		logger:          logger,
 	}
 }
 
@@ -72,11 +71,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := newUser.ToUserLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, userLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -101,11 +96,7 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userMetadataKeyLogData := newUserMetadataKey.ToUserMetadataKeyLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(userMetadataKeyLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, currentUser.ID, userMetadataKeyLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -139,11 +130,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -165,11 +152,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

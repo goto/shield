@@ -13,7 +13,6 @@ import (
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
-	"github.com/mitchellh/mapstructure"
 	"go.uber.org/zap"
 )
 
@@ -35,24 +34,24 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data map[string]interface{}) error
+	Log(ctx context.Context, action string, actor string, data any) error
 }
 
 type Service struct {
+	logger          *zap.SugaredLogger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
-	logger          *zap.SugaredLogger
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService, activityService ActivityService, logger *zap.SugaredLogger) *Service {
+func NewService(logger *zap.SugaredLogger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
 		activityService: activityService,
-		logger:          logger,
 	}
 }
 
@@ -74,11 +73,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := newGroup.ToGroupLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, groupLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -123,11 +118,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := updatedGroup.ToGroupLogData()
-		var logDataMap map[string]interface{}
-		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
-		}
-		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, groupLogData); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

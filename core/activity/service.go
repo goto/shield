@@ -6,6 +6,7 @@ import (
 
 	"github.com/goto/salt/audit"
 	"github.com/goto/shield/config"
+	"github.com/mitchellh/mapstructure"
 )
 
 type Service struct {
@@ -18,7 +19,16 @@ func NewService(repository Repository) *Service {
 	}
 }
 
-func (s Service) Log(ctx context.Context, action string, actor string, data map[string]interface{}) error {
+func (s Service) Log(ctx context.Context, action string, actor string, data any) error {
+	if data == nil {
+		return ErrInvalidData
+	}
+
+	var logDataMap map[string]interface{}
+	if err := mapstructure.Decode(data, &logDataMap); err != nil {
+		return err
+	}
+
 	metadata := map[string]string{
 		"app_name":    "shield",
 		"app_version": config.Version,
@@ -27,7 +37,7 @@ func (s Service) Log(ctx context.Context, action string, actor string, data map[
 	log := &audit.Log{
 		Timestamp: time.Now(),
 		Action:    action,
-		Data:      data,
+		Data:      logDataMap,
 		Actor:     actor,
 		Metadata:  metadata,
 	}
