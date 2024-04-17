@@ -9,7 +9,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const AuditEntity = "project"
+const auditEntity = "project"
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)
@@ -41,7 +41,7 @@ type ProjectLogData struct {
 
 func (project Project) ToProjectLogData() ProjectLogData {
 	return ProjectLogData{
-		Entity: AuditEntity,
+		Entity: auditEntity,
 		ID:     project.ID,
 		Name:   project.Name,
 		Slug:   project.Slug,

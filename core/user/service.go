@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	AuditKeyUserCreate            = "user.create"
-	AuditKeyUserUpdate            = "user.update"
-	AuditKeyUserMetadataKeyCreate = "user_metadata_key.create"
+	auditKeyUserCreate            = "user.create"
+	auditKeyUserUpdate            = "user.update"
+	auditKeyUserMetadataKeyCreate = "user_metadata_key.create"
 )
 
 type ActivityService interface {
@@ -76,7 +76,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyUserCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -105,7 +105,7 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 		if err := mapstructure.Decode(userMetadataKeyLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyUserMetadataKeyCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -143,7 +143,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -169,7 +169,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 		if err := mapstructure.Decode(userLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

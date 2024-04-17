@@ -10,7 +10,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const AuditEntity = "role"
+const auditEntity = "role"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Role, error)
@@ -39,7 +39,7 @@ type RoleLogData struct {
 
 func (role Role) ToRoleLogData() RoleLogData {
 	return RoleLogData{
-		Entity:      AuditEntity,
+		Entity:      auditEntity,
 		ID:          role.ID,
 		Name:        role.Name,
 		Types:       role.Types,

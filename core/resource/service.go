@@ -20,8 +20,8 @@ import (
 )
 
 const (
-	AuditKeyResourceCreate = "resource.create"
-	AuditKeyResourceUpdate = "resource.update"
+	auditKeyResourceCreate = "resource.create"
+	auditKeyResourceUpdate = "resource.update"
 )
 
 type RelationService interface {
@@ -134,7 +134,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -172,7 +172,7 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 		if err := mapstructure.Decode(resourceLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	AuditEntityUser         = "user"
-	AuditEntityUserMetadata = "user_metadata_key"
+	auditEntityUser         = "user"
+	auditEntityUserMetadata = "user_metadata_key"
 )
 
 type Repository interface {
@@ -58,7 +58,7 @@ type UserMetadataKeyLogData struct {
 
 func (user User) ToUserLogData() UserLogData {
 	return UserLogData{
-		Entity: AuditEntityUser,
+		Entity: auditEntityUser,
 		Name:   user.Name,
 		Email:  user.Email,
 	}
@@ -66,7 +66,7 @@ func (user User) ToUserLogData() UserLogData {
 
 func (userMetadataKey UserMetadataKey) ToUserMetadataKeyLogData() UserMetadataKeyLogData {
 	return UserMetadataKeyLogData{
-		Entity:      AuditEntityUserMetadata,
+		Entity:      auditEntityUserMetadata,
 		Key:         userMetadataKey.Key,
 		Description: userMetadataKey.Description,
 	}

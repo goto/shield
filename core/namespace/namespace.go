@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-const AuditEntity = "namespace"
+const auditEntity = "namespace"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
@@ -34,7 +34,7 @@ type NamspaceLogData struct {
 
 func (namespace Namespace) ToNameSpaceLogData() NamspaceLogData {
 	return NamspaceLogData{
-		Entity:       AuditEntity,
+		Entity:       auditEntity,
 		ID:           namespace.ID,
 		Name:         namespace.Name,
 		Backend:      namespace.Backend,

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	AuditKeyPolicyCreate = "policy.create"
-	AuditKeyPolicyUpdate = "policy.update"
+	auditKeyPolicyCreate = "policy.create"
+	auditKeyPolicyUpdate = "policy.update"
 )
 
 type UserService interface {
@@ -69,7 +69,7 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 		if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyPolicyCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyPolicyCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -100,7 +100,7 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 		if err := mapstructure.Decode(policyLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyPolicyUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyPolicyUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

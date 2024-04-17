@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	AuditKeyRoleCreate = "role.create"
-	AuditKeyRoleUpdate = "role.update"
+	auditKeyRoleCreate = "role.create"
+	auditKeyRoleUpdate = "role.update"
 )
 
 type UserService interface {
@@ -62,7 +62,7 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 		if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyRoleCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRoleCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -101,7 +101,7 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 		if err := mapstructure.Decode(roleLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyRoleUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRoleUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	AuditKeyNamespaceCreate = "namespace.create"
-	AuditKeyNamespaceUpdate = "namespace.update"
+	auditKeyNamespaceCreate = "namespace.create"
+	auditKeyNamespaceUpdate = "namespace.update"
 )
 
 type UserService interface {
@@ -61,7 +61,7 @@ func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 		if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyNamespaceCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyNamespaceCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -91,7 +91,7 @@ func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 		if err := mapstructure.Decode(namespaceLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyNamespaceUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyNamespaceUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

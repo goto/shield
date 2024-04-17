@@ -8,7 +8,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const AuditEntity = "organization"
+const auditEntity = "organization"
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Organization, error)
@@ -38,7 +38,7 @@ type OrganizationLogData struct {
 
 func (organization Organization) ToOrganizationLogData() OrganizationLogData {
 	logData := OrganizationLogData{
-		Entity: AuditEntity,
+		Entity: auditEntity,
 		ID:     organization.ID,
 		Name:   organization.Name,
 		Slug:   organization.Slug,

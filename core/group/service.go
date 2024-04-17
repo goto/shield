@@ -18,8 +18,8 @@ import (
 )
 
 const (
-	AuditKeyGroupCreate = "group.create"
-	AuditKeyGroupUpdate = "group.update"
+	auditKeyGroupCreate = "group.create"
+	auditKeyGroupUpdate = "group.update"
 )
 
 type RelationService interface {
@@ -78,7 +78,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyGroupCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -127,7 +127,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 		if err := mapstructure.Decode(groupLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyGroupUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

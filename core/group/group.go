@@ -8,7 +8,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const AuditEntity = "group"
+const auditEntity = "group"
 
 type Repository interface {
 	Create(ctx context.Context, grp Group) (Group, error)
@@ -42,7 +42,7 @@ type GroupLogData struct {
 
 func (group Group) ToGroupLogData() GroupLogData {
 	logData := GroupLogData{
-		Entity: AuditEntity,
+		Entity: auditEntity,
 		ID:     group.ID,
 		Name:   group.Name,
 		Slug:   group.Slug,

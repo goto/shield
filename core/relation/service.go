@@ -13,9 +13,8 @@ import (
 )
 
 const (
-	AuditKeyRelationCreate        = "relation.create"
-	AuditKeyRelationDelete        = "relation.delete"
-	AuditKeyRelationSubjectDelete = "relation_subject.delete"
+	auditKeyRelationCreate        = "relation.create"
+	auditKeyRelationSubjectDelete = "relation_subject.delete"
 )
 
 type UserService interface {
@@ -71,7 +70,7 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 		if err := mapstructure.Decode(relationLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -170,7 +169,7 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 		if err := mapstructure.Decode(relationSubjectlogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyRelationCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRelationSubjectDelete, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

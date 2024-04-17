@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	AuditEntityRelation        = "relation"
-	AuditEntityRelationSubject = "relation_subject"
+	auditEntityRelation        = "relation"
+	auditEntityRelationSubject = "relation_subject"
 )
 
 type Repository interface {
@@ -94,7 +94,7 @@ type RelationSubjectLogData struct {
 
 func (relation RelationV2) ToRelationLogData() RelationLogData {
 	return RelationLogData{
-		Entity:           AuditEntityRelation,
+		Entity:           auditEntityRelation,
 		ID:               relation.ID,
 		ObjectID:         relation.Object.ID,
 		ObjectNamespace:  relation.Object.NamespaceID,
@@ -106,7 +106,7 @@ func (relation RelationV2) ToRelationLogData() RelationLogData {
 
 func ToRelationSubjectLogData(resourceType, optionalResourceID string) RelationSubjectLogData {
 	return RelationSubjectLogData{
-		Entity:             AuditEntityRelationSubject,
+		Entity:             auditEntityRelationSubject,
 		ResourceType:       resourceType,
 		OptionalResourceID: optionalResourceID,
 	}

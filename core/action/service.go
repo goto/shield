@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	AuditKeyActionCreate = "action.create"
-	AuditKeyActionUpdate = "action.update"
+	auditKeyActionCreate = "action.create"
+	auditKeyActionUpdate = "action.update"
 )
 
 type UserService interface {
@@ -61,7 +61,7 @@ func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 		if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyActionCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyActionCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -95,7 +95,7 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 		if err := mapstructure.Decode(actionLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyActionUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyActionUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()

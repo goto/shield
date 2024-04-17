@@ -4,7 +4,7 @@ import (
 	"context"
 )
 
-const AuditEntity = "policy"
+const auditEntity = "policy"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
@@ -38,7 +38,7 @@ type PolicyLogData struct {
 
 func (policy Policy) ToPolicyLogData(policyId string) PolicyLogData {
 	return PolicyLogData{
-		Entity:      AuditEntity,
+		Entity:      auditEntity,
 		ID:          policyId,
 		RoleID:      policy.RoleID,
 		NamespaceID: policy.NamespaceID,

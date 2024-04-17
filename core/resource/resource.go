@@ -11,7 +11,7 @@ import (
 const (
 	NON_RESOURCE_ID = "*"
 
-	AuditEntity = "resource"
+	auditEntity = "resource"
 )
 
 type Repository interface {
@@ -83,7 +83,7 @@ type ResourceLogData struct {
 
 func (resource Resource) ToResourceLogData() ResourceLogData {
 	return ResourceLogData{
-		Entity:         AuditEntity,
+		Entity:         auditEntity,
 		URN:            resource.URN,
 		Name:           resource.Name,
 		OrganizationID: resource.OrganizationID,

@@ -17,8 +17,8 @@ import (
 )
 
 const (
-	AuditKeyProjectCreate = "project.create"
-	AuditKeyProjectUpdate = "project.update"
+	auditKeyProjectCreate = "project.create"
+	auditKeyProjectUpdate = "project.update"
 )
 
 type RelationService interface {
@@ -89,7 +89,7 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyProjectCreate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyProjectCreate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
@@ -123,7 +123,7 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 		if err := mapstructure.Decode(projectLogData, &logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
-		if err := s.activityService.Log(ctx, AuditKeyProjectUpdate, currentUser.ID, logDataMap); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyProjectUpdate, currentUser.ID, logDataMap); err != nil {
 			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
 		}
 	}()
