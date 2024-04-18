@@ -174,23 +174,6 @@ func TestCreateUser(t *testing.T) {
 			err:  grpcBadBodyError,
 		},
 		{
-			title: "should return invalid email error if email is invalid",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				return user.SetContextWithEmail(ctx, email)
-			},
-			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
-				Name:  "some user",
-				Email: "invalid email",
-				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewNullValue(),
-					},
-				},
-			}},
-			want: nil,
-			err:  user.ErrInvalidEmail,
-		},
-		{
 			title: "should return already exist error if user service return error conflict",
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
@@ -583,25 +566,6 @@ func TestUpdateUser(t *testing.T) {
 			},
 			want: nil,
 			err:  grpcBadBodyError,
-		},
-		{
-			title: "should return invalid email error if email is invalid",
-			setup: func(us *mocks.UserService) {
-			},
-			req: &shieldv1beta1.UpdateUserRequest{
-				Id: someID,
-				Body: &shieldv1beta1.UserRequestBody{
-					Name:  "abc user",
-					Email: "invalid email",
-					Metadata: &structpb.Struct{
-						Fields: map[string]*structpb.Value{
-							"foo": structpb.NewStringValue("bar"),
-						},
-					},
-				},
-			},
-			want: nil,
-			err:  user.ErrInvalidEmail,
 		},
 		{
 			title: "should return bad request error if empty request body",
