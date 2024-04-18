@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/user"
 	pkgctx "github.com/goto/shield/pkg/context"
-	"go.uber.org/zap"
 )
 
 const (
@@ -23,13 +23,13 @@ type ActivityService interface {
 }
 
 type Service struct {
-	logger          *zap.SugaredLogger
+	logger          log.Logger
 	repository      Repository
 	userService     UserService
 	activityService ActivityService
 }
 
-func NewService(logger *zap.SugaredLogger, repository Repository, userService UserService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
 		repository:      repository,
@@ -45,7 +45,7 @@ func (s Service) Get(ctx context.Context, id string) (Namespace, error) {
 func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Namespace{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
 
 	newNamespace, err := s.repository.Create(ctx, ns)
@@ -57,7 +57,7 @@ func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		namespaceLogData := newNamespace.ToNameSpaceLogData()
 		if err := s.activityService.Log(ctx, auditKeyNamespaceCreate, currentUser.ID, namespaceLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
@@ -71,7 +71,7 @@ func (s Service) List(ctx context.Context) ([]Namespace, error) {
 func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Namespace{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
 
 	updatedNamespace, err := s.repository.Update(ctx, ns)
@@ -83,7 +83,7 @@ func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		namespaceLogData := updatedNamespace.ToNameSpaceLogData()
 		if err := s.activityService.Log(ctx, auditKeyNamespaceUpdate, currentUser.ID, namespaceLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 

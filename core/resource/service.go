@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
@@ -15,7 +16,6 @@ import (
 	"github.com/goto/shield/internal/schema"
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
-	"go.uber.org/zap"
 )
 
 const (
@@ -51,7 +51,7 @@ type ActivityService interface {
 }
 
 type Service struct {
-	logger              *zap.SugaredLogger
+	logger              log.Logger
 	repository          Repository
 	configRepository    ConfigRepository
 	relationService     RelationService
@@ -62,7 +62,7 @@ type Service struct {
 	activityService     ActivityService
 }
 
-func NewService(logger *zap.SugaredLogger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
 		repository:          repository,
@@ -130,7 +130,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := newResource.ToResourceLogData()
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, resourceLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
@@ -151,7 +151,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
 
 	// TODO there should be an update logic like create here
@@ -164,7 +164,7 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := updatedResource.ToResourceLogData()
 		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, resourceLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 

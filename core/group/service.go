@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
@@ -13,7 +14,6 @@ import (
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
-	"go.uber.org/zap"
 )
 
 const (
@@ -38,14 +38,14 @@ type ActivityService interface {
 }
 
 type Service struct {
-	logger          *zap.SugaredLogger
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
 }
 
-func NewService(logger *zap.SugaredLogger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
 		repository:      repository,
@@ -74,7 +74,7 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := newGroup.ToGroupLogData()
 		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, groupLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
@@ -103,7 +103,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
 
 	if strings.TrimSpace(grp.ID) != "" {
@@ -119,7 +119,7 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := updatedGroup.ToGroupLogData()
 		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, groupLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 

@@ -104,23 +104,6 @@ func (s *ActivityRepositoryTestSuite) TestInsert() {
 			},
 			ErrString: "parsing error: json: unsupported type: chan int",
 		},
-		{
-			Description: "should return error if actor uuid is invalid",
-			LogToCreate: &audit.Log{
-				Actor:  "invalid-uuid",
-				Action: "group.update",
-				Data: map[string]string{
-					"entity": "group",
-					"id":     "1234-5678-1234",
-				},
-				Metadata: map[string]string{
-					"app_name":    "shield",
-					"app_version": "v1.0",
-				},
-				Timestamp: time.Now(),
-			},
-			ErrString: "invalid syntax of uuid",
-		},
 	}
 
 	for _, tc := range testCases {

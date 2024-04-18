@@ -3,12 +3,10 @@ package postgres
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/salt/audit"
-	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent"
 )
@@ -60,13 +58,7 @@ func (r ActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
 		_, err = r.dbc.ExecContext(ctx, query, params...)
 		return err
 	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errInvalidTexRepresentation):
-			return activity.ErrInvalidUUID
-		default:
-			return err
-		}
+		return checkPostgresError(err)
 	}
 
 	return nil

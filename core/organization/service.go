@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
@@ -11,7 +12,6 @@ import (
 	"github.com/goto/shield/internal/schema"
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
-	"go.uber.org/zap"
 )
 
 const (
@@ -36,14 +36,14 @@ type ActivityService interface {
 }
 
 type Service struct {
-	logger          *zap.SugaredLogger
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
 }
 
-func NewService(logger *zap.SugaredLogger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
 		repository:      repository,
@@ -83,7 +83,7 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		ctx := pkgctx.WithoutCancel(ctx)
 		organizationLogData := newOrg.ToOrganizationLogData()
 		if err := s.activityService.Log(ctx, auditKeyOrganizationCreate, currentUser.ID, organizationLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
@@ -97,14 +97,17 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
+
+	var updatedOrg Organization
 
 	if org.ID != "" {
-		return s.repository.UpdateByID(ctx, org)
+		updatedOrg, err = s.repository.UpdateByID(ctx, org)
+	} else {
+		updatedOrg, err = s.repository.UpdateBySlug(ctx, org)
 	}
 
-	updatedOrg, err := s.repository.UpdateBySlug(ctx, org)
 	if err != nil {
 		return Organization{}, err
 	}
@@ -113,7 +116,7 @@ func (s Service) Update(ctx context.Context, org Organization) (Organization, er
 		ctx := pkgctx.WithoutCancel(ctx)
 		organizationLogData := updatedOrg.ToOrganizationLogData()
 		if err := s.activityService.Log(ctx, auditKeyOrganizationUpdate, currentUser.ID, organizationLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 

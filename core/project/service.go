@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
@@ -12,7 +13,6 @@ import (
 	"github.com/goto/shield/internal/schema"
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
-	"go.uber.org/zap"
 )
 
 const (
@@ -37,14 +37,14 @@ type ActivityService interface {
 }
 
 type Service struct {
-	logger          *zap.SugaredLogger
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
 }
 
-func NewService(logger *zap.SugaredLogger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
 		repository:      repository,
@@ -85,7 +85,7 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		projectLogData := newProject.ToProjectLogData()
 		if err := s.activityService.Log(ctx, auditKeyProjectCreate, currentUser.ID, projectLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
@@ -99,7 +99,7 @@ func (s Service) List(ctx context.Context) ([]Project, error) {
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
 
 	if prj.ID != "" {
@@ -115,7 +115,7 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		projectLogData := updatedProject.ToProjectLogData()
 		if err := s.activityService.Log(ctx, auditKeyProjectUpdate, currentUser.ID, projectLogData); err != nil {
-			s.logger.Errorf("%s: %s", ErrLogActivity.Error(), err.Error())
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
 
