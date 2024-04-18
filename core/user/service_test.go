@@ -69,7 +69,6 @@ func TestService_Create(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
 
 func TestService_UpdateByID(t *testing.T) {
@@ -132,7 +131,6 @@ func TestService_UpdateByID(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
 
 func TestService_UpdateByEmail(t *testing.T) {
@@ -191,5 +189,4 @@ func TestService_UpdateByEmail(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
