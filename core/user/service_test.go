@@ -41,7 +41,6 @@ func TestService_Create(t *testing.T) {
 						Name:  "John Doe",
 						Email: "john.doe@gotocompany.com"}, nil).Once()
 				return user.NewService(repository)
-
 			},
 			want: user.User{
 				Name:  "John Doe",
@@ -102,7 +101,6 @@ func TestService_UpdateByID(t *testing.T) {
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
 				return user.NewService(repository)
-
 			},
 			want: user.User{
 				ID:    "1",
@@ -161,7 +159,6 @@ func TestService_UpdateByEmail(t *testing.T) {
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
 				return user.NewService(repository)
-
 			},
 			want: user.User{
 				Name:  "John Doe",
