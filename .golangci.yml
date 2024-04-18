@@ -3,8 +3,6 @@ run:
 output:
   formats:
     - format: colored-line-number
-    - format: json
-      path: stdout
 linters:
   enable-all: false
   disable-all: true
@@ -16,7 +14,6 @@ linters:
     - revive
     - unused
     - gofmt
-    - whitespace
     - misspell
 linters-settings:
   revive:
