@@ -10,6 +10,8 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
+const auditEntity = "role"
+
 type Repository interface {
 	Get(ctx context.Context, id string) (Role, error)
 	List(ctx context.Context) ([]Role, error)
@@ -25,6 +27,24 @@ type Role struct {
 	Metadata    metadata.Metadata
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+type RoleLogData struct {
+	Entity      string   `mapstructure:"entity"`
+	ID          string   `mapstructure:"id"`
+	Name        string   `mapstructure:"name"`
+	Types       []string `mapstructure:"types"`
+	NamespaceID string   `mapstructure:"namespace_id"`
+}
+
+func (role Role) ToRoleLogData() RoleLogData {
+	return RoleLogData{
+		Entity:      auditEntity,
+		ID:          role.ID,
+		Name:        role.Name,
+		Types:       role.Types,
+		NamespaceID: role.NamespaceID,
+	}
 }
 
 func GetOwnerRole(ns namespace.Namespace) Role {

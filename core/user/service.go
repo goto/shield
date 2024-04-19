@@ -2,18 +2,35 @@ package user
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	"github.com/goto/salt/log"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
-type Service struct {
-	repository Repository
+const (
+	auditKeyUserCreate            = "user.create"
+	auditKeyUserUpdate            = "user.update"
+	auditKeyUserMetadataKeyCreate = "user_metadata_key.create"
+)
+
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
 }
 
-func NewService(repository Repository) *Service {
+type Service struct {
+	logger          log.Logger
+	repository      Repository
+	activityService ActivityService
+}
+
+func NewService(logger log.Logger, repository Repository, activityService ActivityService) *Service {
 	return &Service{
-		repository: repository,
+		logger:          logger,
+		repository:      repository,
+		activityService: activityService,
 	}
 }
 
@@ -37,6 +54,11 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 }
 
 func (s Service) Create(ctx context.Context, user User) (User, error) {
+	currentUser, err := s.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
 		Email:    user.Email,
@@ -46,10 +68,23 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 		return User{}, err
 	}
 
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		userLogData := newUser.ToUserLogData()
+		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, userLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
 	return newUser, nil
 }
 
 func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error) {
+	currentUser, err := s.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	newUserMetadataKey, err := s.repository.CreateMetadataKey(ctx, UserMetadataKey{
 		Key:         key.Key,
 		Description: key.Description,
@@ -57,6 +92,14 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	if err != nil {
 		return UserMetadataKey{}, err
 	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		userMetadataKeyLogData := newUserMetadataKey.ToUserMetadataKeyLogData()
+		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, currentUser.ID, userMetadataKeyLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
 
 	return newUserMetadataKey, nil
 }
@@ -74,11 +117,47 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
 }
 
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
-	return s.repository.UpdateByID(ctx, toUpdate)
+	currentUser, err := s.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+	}
+
+	updatedUser, err := s.repository.UpdateByID(ctx, toUpdate)
+	if err != nil {
+		return User{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		userLogData := updatedUser.ToUserLogData()
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedUser, nil
 }
 
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
-	return s.repository.UpdateByEmail(ctx, toUpdate)
+	currentUser, err := s.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+	}
+
+	updatedUser, err := s.repository.UpdateByEmail(ctx, toUpdate)
+	if err != nil {
+		return User{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		userLogData := updatedUser.ToUserLogData()
+		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedUser, nil
 }
 
 func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {

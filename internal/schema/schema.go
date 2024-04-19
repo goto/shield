@@ -10,6 +10,7 @@ import (
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/user"
 
 	"golang.org/x/exp/maps"
 )
@@ -61,13 +62,24 @@ type AuthzEngine interface {
 	WriteSchema(ctx context.Context, schema NamespaceConfigMapType) error
 }
 
+type UserRepository interface {
+	Create(ctx context.Context, usr user.User) (user.User, error)
+	GetByEmail(ctx context.Context, email string) (user.User, error)
+}
+
+type SchemaMigrationConfig struct {
+	DefaultSystemEmail string
+}
+
 type SchemaService struct {
-	schemaConfig     FileService
-	namespaceService NamespaceService
-	roleService      RoleService
-	actionService    ActionService
-	policyService    PolicyService
-	authzEngine      AuthzEngine
+	schemaConfig          FileService
+	namespaceService      NamespaceService
+	roleService           RoleService
+	actionService         ActionService
+	policyService         PolicyService
+	authzEngine           AuthzEngine
+	userRepository        UserRepository
+	schemaMigrationConfig SchemaMigrationConfig
 }
 
 func NewSchemaMigrationService(
@@ -76,18 +88,42 @@ func NewSchemaMigrationService(
 	roleService RoleService,
 	actionService ActionService,
 	policyService PolicyService,
-	authzEngine AuthzEngine) *SchemaService {
+	authzEngine AuthzEngine,
+	userRepository UserRepository,
+	schemaMigrationConfig SchemaMigrationConfig) *SchemaService {
 	return &SchemaService{
-		schemaConfig:     schemaConfig,
-		namespaceService: namespaceService,
-		roleService:      roleService,
-		actionService:    actionService,
-		policyService:    policyService,
-		authzEngine:      authzEngine,
+		schemaConfig:          schemaConfig,
+		namespaceService:      namespaceService,
+		roleService:           roleService,
+		actionService:         actionService,
+		policyService:         policyService,
+		authzEngine:           authzEngine,
+		userRepository:        userRepository,
+		schemaMigrationConfig: schemaMigrationConfig,
 	}
 }
 
 func (s SchemaService) RunMigrations(ctx context.Context) error {
+	defaultUser := user.User{
+		Name:  s.schemaMigrationConfig.DefaultSystemEmail,
+		Email: s.schemaMigrationConfig.DefaultSystemEmail,
+	}
+
+	if _, err := s.userRepository.GetByEmail(ctx, defaultUser.Email); err != nil {
+		// creating predefined user for log activity if user not exist
+		if err == user.ErrNotExist {
+			if _, err := s.userRepository.Create(ctx, defaultUser); err != nil {
+				return err
+			}
+		} else {
+			// if other error occurred, return the error
+			return err
+		}
+	}
+
+	// setting context with predefined user email
+	ctx = user.SetContextWithEmail(ctx, defaultUser.Email)
+
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
 		return err
@@ -230,4 +266,10 @@ func MergeNamespaceConfigMap(smallMap, largeMap NamespaceConfigMapType) Namespac
 	}
 
 	return combinedMap
+}
+
+func NewSchemaMigrationConfig(defaultSystemEmail string) SchemaMigrationConfig {
+	return SchemaMigrationConfig{
+		DefaultSystemEmail: defaultSystemEmail,
+	}
 }

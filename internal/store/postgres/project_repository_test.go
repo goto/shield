@@ -452,6 +452,30 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 			Description: "should return error if project id is empty",
 			ErrString:   project.ErrInvalidID.Error(),
 		},
+		{
+			Description: "should return error if project name is empty",
+			ProjectToUpdate: project.Project{
+				ID:   s.projects[0].ID,
+				Slug: "new-prj",
+				Name: "",
+				Organization: organization.Organization{
+					ID: uuid.NewString(),
+				},
+			},
+			ErrString: project.ErrInvalidDetail.Error(),
+		},
+		{
+			Description: "should return error if project slug is empty",
+			ProjectToUpdate: project.Project{
+				ID:   s.projects[0].ID,
+				Slug: "",
+				Name: "not-exist",
+				Organization: organization.Organization{
+					ID: uuid.NewString(),
+				},
+			},
+			ErrString: project.ErrInvalidDetail.Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -539,6 +563,17 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 		{
 			Description: "should return error if project slug is empty",
 			ErrString:   project.ErrInvalidID.Error(),
+		},
+		{
+			Description: "should return error if project name is empty",
+			ProjectToUpdate: project.Project{
+				Slug: "project-1",
+				Name: "",
+				Organization: organization.Organization{
+					ID: s.orgs[0].ID,
+				},
+			},
+			ErrString: project.ErrInvalidDetail.Error(),
 		},
 	}
 

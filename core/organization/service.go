@@ -4,12 +4,19 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
+)
+
+const (
+	auditKeyOrganizationCreate = "organization.create"
+	auditKeyOrganizationUpdate = "organization.update"
 )
 
 type RelationService interface {
@@ -24,17 +31,25 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
 type Service struct {
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -64,6 +79,14 @@ func (s Service) Create(ctx context.Context, org Organization) (Organization, er
 		return Organization{}, err
 	}
 
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		organizationLogData := newOrg.ToOrganizationLogData()
+		if err := s.activityService.Log(ctx, auditKeyOrganizationCreate, currentUser.ID, organizationLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
 	return newOrg, nil
 }
 
@@ -72,10 +95,32 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 }
 
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
-	if org.ID != "" {
-		return s.repository.UpdateByID(ctx, org)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
 	}
-	return s.repository.UpdateBySlug(ctx, org)
+
+	var updatedOrg Organization
+
+	if org.ID != "" {
+		updatedOrg, err = s.repository.UpdateByID(ctx, org)
+	} else {
+		updatedOrg, err = s.repository.UpdateBySlug(ctx, org)
+	}
+
+	if err != nil {
+		return Organization{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		organizationLogData := updatedOrg.ToOrganizationLogData()
+		if err := s.activityService.Log(ctx, auditKeyOrganizationUpdate, currentUser.ID, organizationLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedOrg, nil
 }
 
 func (s Service) ListAdmins(ctx context.Context, idOrSlug string) ([]user.User, error) {

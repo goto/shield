@@ -2,24 +2,67 @@ package role
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 )
 
-type Service struct {
-	repository Repository
+const (
+	auditKeyRoleCreate = "role.create"
+	auditKeyRoleUpdate = "role.update"
+)
+
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
-func NewService(repository Repository) *Service {
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
+type Service struct {
+	logger          log.Logger
+	repository      Repository
+	userService     UserService
+	activityService ActivityService
+}
+
+func NewService(logger log.Logger, repository Repository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
-		repository: repository,
+		logger:          logger,
+		repository:      repository,
+		userService:     userService,
+		activityService: activityService,
 	}
 }
 
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	roleID, err := s.repository.Create(ctx, toCreate)
 	if err != nil {
 		return Role{}, err
 	}
-	return s.repository.Get(ctx, roleID)
+
+	newRole, err := s.repository.Get(ctx, roleID)
+	if err != nil {
+		return Role{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		roleLogData := newRole.ToRoleLogData()
+		if err := s.activityService.Log(ctx, auditKeyRoleCreate, currentUser.ID, roleLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return newRole, nil
 }
 
 func (s Service) Get(ctx context.Context, id string) (Role, error) {
@@ -31,9 +74,28 @@ func (s Service) List(ctx context.Context) ([]Role, error) {
 }
 
 func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	roleID, err := s.repository.Update(ctx, toUpdate)
 	if err != nil {
 		return Role{}, err
 	}
-	return s.repository.Get(ctx, roleID)
+
+	updatedRole, err := s.repository.Get(ctx, roleID)
+	if err != nil {
+		return Role{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		roleLogData := updatedRole.ToRoleLogData()
+		if err := s.activityService.Log(ctx, auditKeyRoleUpdate, currentUser.ID, roleLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedRole, nil
 }

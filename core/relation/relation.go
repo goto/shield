@@ -9,6 +9,11 @@ import (
 	"github.com/goto/shield/core/role"
 )
 
+const (
+	auditEntityRelation        = "relation"
+	auditEntityRelationSubject = "relation_subject"
+)
+
 type Repository interface {
 	Get(ctx context.Context, id string) (RelationV2, error)
 	Create(ctx context.Context, relation RelationV2) (RelationV2, error)
@@ -69,4 +74,40 @@ var RelationTypes = struct {
 }{
 	Role:      "role",
 	Namespace: "namespace",
+}
+
+type RelationLogData struct {
+	Entity           string `mapstructure:"entity"`
+	ID               string `mapstructure:"id"`
+	ObjectID         string `mapstructure:"object_id"`
+	ObjectNamespace  string `mapstructure:"object_namespace"`
+	SubjectID        string `mapstructure:"subject_id"`
+	SubjectNamespace string `mapstructure:"subject_namespace"`
+	RoleID           string `mapstructure:"role"`
+}
+
+type RelationSubjectLogData struct {
+	Entity             string `mapstructure:"entity"`
+	ResourceType       string `mapstructure:"resource_type"`
+	OptionalResourceID string `mapstructure:"optional_resource_id"`
+}
+
+func (relation RelationV2) ToRelationLogData() RelationLogData {
+	return RelationLogData{
+		Entity:           auditEntityRelation,
+		ID:               relation.ID,
+		ObjectID:         relation.Object.ID,
+		ObjectNamespace:  relation.Object.NamespaceID,
+		SubjectID:        relation.Subject.ID,
+		SubjectNamespace: relation.Subject.Namespace,
+		RoleID:           relation.Subject.RoleID,
+	}
+}
+
+func ToRelationSubjectLogData(resourceType, optionalResourceID string) RelationSubjectLogData {
+	return RelationSubjectLogData{
+		Entity:             auditEntityRelationSubject,
+		ResourceType:       resourceType,
+		OptionalResourceID: optionalResourceID,
+	}
 }

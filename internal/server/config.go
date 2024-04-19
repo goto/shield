@@ -56,4 +56,6 @@ type Config struct {
 	// CheckAPILimit will have the maximum number of resource permissions that can be included
 	// in the resource permission check API. Default: 5
 	CheckAPILimit int `yaml:"check_api_limit" mapstructure:"check_api_limit" default:"5"`
+
+	DefaultSystemEmail string `yaml:"default_system_email" mapstructure:"default_system_email"  default:"shield-service@gotocompany.com"`
 }

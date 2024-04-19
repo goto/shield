@@ -210,6 +210,14 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 			},
 			ErrString: user.ErrConflict.Error(),
 		},
+		{
+			Description: "should return error if email is empty",
+			UserToCreate: user.User{
+				Name:  "new user",
+				Email: "",
+			},
+			ErrString: user.ErrInvalidEmail.Error(),
+		},
 	}
 
 	for _, tc := range testCases {
@@ -507,6 +515,24 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		{
 			Description: "should return error if user id is empty",
 			Err:         user.ErrInvalidID,
+		},
+		{
+			Description: "should return error if user id is not uuid",
+			UserToUpdate: user.User{
+				ID:    "abc",
+				Name:  "Doe John",
+				Email: s.users[1].Email,
+			},
+			Err: user.ErrInvalidID,
+		},
+		{
+			Description: "should return error if email is empty",
+			UserToUpdate: user.User{
+				ID:    s.users[0].ID,
+				Name:  "Doe John",
+				Email: "",
+			},
+			Err: user.ErrInvalidEmail,
 		},
 	}
 

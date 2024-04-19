@@ -9,4 +9,5 @@ var (
 	ErrInvalidURN    = errors.New("resource urn is invalid")
 	ErrConflict      = errors.New("resource already exist")
 	ErrInvalidDetail = errors.New("invalid resource detail")
+	ErrLogActivity   = errors.New("error while logging activity")
 )

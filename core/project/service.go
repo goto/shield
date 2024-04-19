@@ -4,13 +4,20 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
+)
+
+const (
+	auditKeyProjectCreate = "project.create"
+	auditKeyProjectUpdate = "project.update"
 )
 
 type RelationService interface {
@@ -25,17 +32,25 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
 type Service struct {
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -47,7 +62,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
 }
 
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
-	_, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -66,6 +81,14 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 		return Project{}, err
 	}
 
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		projectLogData := newProject.ToProjectLogData()
+		if err := s.activityService.Log(ctx, auditKeyProjectCreate, currentUser.ID, projectLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
 	return newProject, nil
 }
 
@@ -74,10 +97,29 @@ func (s Service) List(ctx context.Context) ([]Project, error) {
 }
 
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	if prj.ID != "" {
 		return s.repository.UpdateByID(ctx, prj)
 	}
-	return s.repository.UpdateBySlug(ctx, prj)
+
+	updatedProject, err := s.repository.UpdateBySlug(ctx, prj)
+	if err != nil {
+		return Project{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		projectLogData := updatedProject.ToProjectLogData()
+		if err := s.activityService.Log(ctx, auditKeyProjectUpdate, currentUser.ID, projectLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedProject, err
 }
 
 func (s Service) AddAdmins(ctx context.Context, idOrSlug string, userIds []string) ([]user.User, error) {

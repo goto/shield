@@ -7,6 +7,11 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
+const (
+	auditEntityUser         = "user"
+	auditEntityUserMetadata = "user_metadata_key"
+)
+
 type Repository interface {
 	GetByID(ctx context.Context, id string) (User, error)
 	GetByEmail(ctx context.Context, email string) (User, error)
@@ -37,4 +42,32 @@ type UserMetadataKey struct {
 type PagedUsers struct {
 	Count int32
 	Users []User
+}
+
+type UserLogData struct {
+	Entity string `mapstructure:"entity"`
+	Name   string `mapstructure:"name"`
+	Email  string `mapstructure:"email"`
+}
+
+type UserMetadataKeyLogData struct {
+	Entity      string `mapstructure:"entity"`
+	Key         string `mapstructure:"key"`
+	Description string `mapstructure:"description"`
+}
+
+func (user User) ToUserLogData() UserLogData {
+	return UserLogData{
+		Entity: auditEntityUser,
+		Name:   user.Name,
+		Email:  user.Email,
+	}
+}
+
+func (userMetadataKey UserMetadataKey) ToUserMetadataKeyLogData() UserMetadataKeyLogData {
+	return UserMetadataKeyLogData{
+		Entity:      auditEntityUserMetadata,
+		Key:         userMetadataKey.Key,
+		Description: userMetadataKey.Description,
+	}
 }

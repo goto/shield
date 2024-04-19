@@ -260,6 +260,14 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 			Description: "should return error if action id is empty",
 			ErrString:   "action id is invalid",
 		},
+		{
+			Description: "should return error if action name is empty",
+			ActionToUpdate: action.Action{
+				ID:   "action2",
+				Name: "",
+			},
+			ErrString: action.ErrInvalidDetail.Error(),
+		},
 	}
 
 	for _, tc := range testCases {

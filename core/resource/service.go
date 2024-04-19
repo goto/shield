@@ -2,8 +2,10 @@ package resource
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
@@ -12,7 +14,13 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
+)
+
+const (
+	auditKeyResourceCreate = "resource.create"
+	auditKeyResourceUpdate = "resource.update"
 )
 
 type RelationService interface {
@@ -38,7 +46,12 @@ type GroupService interface {
 	Get(ctx context.Context, id string) (group.Group, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
 type Service struct {
+	logger              log.Logger
 	repository          Repository
 	configRepository    ConfigRepository
 	relationService     RelationService
@@ -46,10 +59,12 @@ type Service struct {
 	projectService      ProjectService
 	organizationService OrganizationService
 	groupService        GroupService
+	activityService     ActivityService
 }
 
-func NewService(repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService) *Service {
+func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
 	return &Service{
+		logger:              logger,
 		repository:          repository,
 		configRepository:    configRepository,
 		relationService:     relationService,
@@ -57,6 +72,7 @@ func NewService(repository Repository, configRepository ConfigRepository, relati
 		projectService:      projectService,
 		organizationService: organizationService,
 		groupService:        groupService,
+		activityService:     activityService,
 	}
 }
 
@@ -65,9 +81,13 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 }
 
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+	}
+
 	urn := res.CreateURN()
 
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Resource{}, err
 	}
@@ -106,6 +126,14 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		resourceLogData := newResource.ToResourceLogData()
+		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, resourceLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
 	return newResource, nil
 }
 
@@ -121,8 +149,26 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 }
 
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	// TODO there should be an update logic like create here
-	return s.repository.Update(ctx, id, resource)
+	updatedResource, err := s.repository.Update(ctx, id, resource)
+	if err != nil {
+		return Resource{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		resourceLogData := updatedResource.ToResourceLogData()
+		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, resourceLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedResource, nil
 }
 
 func (s Service) AddProjectToResource(ctx context.Context, project project.Project, res Resource) error {

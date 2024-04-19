@@ -6,6 +6,8 @@ import (
 	"time"
 )
 
+const auditEntity = "namespace"
+
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
 	Create(ctx context.Context, ns Namespace) (Namespace, error)
@@ -20,6 +22,24 @@ type Namespace struct {
 	ResourceType string
 	CreatedAt    time.Time
 	UpdatedAt    time.Time
+}
+
+type NamspaceLogData struct {
+	Entity       string `mapstructure:"entity"`
+	ID           string `mapstructure:"id"`
+	Name         string `mapstructure:"name"`
+	Backend      string `mapstructure:"backend"`
+	ResourceType string `mapstructure:"resource_type"`
+}
+
+func (namespace Namespace) ToNameSpaceLogData() NamspaceLogData {
+	return NamspaceLogData{
+		Entity:       auditEntity,
+		ID:           namespace.ID,
+		Name:         namespace.Name,
+		Backend:      namespace.Backend,
+		ResourceType: namespace.ResourceType,
+	}
 }
 
 func strListHas(list []string, a string) bool {

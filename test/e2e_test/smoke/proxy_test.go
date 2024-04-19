@@ -43,9 +43,10 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	s.dbClient = dbClient
 
 	// validate
+	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup
 	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(9, len(uRes.GetUsers()))
+	s.Require().Equal(10, len(uRes.GetUsers()))
 	s.userID = uRes.GetUsers()[0].GetId()
 
 	oRes, err := s.client.ListOrganizations(ctx, &shieldv1beta1.ListOrganizationsRequest{})
