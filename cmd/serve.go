@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/signal"
@@ -13,6 +14,7 @@ import (
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
+	"go.uber.org/zap"
 
 	"github.com/goto/shield/config"
 	"github.com/goto/shield/core/action"
@@ -92,8 +94,19 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail)
 
-	//
-	activityRepository := postgres.NewActivityRepository(dbClient)
+	var activityRepository activity.Repository
+	switch cfg.Log.Activity.Sink {
+	case activity.SinkTypeDB:
+		activityRepository = postgres.NewActivityRepository(dbClient)
+	case activity.SinkTypeStdout:
+		stdoutLogger, err := zap.NewStdLogAt(logger.GetInternalZapLogger().Desugar(), logger.GetInternalZapLogger().Level())
+		if err != nil {
+			return err
+		}
+		activityRepository = activity.NewStdoutRepository(stdoutLogger.Writer())
+	default:
+		activityRepository = activity.NewStdoutRepository(io.Discard)
+	}
 	activityService := activity.NewService(activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbClient)
@@ -128,7 +141,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -166,11 +179,11 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 func BuildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
+	activityRepository activity.Repository,
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
 ) (api.Deps, error) {
-	activityRepository := postgres.NewActivityRepository(dbc)
 	activityService := activity.NewService(activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbc)

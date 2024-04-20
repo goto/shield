@@ -1,7 +1,6 @@
 package expression
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 )
@@ -21,7 +20,7 @@ func (e Expression) Evaluate() (bool, error) {
 		output = reflect.DeepEqual(e.Attribute, e.Value)
 		err = nil
 	default:
-		err = errors.New(fmt.Sprintf("unsupported operator %s", e.Operator))
+		err = fmt.Errorf("unsupported operator %s", e.Operator)
 	}
 
 	return output, err

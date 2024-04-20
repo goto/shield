@@ -10,14 +10,28 @@ import (
 	"github.com/goto/shield/internal/server"
 	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/goto/shield/pkg/db"
-	"github.com/goto/shield/pkg/logger"
 )
+
+type Log struct {
+	// log level - debug, info, warning, error, fatal
+	Level string `yaml:"level" mapstructure:"level" default:"info"`
+
+	// format strategy - plain, json
+	Format string `yaml:"format" mapstructure:"format" default:"json"`
+
+	Activity ActivityLogConfig `yaml:"activity" mapstructure:"activity"`
+}
+
+type ActivityLogConfig struct {
+	// activity sink strategy - db, stdout, none
+	Sink string `yaml:"sink" mapstructure:"sink" default:"none"`
+}
 
 type Shield struct {
 	// configuration version
 	Version  int                  `yaml:"version"`
 	Proxy    proxy.ServicesConfig `yaml:"proxy"`
-	Log      logger.Config        `yaml:"log"`
+	Log      Log                  `yaml:"log"`
 	NewRelic NewRelic             `yaml:"new_relic"`
 	App      server.Config        `yaml:"app"`
 	DB       db.Config            `yaml:"db"`

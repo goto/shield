@@ -6,7 +6,6 @@ require (
 	contrib.go.opencensus.io/exporter/prometheus v0.4.2
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
-	github.com/antonmedv/expr v1.15.3
 	github.com/authzed/authzed-go v0.7.1-0.20221109204547-1aa903788b3b
 	github.com/authzed/grpcutil v0.0.0-20230109193425-40ce0530e048
 	github.com/authzed/spicedb v1.15.0

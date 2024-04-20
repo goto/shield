@@ -108,10 +108,7 @@ func TestServeHook(t *testing.T) {
 		mockRelationTransformer = new(mocks.RelationTransformer)
 	)
 
-	logger := shieldlogger.InitLogger(shieldlogger.Config{
-		Level:  "info",
-		Format: "json",
-	})
+	logger := shieldlogger.InitLogger(shieldlogger.Config{Level: "debug"})
 
 	rootHook := hook.New()
 	a := New(logger, rootHook, rootHook, mockResourceService, mockRelationService, mockRelationTransformer, "X-Shield-Email")
