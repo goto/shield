@@ -38,7 +38,29 @@ func NewService(logger log.Logger, repository Repository, userService UserServic
 	}
 }
 
-func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
+type serviceOpts struct {
+	withActivityLogs bool
+}
+
+type ServiceOption func(*serviceOpts)
+
+// WithActivityLogs logs activity in the method
+func WithActivityLogs() ServiceOption {
+	return func(g *serviceOpts) {
+		g.withActivityLogs = true
+	}
+}
+
+// Create is actually does upsert, this is called every period to sync rules and resources from buckets
+// the periodic jobs do not need to logs the activity to avoid spamming activity logs
+// we could remove this option once we have on-demand approach of syncing rules and resources
+func (s Service) Create(ctx context.Context, toCreate Role, opts ...ServiceOption) (Role, error) {
+	opt := &serviceOpts{}
+
+	for _, f := range opts {
+		f(opt)
+	}
+
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
@@ -54,13 +76,15 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 		return Role{}, err
 	}
 
-	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		roleLogData := newRole.ToRoleLogData()
-		if err := s.activityService.Log(ctx, auditKeyRoleCreate, currentUser.ID, roleLogData); err != nil {
-			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
-		}
-	}()
+	if opt.withActivityLogs {
+		go func() {
+			ctx := pkgctx.WithoutCancel(ctx)
+			roleLogData := newRole.ToRoleLogData()
+			if err := s.activityService.Log(ctx, auditKeyRoleCreate, currentUser.ID, roleLogData); err != nil {
+				s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+			}
+		}()
+	}
 
 	return newRole, nil
 }

@@ -121,7 +121,7 @@ func TestCreateNamespace(t *testing.T) {
 				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
-				}).Return(namespace.Namespace{}, errors.New("some error"))
+				}, mock.AnythingOfType("namespace.ServiceOption")).Return(namespace.Namespace{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
@@ -136,7 +136,7 @@ func TestCreateNamespace(t *testing.T) {
 				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
-				}).Return(namespace.Namespace{}, namespace.ErrConflict)
+				}, mock.AnythingOfType("namespace.ServiceOption")).Return(namespace.Namespace{}, namespace.ErrConflict)
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id:   "team",
@@ -150,7 +150,7 @@ func TestCreateNamespace(t *testing.T) {
 			setup: func(ns *mocks.NamespaceService) {
 				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					Name: "Team",
-				}).Return(namespace.Namespace{}, namespace.ErrInvalidID)
+				}, mock.AnythingOfType("namespace.ServiceOption")).Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Name: "Team",
@@ -163,7 +163,7 @@ func TestCreateNamespace(t *testing.T) {
 			setup: func(ns *mocks.NamespaceService) {
 				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
 					ID: "team",
-				}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
+				}, mock.AnythingOfType("namespace.ServiceOption")).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
 			},
 			req: &shieldv1beta1.CreateNamespaceRequest{Body: &shieldv1beta1.NamespaceRequestBody{
 				Id: "team",
@@ -174,7 +174,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return success if namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.Anything, mock.Anything).Return(
+				ns.EXPECT().Create(mock.Anything, mock.Anything, mock.AnythingOfType("namespace.ServiceOption")).Return(
 					namespace.Namespace{
 						ID:   "team",
 						Name: "Team",

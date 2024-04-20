@@ -16,7 +16,7 @@ import (
 type PolicyService interface {
 	Get(ctx context.Context, id string) (policy.Policy, error)
 	List(ctx context.Context) ([]policy.Policy, error)
-	Create(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	Create(ctx context.Context, pol policy.Policy, opts ...policy.ServiceOption) ([]policy.Policy, error)
 	Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
 }
 
@@ -53,7 +53,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		RoleID:      request.GetBody().GetRoleId(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		ActionID:    request.GetBody().GetActionId(),
-	})
+	}, policy.WithActivityLogs())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

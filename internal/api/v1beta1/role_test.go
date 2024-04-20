@@ -110,7 +110,7 @@ func TestHandler_CreateRole(t *testing.T) {
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, errors.New("some error"))
+				}, mock.AnythingOfType("role.ServiceOption")).Return(role.Role{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.CreateRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
@@ -137,7 +137,7 @@ func TestHandler_CreateRole(t *testing.T) {
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, namespace.ErrNotExist)
+				}, mock.AnythingOfType("role.ServiceOption")).Return(role.Role{}, namespace.ErrNotExist)
 			},
 			request: &shieldv1beta1.CreateRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
@@ -163,7 +163,7 @@ func TestHandler_CreateRole(t *testing.T) {
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, role.ErrInvalidDetail)
+				}, mock.AnythingOfType("role.ServiceOption")).Return(role.Role{}, role.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.CreateRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
@@ -188,7 +188,7 @@ func TestHandler_CreateRole(t *testing.T) {
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(role.Role{}, role.ErrInvalidID)
+				}, mock.AnythingOfType("role.ServiceOption")).Return(role.Role{}, role.ErrInvalidID)
 			}, request: &shieldv1beta1.CreateRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{
 					Name:        testRoleMap[testRoleID].Name,
@@ -213,7 +213,7 @@ func TestHandler_CreateRole(t *testing.T) {
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
 					Metadata:    testRoleMap[testRoleID].Metadata,
-				}).Return(testRoleMap[testRoleID], nil)
+				}, mock.AnythingOfType("role.ServiceOption")).Return(testRoleMap[testRoleID], nil)
 			},
 			request: &shieldv1beta1.CreateRoleRequest{
 				Body: &shieldv1beta1.RoleRequestBody{

@@ -127,7 +127,7 @@ func TestCreatePolicy(t *testing.T) {
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
-				}).Return([]policy.Policy{}, errors.New("some error"))
+				}, mock.AnythingOfType("policy.ServiceOption")).Return([]policy.Policy{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				NamespaceId: "team",
@@ -144,7 +144,7 @@ func TestCreatePolicy(t *testing.T) {
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
-				}).Return([]policy.Policy{}, policy.ErrInvalidDetail)
+				}, mock.AnythingOfType("policy.ServiceOption")).Return([]policy.Policy{}, policy.ErrInvalidDetail)
 			},
 			req: &shieldv1beta1.CreatePolicyRequest{Body: &shieldv1beta1.PolicyRequestBody{
 				NamespaceId: "team",
@@ -161,7 +161,7 @@ func TestCreatePolicy(t *testing.T) {
 					NamespaceID: "policy-1",
 					RoleID:      "reader",
 					ActionID:    "read",
-				}).Return([]policy.Policy{
+				}, mock.AnythingOfType("policy.ServiceOption")).Return([]policy.Policy{
 					{
 						ID:          "test",
 						ActionID:    "read",

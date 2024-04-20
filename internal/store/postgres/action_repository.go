@@ -76,7 +76,8 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 			"namespace_id": nsID,
 		}).OnConflict(
 		goqu.DoUpdate("id", goqu.Record{
-			"name": act.Name,
+			"name":       act.Name,
+			"updated_at": goqu.L("now()"),
 		})).Returning(&returnedActionColumns{}).ToSQL()
 	if err != nil {
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)

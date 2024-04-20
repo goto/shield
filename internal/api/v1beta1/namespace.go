@@ -15,7 +15,7 @@ import (
 type NamespaceService interface {
 	Get(ctx context.Context, id string) (namespace.Namespace, error)
 	List(ctx context.Context) ([]namespace.Namespace, error)
-	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	Create(ctx context.Context, ns namespace.Namespace, opts ...namespace.ServiceOption) (namespace.Namespace, error)
 	Update(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
@@ -50,7 +50,7 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 	newNS, err := h.namespaceService.Create(ctx, namespace.Namespace{
 		ID:   request.GetBody().GetId(),
 		Name: request.GetBody().GetName(),
-	})
+	}, namespace.WithActivityLogs())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

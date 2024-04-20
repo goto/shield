@@ -140,9 +140,11 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 			"namespace_id": nsID,
 			"role_id":      roleID,
 			"action_id":    sql.NullString{String: actionID, Valid: actionID != ""},
-		}).OnConflict(goqu.DoUpdate("role_id, namespace_id, action_id", goqu.Record{
-		"namespace_id": nsID,
-	})).Returning("id").ToSQL()
+		}).OnConflict(goqu.DoUpdate("role_id, namespace_id, action_id",
+		goqu.Record{
+			"namespace_id": nsID,
+			"updated_at":   goqu.L("now()"),
+		})).Returning("id").ToSQL()
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}

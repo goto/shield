@@ -39,19 +39,19 @@ type NamespaceConfig struct {
 type NamespaceConfigMapType map[string]NamespaceConfig
 
 type NamespaceService interface {
-	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	Create(ctx context.Context, ns namespace.Namespace, opts ...namespace.ServiceOption) (namespace.Namespace, error)
 }
 
 type RoleService interface {
-	Create(ctx context.Context, toCreate role.Role) (role.Role, error)
+	Create(ctx context.Context, toCreate role.Role, opts ...role.ServiceOption) (role.Role, error)
 }
 
 type PolicyService interface {
-	Create(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
+	Create(ctx context.Context, policy policy.Policy, opts ...policy.ServiceOption) ([]policy.Policy, error)
 }
 
 type ActionService interface {
-	Create(ctx context.Context, action action.Action) (action.Action, error)
+	Create(ctx context.Context, action action.Action, opts ...action.ServiceOption) (action.Action, error)
 }
 
 type FileService interface {

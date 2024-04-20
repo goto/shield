@@ -16,7 +16,7 @@ import (
 type ActionService interface {
 	Get(ctx context.Context, id string) (action.Action, error)
 	List(ctx context.Context) ([]action.Action, error)
-	Create(ctx context.Context, action action.Action) (action.Action, error)
+	Create(ctx context.Context, action action.Action, opts ...action.ServiceOption) (action.Action, error)
 	Update(ctx context.Context, id string, action action.Action) (action.Action, error)
 }
 
@@ -51,7 +51,7 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
-	})
+	}, action.WithActivityLogs())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

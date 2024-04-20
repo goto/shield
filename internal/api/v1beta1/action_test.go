@@ -150,7 +150,7 @@ func TestCreateAction(t *testing.T) {
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-				}).Return(action.Action{}, errors.New("some error"))
+				}, mock.AnythingOfType("action.ServiceOption")).Return(action.Action{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.CreateActionRequest{
 				Body: &shieldv1beta1.ActionRequestBody{
@@ -168,7 +168,7 @@ func TestCreateAction(t *testing.T) {
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-				}).Return(action.Action{}, namespace.ErrNotExist)
+				}, mock.AnythingOfType("action.ServiceOption")).Return(action.Action{}, namespace.ErrNotExist)
 			},
 			req: &shieldv1beta1.CreateActionRequest{
 				Body: &shieldv1beta1.ActionRequestBody{
@@ -185,7 +185,7 @@ func TestCreateAction(t *testing.T) {
 				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-				}).Return(action.Action{}, action.ErrInvalidID)
+				}, mock.AnythingOfType("action.ServiceOption")).Return(action.Action{}, action.ErrInvalidID)
 			},
 			req: &shieldv1beta1.CreateActionRequest{
 				Body: &shieldv1beta1.ActionRequestBody{
@@ -201,7 +201,7 @@ func TestCreateAction(t *testing.T) {
 				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-				}).Return(action.Action{}, action.ErrInvalidDetail)
+				}, mock.AnythingOfType("action.ServiceOption")).Return(action.Action{}, action.ErrInvalidDetail)
 			},
 			req: &shieldv1beta1.CreateActionRequest{
 				Body: &shieldv1beta1.ActionRequestBody{
@@ -218,7 +218,7 @@ func TestCreateAction(t *testing.T) {
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
-				}).Return(action.Action{
+				}, mock.AnythingOfType("action.ServiceOption")).Return(action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,

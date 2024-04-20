@@ -20,7 +20,7 @@ var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
-	Create(ctx context.Context, toCreate role.Role) (role.Role, error)
+	Create(ctx context.Context, toCreate role.Role, opts ...role.ServiceOption) (role.Role, error)
 	List(ctx context.Context) ([]role.Role, error)
 	Update(ctx context.Context, toUpdate role.Role) (role.Role, error)
 }
@@ -62,7 +62,7 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		Types:       request.GetBody().GetTypes(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		Metadata:    metaDataMap,
-	})
+	}, role.WithActivityLogs())
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
