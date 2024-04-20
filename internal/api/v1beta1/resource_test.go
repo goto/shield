@@ -62,7 +62,7 @@ func TestHandler_ListResources(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return(resource.PagedResources{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), resource.Filter{}).Return(resource.PagedResources{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListResourcesRequest{},
 			want:    nil,
@@ -72,7 +72,7 @@ func TestHandler_ListResources(t *testing.T) {
 			name: "should return resources if resource service return nil error",
 			setup: func(rs *mocks.ResourceService) {
 				testResourceList := []resource.Resource{testResource}
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), resource.Filter{}).Return(
+				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), resource.Filter{}).Return(
 					resource.PagedResources{
 						Count:     int32(len(testResourceList)),
 						Resources: testResourceList,
@@ -99,7 +99,7 @@ func TestHandler_ListResources(t *testing.T) {
 				tt.setup(mockResourceSrv)
 			}
 			mockDep := Handler{resourceService: mockResourceSrv}
-			resp, err := mockDep.ListResources(context.Background(), tt.request)
+			resp, err := mockDep.ListResources(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -118,9 +118,9 @@ func TestHandler_CreateResource(t *testing.T) {
 		{
 			name: "should return unauthenticated error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -289,7 +289,7 @@ func TestHandler_CreateResource(t *testing.T) {
 			mockProjectSrv := new(mocks.ProjectService)
 			mockRelationSrv := new(mocks.RelationService)
 			relationAdapter := new(mocks.RelationTransformer)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockResourceSrv, mockProjectSrv, mockRelationSrv, relationAdapter)
 			}
@@ -312,7 +312,7 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.Idxa).Return(resource.Resource{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetResourceRequest{
 				Id: testResource.Idxa,
@@ -323,7 +323,7 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(resource.Resource{}, resource.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetResourceRequest{},
 			want:    nil,
@@ -332,7 +332,7 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "some-id").Return(resource.Resource{}, resource.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
 				Id: "some-id",
@@ -343,7 +343,7 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(resource.Resource{}, resource.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.Idxa).Return(resource.Resource{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
 				Id: testResource.Idxa,
@@ -354,7 +354,7 @@ func TestHandler_GetResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.Idxa).Return(testResource, nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.Idxa).Return(testResource, nil)
 			},
 			request: &shieldv1beta1.GetResourceRequest{
 				Id: testResource.Idxa,
@@ -372,7 +372,7 @@ func TestHandler_GetResource(t *testing.T) {
 				tt.setup(mockResourceSrv)
 			}
 			mockDep := Handler{resourceService: mockResourceSrv}
-			resp, err := mockDep.GetResource(context.Background(), tt.request)
+			resp, err := mockDep.GetResource(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -390,7 +390,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateResourceRequest{
 				Id: testResourceID,
@@ -406,14 +406,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return internal error if resource service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -434,14 +434,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), "", resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					NamespaceID:    testResource.NamespaceID,
@@ -461,14 +461,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return not found error if id is not exist",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -489,14 +489,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "some-id", resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), "some-id", resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -517,14 +517,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -545,14 +545,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return already exist error if resource service return err conflict",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -573,14 +573,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		{
 			name: "should return success if resource service return nil",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testResource.ProjectID).Return(project.Project{
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{
 					ID: testResourceID,
 					Organization: organization.Organization{
 						ID: testResource.OrganizationID,
 					},
 				}, nil)
 
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testResourceID, resource.Resource{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testResourceID, resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					NamespaceID:    testResource.NamespaceID,
@@ -609,7 +609,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 				tt.setup(mockResourceSrv, mockProjectSrv)
 			}
 			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
-			resp, err := mockDep.UpdateResource(context.Background(), tt.request)
+			resp, err := mockDep.UpdateResource(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

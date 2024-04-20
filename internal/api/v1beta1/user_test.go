@@ -110,7 +110,7 @@ func TestListUsers(t *testing.T) {
 			}
 			mockDep := Handler{userService: mockUserSrv}
 			req := tt.req
-			resp, err := mockDep.ListUsers(context.Background(), req)
+			resp, err := mockDep.ListUsers(context.TODO(), req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
 		})
@@ -277,7 +277,7 @@ func TestCreateUser(t *testing.T) {
 			var resp *shieldv1beta1.CreateUserResponse
 			var err error
 
-			ctx := context.Background()
+			ctx := context.TODO()
 			mockUserSrv := new(mocks.UserService)
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockUserSrv)
@@ -302,7 +302,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user does not exist",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(user.User{}, user.ErrNotExist)
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: randomID,
@@ -313,7 +313,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is not uuid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: "some-id",
@@ -324,7 +324,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return not found error if user id is invalid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(user.User{}, user.ErrInvalidID)
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
 			req:  &shieldv1beta1.GetUserRequest{},
 			want: nil,
@@ -333,7 +333,7 @@ func TestGetUser(t *testing.T) {
 		{
 			title: "should return user if user service return nil error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), randomID).Return(
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(
 					user.User{
 						ID:    randomID,
 						Name:  "some user",
@@ -371,7 +371,7 @@ func TestGetUser(t *testing.T) {
 				tt.setup(mockUserSrv)
 			}
 			mockDep := Handler{userService: mockUserSrv}
-			resp, err := mockDep.GetUser(context.Background(), tt.req)
+			resp, err := mockDep.GetUser(context.TODO(), tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
 		})
@@ -445,7 +445,7 @@ func TestGetCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockUserSrv)
 			}
@@ -470,7 +470,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return internal error if user service return some error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
@@ -496,7 +496,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return not found error if id is invalid",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
@@ -520,7 +520,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return already exist error if user service return error conflict",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
@@ -546,7 +546,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return bad request error if email in request empty",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:   someID,
 					Name: "abc user",
 					Metadata: metadata.Metadata{
@@ -577,7 +577,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return success if user service return nil error",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
@@ -624,7 +624,7 @@ func TestUpdateUser(t *testing.T) {
 		{
 			title: "should return success even though name is empty",
 			setup: func(us *mocks.UserService) {
-				us.EXPECT().UpdateByID(mock.AnythingOfType("*context.emptyCtx"), user.User{
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Email: "user@gotocompany.com",
 					Metadata: metadata.Metadata{
@@ -669,7 +669,7 @@ func TestUpdateUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				tt.setup(mockUserSrv)
 			}
@@ -823,7 +823,7 @@ func TestUpdateCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockUserSrv)
 			}
@@ -848,7 +848,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, errors.New("some error"))
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("context.todoCtx"), someUserID, someRoleID).Return([]group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id:   someUserID,
@@ -860,7 +860,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		{
 			name: "should return empty list if user does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return([]group.Group{}, nil)
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("context.todoCtx"), someUserID, someRoleID).Return([]group.Group{}, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id:   someUserID,
@@ -878,7 +878,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 				for _, g := range testGroupMap {
 					testGroupList = append(testGroupList, g)
 				}
-				gs.EXPECT().ListUserGroups(mock.AnythingOfType("*context.emptyCtx"), someUserID, someRoleID).Return(testGroupList, nil)
+				gs.EXPECT().ListUserGroups(mock.AnythingOfType("context.todoCtx"), someUserID, someRoleID).Return(testGroupList, nil)
 			},
 			request: &shieldv1beta1.ListUserGroupsRequest{
 				Id:   someUserID,
@@ -913,7 +913,7 @@ func TestHandler_ListUserGroups(t *testing.T) {
 			h := Handler{
 				groupService: mockGroupSvc,
 			}
-			got, err := h.ListUserGroups(context.Background(), tt.request)
+			got, err := h.ListUserGroups(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
 		})
@@ -962,7 +962,7 @@ func TestCreateMetadataKey(t *testing.T) {
 			var resp *shieldv1beta1.CreateMetadataKeyResponse
 			var err error
 
-			ctx := context.Background()
+			ctx := context.TODO()
 			mockUserSrv := new(mocks.UserService)
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockUserSrv)

@@ -146,7 +146,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return internal error if action service return some error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
+				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -164,7 +164,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return bad request error if namespace id is wrong",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
+				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -182,7 +182,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return bad request error if if id is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
+				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(action.Action{}, action.ErrInvalidID)
@@ -198,7 +198,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return bad request error if if name is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
+				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(action.Action{}, action.ErrInvalidDetail)
@@ -214,7 +214,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return success if action service return nil error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), action.Action{
+				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -246,7 +246,7 @@ func TestCreateAction(t *testing.T) {
 				tt.setup(mockActionSrv)
 			}
 			mockDep := Handler{actionService: mockActionSrv}
-			resp, err := mockDep.CreateAction(context.Background(), tt.req)
+			resp, err := mockDep.CreateAction(context.TODO(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
@@ -264,7 +264,7 @@ func TestHandler_GetAction(t *testing.T) {
 		{
 			name: "should return internal error if action service return some error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testActionID).Return(action.Action{}, errors.New("some error"))
+				as.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testActionID).Return(action.Action{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetActionRequest{
 				Id: testActionID,
@@ -275,7 +275,7 @@ func TestHandler_GetAction(t *testing.T) {
 		{
 			name: "should return not found error if action id not exist",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testActionID).Return(action.Action{}, action.ErrNotExist)
+				as.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testActionID).Return(action.Action{}, action.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetActionRequest{
 				Id: testActionID,
@@ -286,7 +286,7 @@ func TestHandler_GetAction(t *testing.T) {
 		{
 			name: "should return not found error if action id is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(action.Action{}, action.ErrInvalidID)
+				as.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(action.Action{}, action.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetActionRequest{},
 			want:    nil,
@@ -295,7 +295,7 @@ func TestHandler_GetAction(t *testing.T) {
 		{
 			name: "should return success if action service return nil error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testActionID).Return(testActionMap[testActionID], nil)
+				as.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testActionID).Return(testActionMap[testActionID], nil)
 			},
 			request: &shieldv1beta1.GetActionRequest{
 				Id: testActionID,
@@ -318,7 +318,7 @@ func TestHandler_GetAction(t *testing.T) {
 				tt.setup(mockActionSrv)
 			}
 			mockDep := Handler{actionService: mockActionSrv}
-			resp, err := mockDep.GetAction(context.Background(), tt.request)
+			resp, err := mockDep.GetAction(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -336,7 +336,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return internal error if action service return some error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionID, action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -355,7 +355,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return not found error if action id not exist",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionID, action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrNotExist)
@@ -374,7 +374,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return not found error if action id is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), "", action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), "", action.Action{
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrInvalidID)
 			},
@@ -391,7 +391,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return bad request error if namespace id not exist",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionMap[testActionID].ID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, namespace.ErrNotExist)
@@ -410,7 +410,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return bad request error if name is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionMap[testActionID].ID, action.Action{
 					ID:          testActionID,
 					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrInvalidDetail)
 			},
@@ -427,7 +427,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 		{
 			name: "should return success if action service return nil error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testActionMap[testActionID].ID, action.Action{
+				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionMap[testActionID].ID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -459,7 +459,7 @@ func TestHandler_UpdateAction(t *testing.T) {
 				tt.setup(mockActionSrv)
 			}
 			mockDep := Handler{actionService: mockActionSrv}
-			resp, err := mockDep.UpdateAction(context.Background(), tt.request)
+			resp, err := mockDep.UpdateAction(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

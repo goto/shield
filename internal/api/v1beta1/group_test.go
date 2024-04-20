@@ -112,7 +112,7 @@ func TestHandler_ListGroups(t *testing.T) {
 		{
 			name: "should return empty groups if query param org_id is not uuid",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
+				gs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), group.Filter{
 					OrganizationID: "some-id",
 				}).Return([]group.Group{}, nil)
 			},
@@ -127,7 +127,7 @@ func TestHandler_ListGroups(t *testing.T) {
 		{
 			name: "should return empty groups if query param org_id is not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
+				gs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), group.Filter{
 					OrganizationID: randomID,
 				}).Return([]group.Group{}, nil)
 			},
@@ -146,7 +146,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				for _, u := range testGroupMap {
 					testGroupList = append(testGroupList, u)
 				}
-				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{}).Return(testGroupList, nil)
+				gs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), group.Filter{}).Return(testGroupList, nil)
 			},
 			request: &shieldv1beta1.ListGroupsRequest{},
 			want: &shieldv1beta1.ListGroupsResponse{
@@ -175,7 +175,7 @@ func TestHandler_ListGroups(t *testing.T) {
 				for _, u := range testGroupMap {
 					testGroupList = append(testGroupList, u)
 				}
-				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), group.Filter{
+				gs.EXPECT().List(mock.AnythingOfType("context.todoCtx"), group.Filter{
 					OrganizationID: "9f256f86-31a3-11ec-8d3d-0242ac130003",
 				}).Return(testGroupList, nil)
 			},
@@ -211,7 +211,7 @@ func TestHandler_ListGroups(t *testing.T) {
 			h := Handler{
 				groupService: mockGroupSvc,
 			}
-			got, err := h.ListGroups(context.Background(), tt.request)
+			got, err := h.ListGroups(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
 		})
@@ -232,7 +232,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		{
 			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
 			setup: func(ctx context.Context, gs *mocks.GroupService) context.Context {
-				gs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
 
@@ -399,7 +399,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockGroupSvc)
 			}
@@ -425,7 +425,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someGroupID).Return(group.Group{}, errors.New("some error"))
+				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someGroupID).Return(group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetGroupRequest{Id: someGroupID},
 			want:    nil,
@@ -434,7 +434,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		{
 			name: "should return not found error if id is invalid",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(group.Group{}, group.ErrInvalidID)
+				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(group.Group{}, group.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetGroupRequest{},
 			want:    nil,
@@ -443,7 +443,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		{
 			name: "should return not found error if group not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(group.Group{}, group.ErrNotExist)
+				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(group.Group{}, group.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetGroupRequest{},
 			want:    nil,
@@ -452,7 +452,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		{
 			name: "should return success if group service return nil",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
+				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
 			},
 			request: &shieldv1beta1.GetGroupRequest{Id: testGroupID},
 			want: &shieldv1beta1.GetGroupResponse{
@@ -482,7 +482,7 @@ func TestHandler_GetGroup(t *testing.T) {
 			h := Handler{
 				groupService: mockGroupSvc,
 			}
-			got, err := h.GetGroup(context.Background(), tt.request)
+			got, err := h.GetGroup(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
 		})
@@ -503,7 +503,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -535,7 +535,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return not found error if group id is not uuid (slug) and does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "some-id",
 					OrganizationID: someOrgID,
@@ -557,7 +557,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return not found error if group id is uuid and does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -580,7 +580,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return not found error if group id is empty",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "", // consider it by slug and make the slug empty
 					OrganizationID: someOrgID,
@@ -601,7 +601,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return already exist error if group service return error conflict",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -624,7 +624,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return bad request error if org id does not exist",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -647,7 +647,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return bad request error if org id is not uuid",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -670,7 +670,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return bad request error if name is empty",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Slug:           "new-group",
 					OrganizationID: someOrgID,
@@ -691,7 +691,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return bad request error if slug is empty",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					OrganizationID: someOrgID,
@@ -712,7 +712,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return success if updated by id and group service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					ID:             someGroupID,
 					Name:           "new group",
 					Slug:           "new-group",
@@ -754,7 +754,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return success if updated by slug and group service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), group.Group{
+				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
 					Name:           "new group",
 					Slug:           "some-slug",
 					OrganizationID: someOrgID,
@@ -802,7 +802,7 @@ func TestHandler_UpdateGroup(t *testing.T) {
 			h := Handler{
 				groupService: mockGroupSvc,
 			}
-			got, err := h.UpdateGroup(context.Background(), tt.request)
+			got, err := h.UpdateGroup(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
 		})
@@ -836,7 +836,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "").Return([]user.User{}, []group.Group{}, map[string][]string{}, map[string][]string{}, errors.New("some error"))
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", "", "").Return([]user.User{}, []group.Group{}, map[string][]string{}, map[string][]string{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -849,7 +849,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-user and role-role1 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.UserPrincipal, "role-1").Return(testUsersRole1, []group.Group{}, testUserIDRoleMapRole1, map[string][]string{}, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", schema.UserPrincipal, "role-1").Return(testUsersRole1, []group.Group{}, testUserIDRoleMapRole1, map[string][]string{}, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -879,7 +879,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-user and role-role2 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.UserPrincipal, "role-2").Return(testUsersRole2, []group.Group{}, testUserIDRoleMapRole2, map[string][]string{}, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", schema.UserPrincipal, "role-2").Return(testUsersRole2, []group.Group{}, testUserIDRoleMapRole2, map[string][]string{}, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -902,7 +902,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations of subject_type-group and role-role2 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", schema.GroupPrincipal, "role-2").Return([]user.User{}, testGroupsRole2, map[string][]string{}, testGroupIDRoleMapRole2, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", schema.GroupPrincipal, "role-2").Return([]user.User{}, testGroupsRole2, map[string][]string{}, testGroupIDRoleMapRole2, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -926,7 +926,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations both group and users for role-role2 if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "role-2").Return(testUsersRole2, testGroupsRole2, testUserIDRoleMapRole2, testGroupIDRoleMapRole2, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", "", "role-2").Return(testUsersRole2, testGroupsRole2, testUserIDRoleMapRole2, testGroupIDRoleMapRole2, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -956,7 +956,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 		{
 			name: "should return relations both group and users with all roles if relation service return nil error",
 			setup: func(gs *mocks.GroupService) {
-				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("*context.emptyCtx"), "group-id", "", "").Return(testUsersAnyRole, testGroupsAnyRole, testUserIDRoleMapAnyRole, testGroupIDRoleMapAnyRole, nil)
+				gs.EXPECT().ListGroupRelations(mock.AnythingOfType("context.todoCtx"), "group-id", "", "").Return(testUsersAnyRole, testGroupsAnyRole, testUserIDRoleMapAnyRole, testGroupIDRoleMapAnyRole, nil)
 			},
 			request: &shieldv1beta1.ListGroupRelationsRequest{
 				Id:          "group-id",
@@ -1005,7 +1005,7 @@ func TestHandler_ListGroupRelations(t *testing.T) {
 				tt.setup(mockGroupSrv)
 			}
 			mockDep := Handler{groupService: mockGroupSrv}
-			resp, err := mockDep.ListGroupRelations(context.Background(), tt.request)
+			resp, err := mockDep.ListGroupRelations(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
