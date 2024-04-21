@@ -204,3 +204,62 @@ func TestService_UpdateByEmail(t *testing.T) {
 		})
 	}
 }
+
+func TestService_GetByEmail(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		email   string
+		setup   func(t *testing.T) *user.Service
+		urn     string
+		want    user.User
+		wantErr error
+	}{
+		{
+			name:  "GetUserByEmail",
+			email: "john.doe@gotocompany.com",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "john.doe@gotocompany.com").
+					Return(user.User{
+						ID:    "1",
+						Name:  "John Doe",
+						Email: "john.doe@gotocompany.com"}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			want: user.User{
+				ID:    "1",
+				Name:  "John Doe",
+				Email: "john.doe@gotocompany.com",
+			},
+			wantErr: nil,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			got, err := svc.GetByEmail(context.Background(), tt.email)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
