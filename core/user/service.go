@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/goto/salt/log"
+
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
 const (
 	auditKeyUserCreate            = "user.create"
-	auditKeyUserUpdate            = "user.update"
+	AuditKeyUserUpdate            = "user.update"
 	auditKeyUserMetadataKeyCreate = "user_metadata_key.create"
 )
 
@@ -135,7 +136,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -161,7 +162,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
