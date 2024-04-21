@@ -44,6 +44,9 @@ func TestService_Create(t *testing.T) {
 					Return(user.User{
 						Name:  "John Doe",
 						Email: "john.doe@gotocompany.com"}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -106,6 +109,9 @@ func TestService_UpdateByID(t *testing.T) {
 						ID:    "1",
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -166,6 +172,9 @@ func TestService_UpdateByEmail(t *testing.T) {
 					Return(user.User{
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
