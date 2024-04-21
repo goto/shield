@@ -9,8 +9,10 @@ import (
 	"github.com/stretchr/testify/mock"
 
 	"github.com/goto/shield/core/user"
+	shieldlogger "github.com/goto/shield/pkg/logger"
 
 	"github.com/goto/shield/core/mocks"
+	"github.com/goto/shield/pkg/logger"
 )
 
 func TestService_Create(t *testing.T) {
@@ -33,6 +35,8 @@ func TestService_Create(t *testing.T) {
 			setup: func(t *testing.T) *user.Service {
 				t.Helper()
 				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "John Doe",
@@ -40,7 +44,7 @@ func TestService_Create(t *testing.T) {
 					Return(user.User{
 						Name:  "John Doe",
 						Email: "john.doe@gotocompany.com"}, nil).Once()
-				return user.NewService(repository)
+				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
 				Name:  "John Doe",
@@ -91,6 +95,8 @@ func TestService_UpdateByID(t *testing.T) {
 			setup: func(t *testing.T) *user.Service {
 				t.Helper()
 				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
 					UpdateByID(mock.Anything, user.User{
 						ID:    "1",
@@ -100,7 +106,7 @@ func TestService_UpdateByID(t *testing.T) {
 						ID:    "1",
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
-				return user.NewService(repository)
+				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
 				ID:    "1",
@@ -151,6 +157,8 @@ func TestService_UpdateByEmail(t *testing.T) {
 			setup: func(t *testing.T) *user.Service {
 				t.Helper()
 				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
 					UpdateByEmail(mock.Anything, user.User{
 						Name:  "John Doe",
@@ -158,7 +166,7 @@ func TestService_UpdateByEmail(t *testing.T) {
 					Return(user.User{
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
-				return user.NewService(repository)
+				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
 				Name:  "John Doe",
