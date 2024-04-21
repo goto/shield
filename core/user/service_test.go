@@ -46,7 +46,7 @@ func TestService_Create(t *testing.T) {
 						Email: "john.doe@gotocompany.com"}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserCreate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserCreate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
