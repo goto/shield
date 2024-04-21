@@ -8,4 +8,5 @@ var (
 	ErrInvalidID     = errors.New("project id is invalid")
 	ErrConflict      = errors.New("project already exist")
 	ErrInvalidDetail = errors.New("invalid project detail")
+	ErrLogActivity   = errors.New("error while logging activity")
 )

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/goto/shield/internal/proxy/hook"
+	"github.com/goto/shield/pkg/context"
 
 	"github.com/goto/salt/log"
 	"go.uber.org/zap"
@@ -46,7 +47,7 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 		transport = t.grpcTransport
 	}
 
-	req = req.WithContext(WithoutCancel(req.Context()))
+	req = req.WithContext(context.WithoutCancel(req.Context()))
 
 	logger.Info("request_forwarded")
 

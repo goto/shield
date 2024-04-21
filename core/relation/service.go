@@ -4,20 +4,41 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 )
 
-type Service struct {
-	repository      Repository
-	authzRepository AuthzRepository
+const (
+	auditKeyRelationCreate        = "relation.create"
+	auditKeyRelationSubjectDelete = "relation_subject.delete"
+)
+
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
-func NewService(repository Repository, authzRepository AuthzRepository) *Service {
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
+type Service struct {
+	logger          log.Logger
+	repository      Repository
+	authzRepository AuthzRepository
+	userService     UserService
+	activityService ActivityService
+}
+
+func NewService(logger log.Logger, repository Repository, authzRepository AuthzRepository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		authzRepository: authzRepository,
+		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -26,6 +47,11 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 }
 
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	createdRelation, err := s.repository.Create(ctx, rel)
 	if err != nil {
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInStore, err.Error())
@@ -36,6 +62,14 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 		return RelationV2{}, fmt.Errorf("%w: %s", ErrCreatingRelationInAuthzEngine, err.Error())
 	}
 
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		relationLogData := createdRelation.ToRelationLogData()
+		if err := s.activityService.Log(ctx, auditKeyRelationCreate, currentUser.ID, relationLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
 	return createdRelation, nil
 }
 
@@ -44,6 +78,7 @@ func (s Service) List(ctx context.Context) ([]RelationV2, error) {
 }
 
 // TODO: Update & Delete planned for v0.6
+// TODO: Audit log
 func (s Service) Update(ctx context.Context, toUpdate Relation) (Relation, error) {
 	//oldRelation, err := s.repository.Get(ctx, toUpdate.ID)
 	//if err != nil {
@@ -112,5 +147,23 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 }
 
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
-	return s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
+	err = s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
+	if err != nil {
+		return err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		relationSubjectlogData := ToRelationSubjectLogData(resourceType, optionalResourceID)
+		if err := s.activityService.Log(ctx, auditKeyRelationSubjectDelete, currentUser.ID, relationSubjectlogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return nil
 }

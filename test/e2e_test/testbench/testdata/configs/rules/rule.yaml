@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:63758"
+        target: "http://localhost:62568"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -89,6 +89,9 @@ rules:
                     organization:
                       key: organization
                       type: json_payload
+                    project:
+                      key: project
+                      type: json_payload
                     sink:
                       key: configs.env_vars.SINK_TYPE
                       type: json_payload
@@ -101,8 +104,8 @@ rules:
                           operator: ==
                           value: "blob"
                     - name: manage_bq_firehose
-                      namespace: shield/organization
-                      attribute: organization
+                      namespace: shield/project
+                      attribute: project
                       expression:
                           attribute: sink
                           operator: ==

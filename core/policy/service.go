@@ -2,15 +2,39 @@ package policy
 
 import (
 	"context"
+	"fmt"
+
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/user"
+	pkgctx "github.com/goto/shield/pkg/context"
 )
 
-type Service struct {
-	repository Repository
+const (
+	auditKeyPolicyCreate = "policy.create"
+	auditKeyPolicyUpdate = "policy.update"
+)
+
+type UserService interface {
+	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
-func NewService(repository Repository) *Service {
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
+type Service struct {
+	logger          log.Logger
+	repository      Repository
+	userService     UserService
+	activityService ActivityService
+}
+
+func NewService(logger log.Logger, repository Repository, userService UserService, activityService ActivityService) *Service {
 	return &Service{
-		repository: repository,
+		logger:          logger,
+		repository:      repository,
+		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -23,19 +47,39 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 }
 
 func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
-	if _, err := s.repository.Create(ctx, policy); err != nil {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
+	policyId, err := s.repository.Create(ctx, policy)
+	if err != nil {
 		return []Policy{}, err
 	}
 	policies, err := s.repository.List(ctx)
 	if err != nil {
 		return []Policy{}, err
 	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		policyLogData := policy.ToPolicyLogData(policyId)
+		if err := s.activityService.Log(ctx, auditKeyPolicyCreate, currentUser.ID, policyLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
 
 	return policies, err
 }
 
 func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
-	if _, err := s.repository.Update(ctx, pol); err != nil {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
+	policyId, err := s.repository.Update(ctx, pol)
+	if err != nil {
 		return []Policy{}, err
 	}
 
@@ -43,6 +87,14 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 	if err != nil {
 		return []Policy{}, err
 	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		policyLogData := pol.ToPolicyLogData(policyId)
+		if err := s.activityService.Log(ctx, auditKeyPolicyUpdate, currentUser.ID, policyLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
 
 	return policies, err
 }

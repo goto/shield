@@ -5,13 +5,20 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
+)
+
+const (
+	auditKeyGroupCreate = "group.create"
+	auditKeyGroupUpdate = "group.update"
 )
 
 type RelationService interface {
@@ -26,22 +33,30 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor string, data any) error
+}
+
 type Service struct {
+	logger          log.Logger
 	repository      Repository
 	relationService RelationService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, relationService RelationService, userService UserService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		relationService: relationService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
-	_, err := s.userService.FetchCurrentUser(ctx)
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
@@ -54,6 +69,14 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	if err = s.addTeamToOrg(ctx, newGroup); err != nil {
 		return Group{}, err
 	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		groupLogData := newGroup.ToGroupLogData()
+		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, groupLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
 
 	return newGroup, nil
 }
@@ -78,10 +101,29 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+	}
+
 	if strings.TrimSpace(grp.ID) != "" {
 		return s.repository.UpdateByID(ctx, grp)
 	}
-	return s.repository.UpdateBySlug(ctx, grp)
+
+	updatedGroup, err := s.repository.UpdateBySlug(ctx, grp)
+	if err != nil {
+		return Group{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		groupLogData := updatedGroup.ToGroupLogData()
+		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, groupLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return updatedGroup, nil
 }
 
 func (s Service) ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error) {

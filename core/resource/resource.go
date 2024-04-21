@@ -8,7 +8,11 @@ import (
 	"github.com/goto/shield/core/namespace"
 )
 
-const NON_RESOURCE_ID = "*"
+const (
+	NON_RESOURCE_ID = "*"
+
+	auditEntity = "resource"
+)
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Resource, error)
@@ -65,4 +69,26 @@ type YAML struct {
 type PagedResources struct {
 	Count     int32
 	Resources []Resource
+}
+
+type ResourceLogData struct {
+	Entity         string `mapstructure:"entity"`
+	URN            string `mapstructure:"urn"`
+	Name           string `mapstructure:"name"`
+	OrganizationID string `mapstructure:"organization_id"`
+	ProjectID      string `mapstructure:"project_id"`
+	NamespaceID    string `mapstructure:"namespace_id"`
+	UserID         string `mapstructure:"user_id"`
+}
+
+func (resource Resource) ToResourceLogData() ResourceLogData {
+	return ResourceLogData{
+		Entity:         auditEntity,
+		URN:            resource.URN,
+		Name:           resource.Name,
+		OrganizationID: resource.OrganizationID,
+		ProjectID:      resource.ProjectID,
+		NamespaceID:    resource.NamespaceID,
+		UserID:         resource.UserID,
+	}
 }

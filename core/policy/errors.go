@@ -8,4 +8,5 @@ var (
 	ErrInvalidID     = errors.New("policy id is invalid")
 	ErrConflict      = errors.New("policy already exist")
 	ErrInvalidDetail = errors.New("invalid policy detail")
+	ErrLogActivity   = errors.New("error while logging activity")
 )

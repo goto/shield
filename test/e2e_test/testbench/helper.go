@@ -17,9 +17,10 @@ import (
 )
 
 const (
-	OrgAdminEmail   = "admin1-group1-org1@gotocompany.com"
-	IdentityHeader  = "X-Shield-Email"
-	userIDHeaderKey = "X-Shield-UserID"
+	OrgAdminEmail      = "admin1-group1-org1@gotocompany.com"
+	DefaultSystemEmail = "shield-service@gotocompany.com"
+	IdentityHeader     = "X-Shield-Email"
+	userIDHeaderKey    = "X-Shield-UserID"
 )
 
 func GetFreePort() (int, error) {
