@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	auditKeyUserCreate            = "user.create"
+	AuditKeyUserCreate            = "user.create"
 	AuditKeyUserUpdate            = "user.update"
 	auditKeyUserMetadataKeyCreate = "user_metadata_key.create"
 )
@@ -72,7 +72,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := newUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserCreate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
