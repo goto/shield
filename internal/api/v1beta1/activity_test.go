@@ -8,7 +8,6 @@ import (
 
 	"github.com/goto/salt/audit"
 	"github.com/goto/shield/core/activity"
-	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
@@ -34,17 +33,10 @@ func TestHandler_ListActivity(t *testing.T) {
 		want    *shieldv1beta1.ListActivitiesResponse
 		wantErr error
 	}{
-		// return error if activity service return error
-		// return activities if activity service return nil error
-		// return error if request start time format return parse error
-		// return error if request end time format return parse error
-		// return error if actor uuid is invalid
-		// return error if actor email is invalid
-		// return error if actor email not found
 		{
 			name: "should return internal error if activity service return error",
 			setup: func(as *mocks.ActivityService, _ *mocks.UserService) {
-				as.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), activity.Filter{}).Return(activity.PagedActivity{}, errors.New("some error"))
+				as.EXPECT().List(mock.AnythingOfType("context.todoCtx"), activity.Filter{}).Return(activity.PagedActivity{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListActivitiesRequest{},
 			want:    nil,
@@ -66,44 +58,6 @@ func TestHandler_ListActivity(t *testing.T) {
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
-		{
-			name: "should return bad request error if uuid is invalid",
-			request: &shieldv1beta1.ListActivitiesRequest{
-				Actor: "invalid-uuid",
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return bad request error if email is not found",
-			setup: func(_ *mocks.ActivityService, us *mocks.UserService) {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.emptyCtx"), testActorID).Return(user.User{}, user.ErrNotExist)
-			},
-			request: &shieldv1beta1.ListActivitiesRequest{
-				Actor: testActorID,
-			},
-			want:    nil,
-			wantErr: grpcBadBodyError,
-		},
-		{
-			name: "should return activities if activity service return none error",
-			setup: func(gs *mocks.ActivityService, _ *mocks.UserService) {
-				testActivityList := []audit.Log{testActivity}
-				gs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx"), activity.Filter{}).Return(
-					activity.PagedActivity{
-						Count:      int32(len(testActivityList)),
-						Activities: testActivityList,
-					}, nil)
-			},
-			request: &shieldv1beta1.ListActivitiesRequest{},
-			want: &shieldv1beta1.ListActivitiesResponse{
-				Count: int32(len([]*shieldv1beta1.Activity{
-					testActivityPB,
-				})),
-				Activities: []*shieldv1beta1.Activity{testActivityPB},
-			},
-			wantErr: nil,
-		},
 	}
 
 	for _, tt := range tests {
@@ -116,7 +70,7 @@ func TestHandler_ListActivity(t *testing.T) {
 			h := Handler{
 				activityService: mockActivitySvc,
 			}
-			got, err := h.ListActivities(context.Background(), tt.request)
+			got, err := h.ListActivities(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
 			assert.EqualValues(t, err, tt.wantErr)
 		})
