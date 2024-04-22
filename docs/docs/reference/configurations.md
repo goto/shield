@@ -9,6 +9,10 @@ version: 1
 log:
   # debug, info, warning, error, fatal - default 'info'
   level: debug
+  activity:
+    # none, stdout, db - default 'none'
+    sink: stdout
+
 
 app:
   port: 8000

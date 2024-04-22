@@ -50,6 +50,16 @@ func TestExpression_Evaluate(t *testing.T) {
 			wantNilErr: true,
 			wantOutput: false,
 		},
+		{
+			name: "unknown expression return error",
+			expression: Expression{
+				Attribute: "A",
+				Operator:  "';l",
+				Value:     "B",
+			},
+			wantNilErr: false,
+			wantOutput: false,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

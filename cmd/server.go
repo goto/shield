@@ -107,7 +107,7 @@ func serverStartCommand() *cobra.Command {
 			if err != nil {
 				panic(err)
 			}
-			logger := shieldlogger.InitLogger(appConfig.Log)
+			logger := shieldlogger.InitLogger(shieldlogger.Config{Level: appConfig.Log.Level})
 
 			return StartServer(logger, appConfig)
 		},

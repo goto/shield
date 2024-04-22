@@ -19,7 +19,6 @@ import (
 	"github.com/goto/shield/internal/store/postgres/migrations"
 	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/goto/shield/pkg/db"
-	"github.com/goto/shield/pkg/logger"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
@@ -191,7 +190,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 	}
 
 	appConfig := &config.Shield{
-		Log: logger.Config{
+		Log: config.Log{
 			Level: "fatal",
 		},
 		App: server.Config{
