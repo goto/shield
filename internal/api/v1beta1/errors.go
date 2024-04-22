@@ -1,9 +1,10 @@
 package v1beta1
 
 import (
-	"github.com/goto/shield/pkg/errors"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/goto/shield/pkg/errors"
 )
 
 // HTTP Codes defined here:

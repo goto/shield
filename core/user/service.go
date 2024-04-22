@@ -6,13 +6,14 @@ import (
 	"strings"
 
 	"github.com/goto/salt/log"
+
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
 const (
-	auditKeyUserCreate            = "user.create"
-	auditKeyUserUpdate            = "user.update"
+	AuditKeyUserCreate            = "user.create"
+	AuditKeyUserUpdate            = "user.update"
 	auditKeyUserMetadataKeyCreate = "user_metadata_key.create"
 )
 
@@ -61,7 +62,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
-		Email:    user.Email,
+		Email:    strings.ToLower(user.Email),
 		Metadata: user.Metadata,
 	})
 	if err != nil {
@@ -71,7 +72,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := newUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserCreate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserCreate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -122,7 +123,12 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
 	}
 
-	updatedUser, err := s.repository.UpdateByID(ctx, toUpdate)
+	updatedUser, err := s.repository.UpdateByID(ctx, User{
+		ID:       toUpdate.ID,
+		Name:     toUpdate.Name,
+		Email:    strings.ToLower(toUpdate.Email),
+		Metadata: toUpdate.Metadata,
+	})
 	if err != nil {
 		return User{}, err
 	}
@@ -130,7 +136,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -144,7 +150,11 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
 	}
 
-	updatedUser, err := s.repository.UpdateByEmail(ctx, toUpdate)
+	updatedUser, err := s.repository.UpdateByEmail(ctx, User{
+		Name:     toUpdate.Name,
+		Email:    strings.ToLower(toUpdate.Email),
+		Metadata: toUpdate.Metadata,
+	})
 	if err != nil {
 		return User{}, err
 	}
@@ -152,7 +162,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
