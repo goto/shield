@@ -4,25 +4,12 @@ import (
 	"context"
 	"errors"
 	"testing"
-	"time"
 
-	"github.com/goto/salt/audit"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
-	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
-)
-
-var (
-	testActorID  = uuid.NewString()
-	testActivity = audit.Log{
-		Actor:     testActorID,
-		Action:    "user.create",
-		Timestamp: time.Time{},
-	}
-	testActivityPB = &shieldv1beta1.Activity{}
 )
 
 func TestHandler_ListActivity(t *testing.T) {
