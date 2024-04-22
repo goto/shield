@@ -29,7 +29,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "Deprecated check single resource permission: should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
@@ -45,7 +45,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "Deprecated check single resource permission: should return true when CheckAuthz function returns true bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -63,7 +63,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "Deprecated check single resource permission: should return false when CheckAuthz function returns false bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
@@ -81,7 +81,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "Deprecated check single resource permission: should return unauthenticated error if relation service's CheckAuthz function returns auth error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
@@ -97,7 +97,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return internal error if relation service's CheckAuthz function returns some error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
@@ -117,7 +117,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return unauthenticated error if relation service's CheckAuthz function returns auth error",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
@@ -137,7 +137,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return validation error if the request has empty resource permission list",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
@@ -151,7 +151,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return true when CheckAuthz function returns true bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -180,7 +180,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return false when CheckAuthz function returns false bool",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, nil)
@@ -209,11 +209,11 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 		{
 			name: "should return internal error if resource service's CheckAuthz returns some error even with multiple resource check failures",
 			setup: func(res *mocks.ResourceService) {
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.EditPermission}).Return(false, errors.New("some error"))
-				res.EXPECT().CheckAuthz(mock.AnythingOfType("*context.emptyCtx"), resource.Resource{
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
 				}, action.Action{ID: schema.ViewPermission}).Return(false, errors.New("some error")).Twice()
@@ -249,7 +249,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 			}
 
 			mockDep := Handler{resourceService: mockResourceSrv, checkAPILimit: 5}
-			resp, err := mockDep.CheckResourcePermission(context.Background(), tt.request)
+			resp, err := mockDep.CheckResourcePermission(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -528,7 +528,7 @@ func TestHandler_CheckResourceUserPermission(t *testing.T) {
 			}
 
 			mockDep := Handler{resourceService: mockResourceSrv, checkAPILimit: 5}
-			resp, err := mockDep.CheckResourceUserPermission(context.Background(), tt.request)
+			resp, err := mockDep.CheckResourceUserPermission(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

@@ -49,7 +49,7 @@ func TestListOrganizations(t *testing.T) {
 		{
 			title: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]organization.Organization{}, errors.New("some error"))
+				os.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return([]organization.Organization{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
@@ -60,7 +60,7 @@ func TestListOrganizations(t *testing.T) {
 				for _, o := range testOrgMap {
 					testOrgList = append(testOrgList, o)
 				}
-				os.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(testOrgList, nil)
+				os.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return(testOrgList, nil)
 			},
 			want: &shieldv1beta1.ListOrganizationsResponse{Organizations: []*shieldv1beta1.Organization{
 				{
@@ -89,7 +89,7 @@ func TestListOrganizations(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(mockOrgSrv)
 			}
-			resp, err := mockDep.ListOrganizations(context.Background(), nil)
+			resp, err := mockDep.ListOrganizations(context.TODO(), nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
 		})
@@ -108,7 +108,7 @@ func TestCreateOrganization(t *testing.T) {
 		{
 			title: "should return forbidden error if auth email in context is empty and org service return invalid user email",
 			setup: func(ctx context.Context, os *mocks.OrganizationService) context.Context {
-				os.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					Name:     "some org",
 					Slug:     "some-org",
 					Metadata: metadata.Metadata{},
@@ -231,7 +231,7 @@ func TestCreateOrganization(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockOrgSrv)
 			}
@@ -256,7 +256,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, errors.New("some error"))
+				os.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someOrgID).Return(organization.Organization{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetOrganizationRequest{
 				Id: someOrgID,
@@ -267,7 +267,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 		{
 			name: "should return not found error if org id is not uuid (slug) and org not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(organization.Organization{}, organization.ErrNotExist)
+				os.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someOrgID).Return(organization.Organization{}, organization.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetOrganizationRequest{
 				Id: someOrgID,
@@ -278,7 +278,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 		{
 			name: "should return not found error if org id is invalid",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(organization.Organization{}, organization.ErrInvalidID)
+				os.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(organization.Organization{}, organization.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetOrganizationRequest{},
 			want:    nil,
@@ -287,7 +287,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 		{
 			name: "should return success if org service return nil error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "9f256f86-31a3-11ec-8d3d-0242ac130003").Return(testOrgMap["9f256f86-31a3-11ec-8d3d-0242ac130003"], nil)
+				os.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "9f256f86-31a3-11ec-8d3d-0242ac130003").Return(testOrgMap["9f256f86-31a3-11ec-8d3d-0242ac130003"], nil)
 			},
 			request: &shieldv1beta1.GetOrganizationRequest{
 				Id: "9f256f86-31a3-11ec-8d3d-0242ac130003",
@@ -314,7 +314,7 @@ func TestHandler_GetOrganization(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				tt.setup(mockOrgSrv)
 			}
@@ -338,7 +338,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
 					Metadata: metadata.Metadata{
@@ -369,7 +369,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return not found error if org id is not uuid (slug) and not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
 					Metadata: metadata.Metadata{
@@ -400,7 +400,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return not found error if org id is empty",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					Name: "new org",
 					Slug: "", // consider it by slug and assign empty to slug
 					Metadata: metadata.Metadata{
@@ -429,7 +429,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return already exist error if org service return err conflict",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
 					Metadata: metadata.Metadata{
@@ -460,7 +460,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return success if org service is updated by id and return nil error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					ID:   someOrgID,
 					Name: "new org",
 					Metadata: metadata.Metadata{
@@ -515,7 +515,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 		{
 			name: "should return success if org service is updated by slug and return nil error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), organization.Organization{
+				os.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), organization.Organization{
 					Name: "new org",
 					Slug: "some-slug",
 					Metadata: metadata.Metadata{
@@ -570,7 +570,7 @@ func TestHandler_UpdateOrganization(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				tt.setup(mockOrgSrv)
 			}
@@ -594,7 +594,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, errors.New("some error"))
+				os.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), someOrgID).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -605,7 +605,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 		{
 			name: "should return not found error if org id is not exist",
 			setup: func(os *mocks.OrganizationService) {
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return([]user.User{}, organization.ErrNotExist)
+				os.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), someOrgID).Return([]user.User{}, organization.ErrNotExist)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -620,7 +620,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				os.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), someOrgID).Return(testUserList, nil)
+				os.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), someOrgID).Return(testUserList, nil)
 			},
 			request: &shieldv1beta1.ListOrganizationAdminsRequest{
 				Id: someOrgID,
@@ -649,7 +649,7 @@ func TestHandler_ListOrganizationAdmins(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockOrgSrv := new(mocks.OrganizationService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				tt.setup(mockOrgSrv)
 			}

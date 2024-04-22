@@ -99,7 +99,7 @@ func TestListNamespaces(t *testing.T) {
 				tt.setup(mockNamespaceSrv)
 			}
 			mockDep := Handler{namespaceService: mockNamespaceSrv}
-			resp, err := mockDep.ListNamespaces(context.Background(), tt.req)
+			resp, err := mockDep.ListNamespaces(context.TODO(), tt.req)
 
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -118,7 +118,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
 				}).Return(namespace.Namespace{}, errors.New("some error"))
@@ -133,7 +133,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return already exist error if namespace service return err conflict",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrConflict)
@@ -148,7 +148,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if id is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
@@ -161,7 +161,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if name is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID: "team",
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
 			},
@@ -201,7 +201,7 @@ func TestCreateNamespace(t *testing.T) {
 				tt.setup(mockNamespaceSrv)
 			}
 			mockDep := Handler{namespaceService: mockNamespaceSrv}
-			resp, err := mockDep.CreateNamespace(context.Background(), tt.req)
+			resp, err := mockDep.CreateNamespace(context.TODO(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
@@ -219,7 +219,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
+				ns.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testNSID).Return(namespace.Namespace{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetNamespaceRequest{
 				Id: testNSID,
@@ -230,7 +230,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return not found error if namespace id is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(namespace.Namespace{}, namespace.ErrInvalidID)
+				ns.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetNamespaceRequest{},
 			want:    nil,
@@ -239,7 +239,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return not found error if namespace id not exist",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{}, namespace.ErrNotExist)
+				ns.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testNSID).Return(namespace.Namespace{}, namespace.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetNamespaceRequest{
 				Id: testNSID,
@@ -250,7 +250,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 		{
 			name: "should return success is namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testNSID).Return(namespace.Namespace{
+				ns.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testNSID).Return(namespace.Namespace{
 					ID:   testNSMap[testNSID].ID,
 					Name: testNSMap[testNSID].Name,
 				}, nil)
@@ -276,7 +276,7 @@ func TestHandler_GetNamespace(t *testing.T) {
 				tt.setup(mockNamespaceSrv)
 			}
 			mockDep := Handler{namespaceService: mockNamespaceSrv}
-			resp, err := mockDep.GetNamespace(context.Background(), tt.request)
+			resp, err := mockDep.GetNamespace(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -294,7 +294,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 		{
 			name: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   testNSID,
 					Name: testNSMap[testNSID].Name,
 				}).Return(namespace.Namespace{}, errors.New("some error"))
@@ -312,7 +312,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 		{
 			name: "should return not found error if namespace id not exist",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   testNSID,
 					Name: testNSMap[testNSID].Name,
 				}).Return(namespace.Namespace{}, namespace.ErrNotExist)
@@ -330,7 +330,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 		{
 			name: "should return already exist error if namespace service return err conflict",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   testNSID,
 					Name: testNSMap[testNSID].Name,
 				}).Return(namespace.Namespace{}, namespace.ErrConflict)
@@ -348,7 +348,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 		{
 			name: "should return bad request error if namespace name is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID: testNSID,
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
 			},
@@ -364,7 +364,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 		{
 			name: "should return success if namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), namespace.Namespace{
+				ns.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   testNSID,
 					Name: testNSMap[testNSID].Name,
 				}).Return(namespace.Namespace{
@@ -397,7 +397,7 @@ func TestHandler_UpdateNamespace(t *testing.T) {
 				tt.setup(mockNamespaceSrv)
 			}
 			mockDep := Handler{namespaceService: mockNamespaceSrv}
-			resp, err := mockDep.UpdateNamespace(context.Background(), tt.request)
+			resp, err := mockDep.UpdateNamespace(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

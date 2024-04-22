@@ -46,7 +46,7 @@ func TestHandler_ListRoles(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]role.Role{}, errors.New("some error"))
+				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return([]role.Role{}, errors.New("some error"))
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
@@ -58,7 +58,7 @@ func TestHandler_ListRoles(t *testing.T) {
 				for _, rl := range testRoleMap {
 					testRolesList = append(testRolesList, rl)
 				}
-				rs.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(testRolesList, nil)
+				rs.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return(testRolesList, nil)
 			},
 			want: &shieldv1beta1.ListRolesResponse{
 				Roles: []*shieldv1beta1.Role{
@@ -86,7 +86,7 @@ func TestHandler_ListRoles(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.ListRoles(context.Background(), tt.request)
+			resp, err := mockDep.ListRoles(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -104,7 +104,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -131,7 +131,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -158,7 +158,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if name empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
@@ -183,7 +183,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if id empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
@@ -207,7 +207,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -252,7 +252,7 @@ func TestHandler_CreateRole(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.CreateRole(context.Background(), tt.request)
+			resp, err := mockDep.CreateRole(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -270,7 +270,7 @@ func TestHandler_GetRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRoleID).Return(role.Role{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetRoleRequest{
 				Id: testRoleID,
@@ -281,7 +281,7 @@ func TestHandler_GetRole(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRoleID).Return(role.Role{}, role.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetRoleRequest{
 				Id: testRoleID,
@@ -292,7 +292,7 @@ func TestHandler_GetRole(t *testing.T) {
 		{
 			name: "should return not found error if id empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(role.Role{}, role.ErrInvalidID)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(role.Role{}, role.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetRoleRequest{},
 			want:    nil,
@@ -301,7 +301,7 @@ func TestHandler_GetRole(t *testing.T) {
 		{
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
+				rs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRoleID).Return(testRoleMap[testRoleID], nil)
 			},
 			request: &shieldv1beta1.GetRoleRequest{
 				Id: testRoleID,
@@ -330,7 +330,7 @@ func TestHandler_GetRole(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.GetRole(context.Background(), tt.request)
+			resp, err := mockDep.GetRole(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -348,7 +348,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -375,7 +375,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return not found error if id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -402,7 +402,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -429,7 +429,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return bad request error if name is empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
@@ -454,7 +454,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -481,7 +481,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 		{
 			name: "should return already exist error if role service return err conflict",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), role.Role{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -513,7 +513,7 @@ func TestHandler_UpdateRole(t *testing.T) {
 				tt.setup(mockRoleSrv)
 			}
 			mockDep := Handler{roleService: mockRoleSrv}
-			resp, err := mockDep.UpdateRole(context.Background(), tt.request)
+			resp, err := mockDep.UpdateRole(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

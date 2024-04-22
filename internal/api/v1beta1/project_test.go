@@ -242,7 +242,7 @@ func TestCreateProject(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockProjectSrv := new(mocks.ProjectService)
-			ctx := context.Background()
+			ctx := context.TODO()
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockProjectSrv)
 			}
@@ -266,7 +266,7 @@ func TestListProjects(t *testing.T) {
 			title: "should return internal error if project service return some error",
 			req:   &shieldv1beta1.ListProjectsRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return([]project.Project{}, errors.New("some error"))
+				ps.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return([]project.Project{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  grpcInternalServerError,
@@ -281,7 +281,7 @@ func TestListProjects(t *testing.T) {
 					prjs = append(prjs, testProjectMap[projectID])
 				}
 
-				ps.EXPECT().List(mock.AnythingOfType("*context.emptyCtx")).Return(prjs, nil)
+				ps.EXPECT().List(mock.AnythingOfType("context.todoCtx")).Return(prjs, nil)
 			},
 			want: &shieldv1beta1.ListProjectsResponse{Projects: []*shieldv1beta1.Project{
 				{
@@ -322,7 +322,7 @@ func TestListProjects(t *testing.T) {
 				tt.setup(mockProjectSrv)
 			}
 			mockDep := Handler{projectService: mockProjectSrv}
-			resp, err := mockDep.ListProjects(context.Background(), tt.req)
+			resp, err := mockDep.ListProjects(context.TODO(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
@@ -345,7 +345,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(project.Project{}, errors.New("some error"))
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someProjectID).Return(project.Project{}, errors.New("some error"))
 			},
 			err: grpcInternalServerError,
 		},
@@ -355,7 +355,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someProjectID).Return(project.Project{}, project.ErrNotExist)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -365,7 +365,7 @@ func TestGetProject(t *testing.T) {
 				Id: "some-id",
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "some-id").Return(project.Project{}, project.ErrInvalidUUID)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "some-id").Return(project.Project{}, project.ErrInvalidUUID)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -373,7 +373,7 @@ func TestGetProject(t *testing.T) {
 			title: "should return project not found if project id is empty",
 			req:   &shieldv1beta1.GetProjectRequest{},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), "").Return(project.Project{}, project.ErrInvalidUUID)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(project.Project{}, project.ErrInvalidUUID)
 			},
 			err: grpcProjectNotFoundErr,
 		},
@@ -383,7 +383,7 @@ func TestGetProject(t *testing.T) {
 				Id: someProjectID,
 			},
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Get(mock.AnythingOfType("*context.emptyCtx"), someProjectID).Return(
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someProjectID).Return(
 					testProjectMap[testProjectID], nil)
 			},
 			want: &shieldv1beta1.GetProjectResponse{Project: &shieldv1beta1.Project{
@@ -410,7 +410,7 @@ func TestGetProject(t *testing.T) {
 				tt.setup(mockProjectSrv)
 			}
 			mockDep := Handler{projectService: mockProjectSrv}
-			resp, err := mockDep.GetProject(context.Background(), tt.req)
+			resp, err := mockDep.GetProject(context.TODO(), tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
 		})
@@ -428,7 +428,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("some error"))
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(project.Project{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -449,7 +449,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if org id is not uuid",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(project.Project{}, organization.ErrInvalidUUID)
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -470,7 +470,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -491,7 +491,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -512,7 +512,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return already exist error if project service return err conflict",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(project.Project{}, project.ErrConflict)
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -533,7 +533,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return bad request error if update by id with empty name",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), project.Project{
 					ID:           testProjectID,
 					Slug:         testProjectMap[testProjectID].Slug,
 					Organization: testProjectMap[testProjectID].Organization,
@@ -558,7 +558,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return bad request error if update by id with empty slug",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), project.Project{
 					ID:           testProjectID,
 					Name:         testProjectMap[testProjectID].Name,
 					Organization: testProjectMap[testProjectID].Organization,
@@ -583,7 +583,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return not found error if project id empty",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), project.Project{
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), project.Project{
 					Name:         testProjectMap[testProjectID].Name,
 					Slug:         "", // consider it to update by slug and assigned empty to slug
 					Organization: testProjectMap[testProjectID].Organization,
@@ -608,7 +608,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 		{
 			name: "should return success if project service return nil",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().Update(mock.AnythingOfType("*context.emptyCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
+				ps.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testProjectMap[testProjectID]).Return(testProjectMap[testProjectID], nil)
 			},
 			request: &shieldv1beta1.UpdateProjectRequest{
 				Id: testProjectID,
@@ -648,7 +648,7 @@ func TestHandler_UpdateProject(t *testing.T) {
 				tt.setup(mockProjectSrv)
 			}
 			mockDep := Handler{projectService: mockProjectSrv}
-			resp, err := mockDep.UpdateProject(context.Background(), tt.request)
+			resp, err := mockDep.UpdateProject(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -666,7 +666,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return internal error if project service return some error",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, errors.New("some error"))
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), testProjectID).Return([]user.User{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -677,7 +677,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 		{
 			name: "should return not found error if org id is not exist",
 			setup: func(ps *mocks.ProjectService) {
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return([]user.User{}, project.ErrNotExist)
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), testProjectID).Return([]user.User{}, project.ErrNotExist)
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -692,7 +692,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
-				ps.EXPECT().ListAdmins(mock.AnythingOfType("*context.emptyCtx"), testProjectID).Return(testUserList, nil)
+				ps.EXPECT().ListAdmins(mock.AnythingOfType("context.todoCtx"), testProjectID).Return(testUserList, nil)
 			},
 			request: &shieldv1beta1.ListProjectAdminsRequest{
 				Id: testProjectID,
@@ -725,7 +725,7 @@ func TestHandler_ListProjectAdmins(t *testing.T) {
 				tt.setup(mockProjectSrv)
 			}
 			mockDep := Handler{projectService: mockProjectSrv}
-			resp, err := mockDep.ListProjectAdmins(context.Background(), tt.request)
+			resp, err := mockDep.ListProjectAdmins(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
