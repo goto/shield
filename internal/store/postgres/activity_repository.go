@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/salt/audit"
@@ -99,6 +100,10 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 			dataQuery := fmt.Sprintf("metadata->>'%s' = '%s'", key, value)
 			sqlStatement = sqlStatement.Where(goqu.L(dataQuery))
 		}
+	}
+
+	if filter.EndTime.IsZero() {
+		filter.EndTime = time.Now()
 	}
 
 	sqlStatement = sqlStatement.Where(

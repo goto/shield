@@ -139,25 +139,20 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 
 	var testCases = []testCase{
 		{
-			Description: "should get all activity",
-			Filter: activity.Filter{
-				EndTime: time.Now(),
-			},
+			Description:        "should get all activity",
 			ExpectedActivities: s.activities,
 		},
 		{
 			Description: "should return maximum 50 activities if limit is set < 1",
 			Filter: activity.Filter{
-				Limit:   0,
-				EndTime: time.Now(),
+				Limit: 0,
 			},
 			ExpectedActivities: s.activities,
 		},
 		{
 			Description: "should return maximum specified activities if limit is set >= 1",
 			Filter: activity.Filter{
-				Limit:   2,
-				EndTime: time.Now(),
+				Limit: 2,
 			},
 			ExpectedActivities: []audit.Log{
 				s.activities[0], s.activities[1],
@@ -166,17 +161,15 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		{
 			Description: "should return the first page if page is set < 1",
 			Filter: activity.Filter{
-				Page:    0,
-				EndTime: time.Now(),
+				Page: 0,
 			},
 			ExpectedActivities: s.activities,
 		},
 		{
 			Description: "should return the specified page if page is set >= 1",
 			Filter: activity.Filter{
-				Page:    2,
-				Limit:   1,
-				EndTime: time.Now(),
+				Page:  2,
+				Limit: 1,
 			},
 			ExpectedActivities: []audit.Log{s.activities[1]},
 		},
@@ -191,16 +184,14 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		{
 			Description: "should return filtered activities by actor",
 			Filter: activity.Filter{
-				Actor:   s.activities[0].Actor,
-				EndTime: time.Now(),
+				Actor: s.activities[0].Actor,
 			},
 			ExpectedActivities: []audit.Log{s.activities[0]},
 		},
 		{
 			Description: "should return filtered activity by action",
 			Filter: activity.Filter{
-				Action:  s.activities[1].Action,
-				EndTime: time.Now(),
+				Action: s.activities[1].Action,
 			},
 			ExpectedActivities: []audit.Log{s.activities[1]},
 		},
@@ -210,7 +201,6 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 				Data: map[string]string{
 					"entity": "user",
 				},
-				EndTime: time.Now(),
 			},
 			ExpectedActivities: []audit.Log{s.activities[0]},
 		},
@@ -220,7 +210,6 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 				Metadata: map[string]string{
 					"version": "v0.1.3",
 				},
-				EndTime: time.Now(),
 			},
 			ExpectedActivities: []audit.Log{s.activities[2]},
 		},

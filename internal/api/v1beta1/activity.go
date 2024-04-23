@@ -51,7 +51,7 @@ func (h Handler) ListActivities(ctx context.Context, request *shieldv1beta1.List
 		if err != nil {
 			logger.Error(err.Error())
 			switch {
-			case errors.Is(err, user.ErrInvalidEmail):
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrNotExist):
 				return nil, grpcBadBodyError
 			default:
 				return nil, grpcInternalServerError
@@ -93,22 +93,30 @@ func (h Handler) ListActivities(ctx context.Context, request *shieldv1beta1.List
 }
 
 func transformActivityToPB(from audit.Log) (shieldv1beta1.Activity, error) {
-	var dataMap map[string]interface{}
-	if err := json.Unmarshal(from.Data.([]uint8), &dataMap); err != nil {
-		return shieldv1beta1.Activity{}, err
-	}
-	dataMapString, err := mapInterfaceToMapString(dataMap)
-	if err != nil {
-		return shieldv1beta1.Activity{}, err
+	var dataMapString map[string]string
+	if from.Data != nil {
+		var dataMap map[string]interface{}
+		if err := json.Unmarshal(from.Data.([]uint8), &dataMap); err != nil {
+			return shieldv1beta1.Activity{}, err
+		}
+		var err error
+		dataMapString, err = mapInterfaceToMapString(dataMap)
+		if err != nil {
+			return shieldv1beta1.Activity{}, err
+		}
 	}
 
-	var metadataMap map[string]interface{}
-	if err := json.Unmarshal(from.Metadata.([]uint8), &metadataMap); err != nil {
-		return shieldv1beta1.Activity{}, err
-	}
-	metadataMapString, err := mapInterfaceToMapString(metadataMap)
-	if err != nil {
-		return shieldv1beta1.Activity{}, err
+	var metadataMapString map[string]string
+	if from.Metadata != nil {
+		var metadataMap map[string]interface{}
+		if err := json.Unmarshal(from.Metadata.([]uint8), &metadataMap); err != nil {
+			return shieldv1beta1.Activity{}, err
+		}
+		var err error
+		metadataMapString, err = mapInterfaceToMapString(metadataMap)
+		if err != nil {
+			return shieldv1beta1.Activity{}, err
+		}
 	}
 
 	return shieldv1beta1.Activity{

@@ -47,11 +47,7 @@ func (s Service) Log(ctx context.Context, action string, actor string, data any)
 }
 
 func (s Service) List(ctx context.Context, filter Filter) (PagedActivity, error) {
-	if filter.EndTime.IsZero() {
-		filter.EndTime = time.Now()
-	}
-
-	if filter.EndTime.Before(filter.StartTime) {
+	if !filter.EndTime.IsZero() && !filter.StartTime.IsZero() && filter.EndTime.Before(filter.StartTime) {
 		return PagedActivity{}, ErrInvalidFilter
 	}
 
