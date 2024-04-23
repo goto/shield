@@ -62,6 +62,7 @@ const (
 	ShieldService_GetResource_FullMethodName                 = "/gotocompany.shield.v1beta1.ShieldService/GetResource"
 	ShieldService_UpdateResource_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/UpdateResource"
 	ShieldService_CheckResourcePermission_FullMethodName     = "/gotocompany.shield.v1beta1.ShieldService/CheckResourcePermission"
+	ShieldService_ListActivities_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/ListActivities"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -122,6 +123,8 @@ type ShieldServiceClient interface {
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
+	// Activity
+	ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -519,6 +522,15 @@ func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *C
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesResponse, error) {
+	out := new(ListActivitiesResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListActivities_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -577,6 +589,8 @@ type ShieldServiceServer interface {
 	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
+	// Activity
+	ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -712,6 +726,9 @@ func (UnimplementedShieldServiceServer) UpdateResource(context.Context, *UpdateR
 }
 func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
+}
+func (UnimplementedShieldServiceServer) ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListActivities not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -1500,6 +1517,24 @@ func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListActivities_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListActivitiesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListActivities(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListActivities_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListActivities(ctx, req.(*ListActivitiesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1678,6 +1713,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CheckResourcePermission",
 			Handler:    _ShieldService_CheckResourcePermission_Handler,
+		},
+		{
+			MethodName: "ListActivities",
+			Handler:    _ShieldService_ListActivities_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

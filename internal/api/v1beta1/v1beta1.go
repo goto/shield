@@ -26,6 +26,7 @@ type Handler struct {
 	relationService  RelationService
 	resourceService  ResourceService
 	ruleService      RuleService
+	activityService  ActivityService
 	relationAdapter  RelationTransformer
 	checkAPILimit    int
 }
@@ -45,6 +46,7 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit 
 			relationService:  deps.RelationService,
 			resourceService:  deps.ResourceService,
 			ruleService:      deps.RuleService,
+			activityService:  deps.ActivityService,
 			relationAdapter:  deps.RelationAdapter,
 			checkAPILimit:    checkAPILimit,
 		},

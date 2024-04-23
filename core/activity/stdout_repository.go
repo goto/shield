@@ -21,3 +21,7 @@ func NewStdoutRepository(writer io.Writer) *StdoutRepository {
 func (r StdoutRepository) Insert(ctx context.Context, log *audit.Log) error {
 	return json.NewEncoder(r.writer).Encode(log)
 }
+
+func (r StdoutRepository) List(ctx context.Context, filter Filter) ([]audit.Log, error) {
+	return []audit.Log{}, ErrNotFound
+}

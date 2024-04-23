@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/goto/salt/log"
-
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
