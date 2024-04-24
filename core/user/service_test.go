@@ -82,6 +82,97 @@ func TestService_Create(t *testing.T) {
 	}
 }
 
+func TestService_List(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		email   string
+		setup   func(t *testing.T) *user.Service
+		urn     string
+		want    user.PagedUsers
+		wantErr error
+	}{
+		{
+			name:  "ListUser",
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					List(mock.Anything, user.Filter{}).
+					Return([]user.User{
+						{
+							Name:  "John Doe",
+							Email: "john.doe@gotocompany.com",
+						},
+					}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			want: user.PagedUsers{
+				Users: []user.User{
+					{
+						Name:  "John Doe",
+						Email: "john.doe@gotocompany.com",
+					},
+				},
+				Count: 1,
+			},
+			wantErr: nil,
+		},
+		{
+			name:  "ListUserError",
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					List(mock.Anything, user.Filter{}).
+					Return([]user.User{}, user.ErrInvalidID).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			// Any error is directly returned by the function
+			wantErr: user.ErrInvalidID,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
+			got, err := svc.List(ctx, user.Filter{})
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
 func TestService_UpdateByID(t *testing.T) {
 	t.Parallel()
 
