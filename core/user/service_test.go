@@ -373,6 +373,17 @@ func TestService_FetchCurrentUser(t *testing.T) {
 			},
 			wantErr: nil,
 		},
+		{
+			name: "FetchCurrentUserMissingEmail",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				return user.NewService(logger, repository, activityService)
+			},
+			wantErr: user.ErrMissingEmail,
+		},
 	}
 
 	for _, tt := range tests {
