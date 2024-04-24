@@ -9,7 +9,6 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/goto/salt/audit"
 	"github.com/goto/salt/log"
-	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 	"github.com/ory/dockertest"
@@ -22,7 +21,7 @@ type ActivityRepositoryTestSuite struct {
 	client     *db.Client
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
-	repository *postgres.ActivityRepository
+	repository *postgres.AuditActivityRepository
 	activities []audit.Log
 }
 
@@ -36,7 +35,7 @@ func (s *ActivityRepositoryTestSuite) SetupSuite() {
 	}
 
 	s.ctx = context.TODO()
-	s.repository = postgres.NewActivityRepository(s.client)
+	s.repository = postgres.NewAuditActivityRepository(s.client)
 }
 
 func (s *ActivityRepositoryTestSuite) SetupTest() {
@@ -132,7 +131,7 @@ func (s *ActivityRepositoryTestSuite) TestInsert() {
 func (s *ActivityRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description        string
-		Filter             activity.Filter
+		Filter             audit.Filter
 		ExpectedActivities []audit.Log
 		ErrString          string
 	}
@@ -144,14 +143,14 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return maximum 50 activities if limit is set < 1",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Limit: 0,
 			},
 			ExpectedActivities: s.activities,
 		},
 		{
 			Description: "should return maximum specified activities if limit is set >= 1",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Limit: 2,
 			},
 			ExpectedActivities: []audit.Log{
@@ -160,14 +159,14 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return the first page if page is set < 1",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Page: 0,
 			},
 			ExpectedActivities: s.activities,
 		},
 		{
 			Description: "should return the specified page if page is set >= 1",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Page:  2,
 				Limit: 1,
 			},
@@ -175,7 +174,7 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return activities between start time and end time",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				StartTime: time.Date(2024, time.January, 10, 15, 0, 0, 0, time.UTC),
 				EndTime:   time.Date(2024, time.January, 10, 25, 0, 0, 0, time.UTC),
 			},
@@ -183,21 +182,21 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return filtered activities by actor",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Actor: s.activities[0].Actor,
 			},
 			ExpectedActivities: []audit.Log{s.activities[0]},
 		},
 		{
 			Description: "should return filtered activity by action",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Action: s.activities[1].Action,
 			},
 			ExpectedActivities: []audit.Log{s.activities[1]},
 		},
 		{
 			Description: "should return filtered activity by data",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Data: map[string]string{
 					"entity": "user",
 				},
@@ -206,7 +205,7 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return filtered activity by metadata",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Metadata: map[string]string{
 					"version": "v0.1.3",
 				},
@@ -215,7 +214,7 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		},
 		{
 			Description: "should return empty activities if all filtered out",
-			Filter: activity.Filter{
+			Filter: audit.Filter{
 				Actor:     s.activities[0].Actor,
 				Action:    s.activities[1].Action,
 				StartTime: time.Date(2024, time.January, 20, 0, 0, 0, 0, time.UTC),

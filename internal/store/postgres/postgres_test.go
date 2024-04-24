@@ -11,7 +11,6 @@ import (
 	"github.com/goto/salt/audit"
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
-	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
@@ -466,7 +465,7 @@ func bootstrapResource(
 func bootstrapActivity(
 	client *db.Client,
 ) ([]audit.Log, error) {
-	activityRepository := postgres.NewActivityRepository(client)
+	activityRepository := postgres.NewAuditActivityRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-activity.json")
 	if err != nil {
 		return nil, err
@@ -488,7 +487,7 @@ func bootstrapActivity(
 		}
 	}
 
-	returnData, err := activityRepository.List(context.Background(), activity.Filter{EndTime: time.Now()})
+	returnData, err := activityRepository.List(context.Background(), audit.Filter{EndTime: time.Now()})
 	if err != nil {
 		return nil, err
 	}

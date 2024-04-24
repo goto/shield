@@ -14,8 +14,9 @@ const (
 )
 
 type Repository interface {
+	Init(context.Context) error
 	Insert(ctx context.Context, log *audit.Log) error
-	List(ctx context.Context, filter Filter) ([]audit.Log, error)
+	List(ctx context.Context, filter audit.Filter) ([]audit.Log, error)
 }
 
 type AppConfig struct {
