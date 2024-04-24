@@ -10,22 +10,25 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/salt/audit"
-	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent"
 )
 
-type ActivityRepository struct {
+type AuditActivityRepository struct {
 	dbc *db.Client
 }
 
-func NewActivityRepository(dbc *db.Client) *ActivityRepository {
-	return &ActivityRepository{
+func NewAuditActivityRepository(dbc *db.Client) *AuditActivityRepository {
+	return &AuditActivityRepository{
 		dbc: dbc,
 	}
 }
 
-func (r ActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
+func (r AuditActivityRepository) Init(ctx context.Context) error {
+	return nil
+}
+
+func (r AuditActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
 	marshaledMetadata, err := json.Marshal(log.Metadata)
 	if err != nil {
 		return fmt.Errorf("%w: %s", parseErr, err)
@@ -68,8 +71,8 @@ func (r ActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
 	return nil
 }
 
-func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([]audit.Log, error) {
-	var fetchedActivity []audit.Log
+func (r AuditActivityRepository) List(ctx context.Context, filter audit.Filter) ([]audit.Log, error) {
+	var fetchedActivities []AuditActivity
 
 	var defaultLimit int32 = 50
 	var defaultPage int32 = 1
@@ -126,7 +129,7 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 			defer nr.End()
 		}
 
-		return r.dbc.SelectContext(ctx, &fetchedActivity, query, params...)
+		return r.dbc.SelectContext(ctx, &fetchedActivities, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		if errors.Is(err, sql.ErrNoRows) {
@@ -136,5 +139,10 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 		return []audit.Log{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	return fetchedActivity, nil
+	var auditLogs = []audit.Log{}
+	for _, auditActivity := range fetchedActivities {
+		auditLogs = append(auditLogs, auditActivity.transformToAuditLog())
+	}
+
+	return auditLogs, nil
 }

@@ -2,21 +2,22 @@ package activity
 
 import (
 	"context"
-	"time"
 
 	"github.com/goto/salt/audit"
 	"github.com/mitchellh/mapstructure"
 )
 
 type Service struct {
-	appConfig  AppConfig
-	repository Repository
+	appConfig    AppConfig
+	auditService *audit.Service
+	repository   Repository
 }
 
 func NewService(appConfig AppConfig, repository Repository) *Service {
 	return &Service{
-		appConfig:  appConfig,
-		repository: repository,
+		appConfig:    appConfig,
+		repository:   repository,
+		auditService: audit.New(audit.WithRepository(repository)),
 	}
 }
 
@@ -30,34 +31,37 @@ func (s Service) Log(ctx context.Context, action string, actor string, data any)
 		return err
 	}
 
-	metadata := map[string]string{
+	metadata := map[string]any{
 		"app_name":    "shield",
 		"app_version": s.appConfig.Version,
 	}
 
-	log := &audit.Log{
-		Timestamp: time.Now(),
-		Action:    action,
-		Data:      logDataMap,
-		Actor:     actor,
-		Metadata:  metadata,
+	ctx = audit.WithActor(ctx, actor)
+	ctx, err := audit.WithMetadata(ctx, metadata)
+	if err != nil {
+		return err
 	}
 
-	return s.repository.Insert(ctx, log)
+	return s.auditService.Log(ctx, action, logDataMap)
 }
 
-func (s Service) List(ctx context.Context, filter Filter) (PagedActivity, error) {
-	if !filter.EndTime.IsZero() && !filter.StartTime.IsZero() && filter.EndTime.Before(filter.StartTime) {
-		return PagedActivity{}, ErrInvalidFilter
-	}
-
-	activities, err := s.repository.List(ctx, filter)
+func (s Service) List(ctx context.Context, flt Filter) (PagedActivity, error) {
+	pagedLogs, err := s.auditService.List(ctx, audit.Filter{
+		Actor:     flt.Actor,
+		Action:    flt.Action,
+		Data:      flt.Data,
+		Metadata:  flt.Metadata,
+		StartTime: flt.StartTime,
+		EndTime:   flt.EndTime,
+		Limit:     flt.Limit,
+		Page:      flt.Page,
+	})
 	if err != nil {
-		return PagedActivity{}, err
+		return PagedActivity{}, nil
 	}
 
 	return PagedActivity{
-		Count:      int32(len(activities)),
-		Activities: activities,
+		Count:      pagedLogs.Count,
+		Activities: pagedLogs.Logs,
 	}, nil
 }

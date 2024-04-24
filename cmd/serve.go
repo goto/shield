@@ -12,6 +12,7 @@ import (
 	"time"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
+	auditrepository "github.com/goto/salt/audit/repositories"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	newrelic "github.com/newrelic/go-agent"
 	"go.uber.org/zap"
@@ -55,7 +56,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
-	dbClient, err := setupDB(cfg.DB, logger)
+	dbClient, err := setupDB(cfg.DB)
 	if err != nil {
 		return err
 	}
@@ -98,15 +99,15 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	var activityRepository activity.Repository
 	switch cfg.Log.Activity.Sink {
 	case activity.SinkTypeDB:
-		activityRepository = postgres.NewActivityRepository(dbClient)
+		activityRepository = postgres.NewAuditActivityRepository(dbClient)
 	case activity.SinkTypeStdout:
 		stdoutLogger, err := zap.NewStdLogAt(logger.GetInternalZapLogger().Desugar(), logger.GetInternalZapLogger().Level())
 		if err != nil {
 			return err
 		}
-		activityRepository = activity.NewStdoutRepository(stdoutLogger.Writer())
+		activityRepository = auditrepository.NewStdoutRepository(stdoutLogger.Writer())
 	default:
-		activityRepository = activity.NewStdoutRepository(io.Discard)
+		activityRepository = auditrepository.NewStdoutRepository(io.Discard)
 	}
 	activityService := activity.NewService(appConfig, activityRepository)
 
@@ -261,7 +262,7 @@ func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application
 	return nil, nil
 }
 
-func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {
+func setupDB(cfg db.Config) (dbc *db.Client, err error) {
 	// prefer use pgx instead of lib/pq for postgres to catch pg error
 	if cfg.Driver == "postgres" {
 		cfg.Driver = "pgx"
