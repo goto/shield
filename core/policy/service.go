@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
 	pkgctx "github.com/goto/shield/pkg/context"
 )
@@ -19,7 +20,7 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data any) error
+	Log(ctx context.Context, action string, actor activity.Actor, data any) error
 }
 
 type Service struct {
@@ -49,7 +50,7 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	policyId, err := s.repository.Create(ctx, policy)
@@ -64,7 +65,8 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		policyLogData := policy.ToPolicyLogData(policyId)
-		if err := s.activityService.Log(ctx, auditKeyPolicyCreate, currentUser.ID, policyLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyPolicyCreate, actor, policyLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -75,7 +77,7 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	policyId, err := s.repository.Update(ctx, pol)
@@ -91,7 +93,8 @@ func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		policyLogData := pol.ToPolicyLogData(policyId)
-		if err := s.activityService.Log(ctx, auditKeyPolicyUpdate, currentUser.ID, policyLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyPolicyUpdate, actor, policyLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

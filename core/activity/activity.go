@@ -37,3 +37,8 @@ type PagedActivity struct {
 	Count      int32
 	Activities []audit.Log
 }
+
+type Actor struct {
+	ID    string
+	Email string
+}

@@ -20,7 +20,7 @@ func NewService(appConfig AppConfig, repository Repository) *Service {
 	}
 }
 
-func (s Service) Log(ctx context.Context, action string, actor string, data any) error {
+func (s Service) Log(ctx context.Context, action string, actor Actor, data any) error {
 	if data == nil {
 		return ErrInvalidData
 	}
@@ -33,13 +33,14 @@ func (s Service) Log(ctx context.Context, action string, actor string, data any)
 	metadata := map[string]string{
 		"app_name":    "shield",
 		"app_version": s.appConfig.Version,
+		"email":       actor.Email,
 	}
 
 	log := &audit.Log{
 		Timestamp: time.Now(),
 		Action:    action,
 		Data:      logDataMap,
-		Actor:     actor,
+		Actor:     actor.ID,
 		Metadata:  metadata,
 	}
 
