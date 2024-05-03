@@ -8,6 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
 	shieldlogger "github.com/goto/shield/pkg/logger"
 
@@ -38,6 +39,9 @@ func TestService_Create(t *testing.T) {
 				activityService := &mocks.ActivityService{}
 				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "John Doe",
 						Email: "john.doe@gotocompany.com"}).
@@ -46,7 +50,7 @@ func TestService_Create(t *testing.T) {
 						Email: "john.doe@gotocompany.com"}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserCreate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -65,7 +69,99 @@ func TestService_Create(t *testing.T) {
 
 			assert.NotNil(t, svc)
 
-			got, err := svc.Create(context.Background(), tt.user)
+			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
+			got, err := svc.Create(ctx, tt.user)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_List(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		email   string
+		setup   func(t *testing.T) *user.Service
+		urn     string
+		want    user.PagedUsers
+		wantErr error
+	}{
+		{
+			name:  "ListUser",
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					List(mock.Anything, user.Filter{}).
+					Return([]user.User{
+						{
+							Name:  "John Doe",
+							Email: "john.doe@gotocompany.com",
+						},
+					}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			want: user.PagedUsers{
+				Users: []user.User{
+					{
+						Name:  "John Doe",
+						Email: "john.doe@gotocompany.com",
+					},
+				},
+				Count: 1,
+			},
+			wantErr: nil,
+		},
+		{
+			name:  "ListUserError",
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					List(mock.Anything, user.Filter{}).
+					Return([]user.User{}, user.ErrInvalidID).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			// Any error is directly returned by the function
+			wantErr: user.ErrInvalidID,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
+			got, err := svc.List(ctx, user.Filter{})
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))
@@ -101,6 +197,9 @@ func TestService_UpdateByID(t *testing.T) {
 				activityService := &mocks.ActivityService{}
 				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
 					UpdateByID(mock.Anything, user.User{
 						ID:    "1",
 						Name:  "John Doe",
@@ -111,7 +210,7 @@ func TestService_UpdateByID(t *testing.T) {
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -131,7 +230,8 @@ func TestService_UpdateByID(t *testing.T) {
 
 			assert.NotNil(t, svc)
 
-			got, err := svc.UpdateByID(context.Background(), tt.user)
+			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
+			got, err := svc.UpdateByID(ctx, tt.user)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))
@@ -166,6 +266,9 @@ func TestService_UpdateByEmail(t *testing.T) {
 				activityService := &mocks.ActivityService{}
 				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
 					UpdateByEmail(mock.Anything, user.User{
 						Name:  "John Doe",
 						Email: "john.doe2@gotocompany.com"}).
@@ -174,7 +277,7 @@ func TestService_UpdateByEmail(t *testing.T) {
 						Email: "john.doe2@gotocompany.com"}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -193,7 +296,8 @@ func TestService_UpdateByEmail(t *testing.T) {
 
 			assert.NotNil(t, svc)
 
-			got, err := svc.UpdateByEmail(context.Background(), tt.user)
+			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
+			got, err := svc.UpdateByEmail(ctx, tt.user)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))
@@ -359,6 +463,17 @@ func TestService_FetchCurrentUser(t *testing.T) {
 				Email: "john.doe@gotocompany.com",
 			},
 			wantErr: nil,
+		},
+		{
+			name: "FetchCurrentUserMissingEmail",
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				return user.NewService(logger, repository, activityService)
+			},
+			wantErr: user.ErrMissingEmail,
 		},
 	}
 

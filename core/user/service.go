@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/activity"
 	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
@@ -17,7 +18,7 @@ const (
 )
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data any) error
+	Log(ctx context.Context, action string, actor activity.Actor, data any) error
 }
 
 type Service struct {
@@ -56,7 +57,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 func (s Service) Create(ctx context.Context, user User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
 	}
 
 	newUser, err := s.repository.Create(ctx, User{
@@ -71,7 +72,8 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := newUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, AuditKeyUserCreate, currentUser.ID, userLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, AuditKeyUserCreate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -82,7 +84,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+		return UserMetadataKey{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
 	}
 
 	newUserMetadataKey, err := s.repository.CreateMetadataKey(ctx, UserMetadataKey{
@@ -96,7 +98,8 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userMetadataKeyLogData := newUserMetadataKey.ToUserMetadataKeyLogData()
-		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, currentUser.ID, userMetadataKeyLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, actor, userMetadataKeyLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -119,7 +122,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
 	}
 
 	updatedUser, err := s.repository.UpdateByID(ctx, User{
@@ -135,7 +138,8 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -146,7 +150,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", ErrInvalidEmail.Error(), err.Error()))
+		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
 	}
 
 	updatedUser, err := s.repository.UpdateByEmail(ctx, User{
@@ -161,7 +165,8 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		userLogData := updatedUser.ToUserLogData()
-		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, currentUser.ID, userLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

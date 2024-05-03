@@ -7,6 +7,7 @@ import (
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
@@ -34,7 +35,7 @@ type UserService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data any) error
+	Log(ctx context.Context, action string, actor activity.Actor, data any) error
 }
 
 type Service struct {
@@ -73,7 +74,8 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := newGroup.ToGroupLogData()
-		if err := s.activityService.Log(ctx, auditKeyGroupCreate, currentUser.ID, groupLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyGroupCreate, actor, groupLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -103,7 +105,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	if strings.TrimSpace(grp.ID) != "" {
@@ -118,7 +120,8 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		groupLogData := updatedGroup.ToGroupLogData()
-		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, currentUser.ID, groupLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, actor, groupLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

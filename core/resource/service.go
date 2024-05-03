@@ -7,6 +7,7 @@ import (
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
@@ -47,7 +48,7 @@ type GroupService interface {
 }
 
 type ActivityService interface {
-	Log(ctx context.Context, action string, actor string, data any) error
+	Log(ctx context.Context, action string, actor activity.Actor, data any) error
 }
 
 type Service struct {
@@ -129,7 +130,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := newResource.ToResourceLogData()
-		if err := s.activityService.Log(ctx, auditKeyResourceCreate, currentUser.ID, resourceLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -151,7 +153,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		s.logger.Error(fmt.Sprintf("%s: %s", user.ErrInvalidEmail.Error(), err.Error()))
+		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
 	}
 
 	// TODO there should be an update logic like create here
@@ -163,7 +165,8 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 	go func() {
 		ctx := pkgctx.WithoutCancel(ctx)
 		resourceLogData := updatedResource.ToResourceLogData()
-		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, currentUser.ID, resourceLogData); err != nil {
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, actor, resourceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

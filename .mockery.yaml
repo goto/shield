@@ -60,3 +60,15 @@ packages:
       RelationTransformer:
         config:
           filename: "relation_transformer.go"
+  github.com/goto/shield/core/user:
+    config:
+      dir: "core/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      ActivityService:
+        config:
+          filename: "activity_service.go"
+      Repository:
+        config:
+          filename: "user_repository.go"
