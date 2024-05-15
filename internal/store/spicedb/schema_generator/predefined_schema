@@ -27,3 +27,14 @@ definition shield/group {
 	permission membership = member + manager
 	relation organization: shield/organization
 }
+--
+definition shield/servicedata_key {
+	relation editor: shield/user | shield/group#membership
+	relation viewer: shield/user | shield/group#membership
+	relation owner: shield/user | shield/group#membership
+	permission edit = owner + editor + organization->owner + organization->editor + project->owner + project->editor
+	permission view = owner + editor + viewer + organization->owner + organization->editor + organization->viewer + project->owner + project->editor + project->viewer
+	permission delete = owner + organization->owner + project->owner
+	relation organization: shield/organization
+	relation project: shield/project
+}

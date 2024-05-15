@@ -27,6 +27,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api"
@@ -92,7 +93,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail)
+	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail, cfg.App.BootstrapServiceDataKey)
 
 	appConfig := activity.AppConfig{Version: config.Version}
 	var activityRepository activity.Repository
@@ -220,21 +221,25 @@ func BuildAPIDependencies(
 	resourceService := resource.NewService(
 		logger, resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, activityService)
 
+	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
+	serviceDataService := servicedata.NewService(serviceDataRepository, resourceService, relationService, projectService, userService)
+
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
 
 	dependencies := api.Deps{
-		OrgService:       organizationService,
-		UserService:      userService,
-		ProjectService:   projectService,
-		GroupService:     groupService,
-		RelationService:  relationService,
-		ResourceService:  resourceService,
-		RoleService:      roleService,
-		PolicyService:    policyService,
-		ActionService:    actionService,
-		NamespaceService: namespaceService,
-		RelationAdapter:  relationAdapter,
-		ActivityService:  activityService,
+		OrgService:         organizationService,
+		UserService:        userService,
+		ProjectService:     projectService,
+		GroupService:       groupService,
+		RelationService:    relationService,
+		ResourceService:    resourceService,
+		RoleService:        roleService,
+		PolicyService:      policyService,
+		ActionService:      actionService,
+		NamespaceService:   namespaceService,
+		RelationAdapter:    relationAdapter,
+		ActivityService:    activityService,
+		ServiceDataService: serviceDataService,
 	}
 	return dependencies, nil
 }
