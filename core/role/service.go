@@ -42,7 +42,8 @@ func NewService(logger log.Logger, repository Repository, userService UserServic
 func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Role{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Role{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	roleID, err := s.repository.Create(ctx, toCreate)
@@ -78,7 +79,8 @@ func (s Service) List(ctx context.Context) ([]Role, error) {
 func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Role{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Role{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	roleID, err := s.repository.Update(ctx, toUpdate)

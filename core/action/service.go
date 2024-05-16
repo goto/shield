@@ -46,7 +46,8 @@ func (s Service) Get(ctx context.Context, id string) (Action, error) {
 func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Action{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	newAction, err := s.repository.Create(ctx, action)
@@ -73,7 +74,8 @@ func (s Service) List(ctx context.Context) ([]Action, error) {
 func (s Service) Update(ctx context.Context, id string, action Action) (Action, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Action{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	updatedAction, err := s.repository.Update(ctx, Action{

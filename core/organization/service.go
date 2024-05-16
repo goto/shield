@@ -64,7 +64,8 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Organization, error)
 func (s Service) Create(ctx context.Context, org Organization) (Organization, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Organization{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	newOrg, err := s.repository.Create(ctx, Organization{
@@ -99,7 +100,8 @@ func (s Service) List(ctx context.Context) ([]Organization, error) {
 func (s Service) Update(ctx context.Context, org Organization) (Organization, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Organization{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Organization{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	var updatedOrg Organization

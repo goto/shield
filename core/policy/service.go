@@ -50,7 +50,8 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return []Policy{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	policyId, err := s.repository.Create(ctx, policy)
@@ -77,7 +78,8 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 func (s Service) Update(ctx context.Context, pol Policy) ([]Policy, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return []Policy{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return []Policy{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	policyId, err := s.repository.Update(ctx, pol)

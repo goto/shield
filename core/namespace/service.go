@@ -46,7 +46,8 @@ func (s Service) Get(ctx context.Context, id string) (Namespace, error) {
 func (s Service) Create(ctx context.Context, ns Namespace) (Namespace, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Namespace{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Namespace{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	newNamespace, err := s.repository.Create(ctx, ns)
@@ -73,7 +74,8 @@ func (s Service) List(ctx context.Context) ([]Namespace, error) {
 func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Namespace{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return Namespace{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	updatedNamespace, err := s.repository.Update(ctx, ns)

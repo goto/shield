@@ -50,7 +50,8 @@ func (s Service) Get(ctx context.Context, id string) (RelationV2, error) {
 func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return RelationV2{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return RelationV2{}, fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	createdRelation, err := s.repository.Create(ctx, rel)
@@ -151,7 +152,8 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		email, _ := user.GetEmailFromContext(ctx)
+		return fmt.Errorf("%w: %s %s", user.ErrInvalidEmail, err.Error(), email)
 	}
 
 	err = s.authzRepository.DeleteSubjectRelations(ctx, resourceType, optionalResourceID)
