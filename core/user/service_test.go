@@ -10,10 +10,10 @@ import (
 
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/pkg/logger"
 	shieldlogger "github.com/goto/shield/pkg/logger"
 
 	"github.com/goto/shield/core/mocks"
-	"github.com/goto/shield/pkg/logger"
 )
 
 func TestService_Create(t *testing.T) {
@@ -71,6 +71,100 @@ func TestService_Create(t *testing.T) {
 
 			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
 			got, err := svc.Create(ctx, tt.user)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_CreateMetadataKey(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name        string
+		email       string
+		metadataKey user.UserMetadataKey
+		setup       func(t *testing.T) *user.Service
+		want        user.UserMetadataKey
+		wantErr     error
+	}{
+		{
+			name:  "CreateMetadataKey",
+			email: "jane.doe@gotocompany.com",
+			metadataKey: user.UserMetadataKey{
+				Key:         "test-key",
+				Description: "description for test-key",
+			},
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					CreateMetadataKey(mock.Anything, user.UserMetadataKey{
+						Key:         "test-key",
+						Description: "description for test-key"}).
+					Return(user.UserMetadataKey{
+						Key:         "test-key",
+						Description: "description for test-key"}, nil).Once()
+				activityService.EXPECT().
+					Log(mock.Anything, "user_metadata_key.create", activity.Actor{}, user.UserMetadataKeyLogData{
+						Entity:      "user_metadata_key",
+						Key:         "test-key",
+						Description: "description for test-key",
+					}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			want: user.UserMetadataKey{
+				Key:         "test-key",
+				Description: "description for test-key",
+			},
+		},
+		{
+			name:  "CreateMetadataKeyError",
+			email: "jane.doe@gotocompany.com",
+			metadataKey: user.UserMetadataKey{
+				Key:         "test-key",
+				Description: "description for test-key",
+			},
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				logger := shieldlogger.InitLogger(logger.Config{})
+				activityService := &mocks.ActivityService{}
+				repository := &mocks.Repository{}
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, nil)
+				repository.EXPECT().
+					CreateMetadataKey(mock.Anything, user.UserMetadataKey{
+						Key:         "test-key",
+						Description: "description for test-key",
+					}).
+					Return(user.UserMetadataKey{}, user.ErrConflict).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			wantErr: user.ErrConflict,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
+			got, err := svc.CreateMetadataKey(ctx, tt.metadataKey)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))
