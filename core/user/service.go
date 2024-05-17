@@ -189,7 +189,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	if err != nil {
 		switch err {
 		case ErrNotExist:
-			return User{}, fmt.Errorf("%s for email %s", ErrNotExist, email)
+			return User{}, fmt.Errorf("%w for email %s", ErrInvalidEmail, email)
 		default:
 			return User{}, err
 		}
