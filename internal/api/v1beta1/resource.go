@@ -73,7 +73,8 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
@@ -89,7 +90,8 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidDetail):
@@ -176,7 +178,8 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
