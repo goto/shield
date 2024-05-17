@@ -6,6 +6,7 @@ import (
 
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/metadata"
 
 	"google.golang.org/grpc/codes"
@@ -72,6 +73,9 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 			return nil, grpcBadBodyError
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -134,6 +138,9 @@ func (h Handler) UpdateRole(ctx context.Context, request *shieldv1beta1.UpdateRo
 			return nil, grpcRoleNotFoundErr
 		case errors.Is(err, role.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

@@ -57,7 +57,7 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 func (s Service) Create(ctx context.Context, user User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
+		return User{}, err
 	}
 
 	newUser, err := s.repository.Create(ctx, User{
@@ -84,7 +84,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		return UserMetadataKey{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
+		return UserMetadataKey{}, err
 	}
 
 	newUserMetadataKey, err := s.repository.CreateMetadataKey(ctx, UserMetadataKey{
@@ -122,7 +122,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
 func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
+		return User{}, err
 	}
 
 	updatedUser, err := s.repository.UpdateByID(ctx, User{
@@ -150,7 +150,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		return User{}, fmt.Errorf("%w: %s", ErrInvalidEmail, err.Error())
+		return User{}, err
 	}
 
 	updatedUser, err := s.repository.UpdateByEmail(ctx, User{
@@ -187,7 +187,12 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 
 	fetchedUser, err := s.repository.GetByEmail(ctx, email)
 	if err != nil {
-		return User{}, err
+		switch err {
+		case ErrNotExist:
+			return User{}, fmt.Errorf("%w for email %s", ErrInvalidEmail, email)
+		default:
+			return User{}, err
+		}
 	}
 
 	return fetchedUser, nil

@@ -84,7 +84,7 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Resource{}, err
 	}
 
 	urn := res.CreateURN()
@@ -153,7 +153,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedResources, error) {
 func (s Service) Update(ctx context.Context, id string, resource Resource) (Resource, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Resource{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Resource{}, err
 	}
 
 	// TODO there should be an update logic like create here

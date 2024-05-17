@@ -10,6 +10,7 @@ import (
 
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/policy"
+	"github.com/goto/shield/core/user"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
 
@@ -59,6 +60,9 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 		switch {
 		case errors.Is(err, policy.ErrInvalidDetail):
 			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -129,6 +133,9 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 			return nil, grpcBadBodyError
 		case errors.Is(err, policy.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

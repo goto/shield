@@ -103,6 +103,9 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		switch {
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -217,6 +220,9 @@ func (h Handler) DeleteRelation(ctx context.Context, request *shieldv1beta1.Dele
 			errors.Is(err, relation.ErrInvalidUUID),
 			errors.Is(err, relation.ErrInvalidID):
 			return nil, grpcRelationNotFoundErr
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

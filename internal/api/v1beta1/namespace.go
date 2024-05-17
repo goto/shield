@@ -5,6 +5,7 @@ import (
 	"errors"
 
 	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/user"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
@@ -58,6 +59,9 @@ func (h Handler) CreateNamespace(ctx context.Context, request *shieldv1beta1.Cre
 			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -112,6 +116,9 @@ func (h Handler) UpdateNamespace(ctx context.Context, request *shieldv1beta1.Upd
 			return nil, grpcBadBodyError
 		case errors.Is(err, namespace.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

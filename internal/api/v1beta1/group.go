@@ -94,7 +94,8 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 			return nil, grpcConflictError
 		case errors.Is(err, group.ErrInvalidDetail), errors.Is(err, organization.ErrNotExist), errors.Is(err, organization.ErrInvalidUUID):
 			return nil, grpcBadBodyError
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
@@ -183,6 +184,9 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			errors.Is(err, organization.ErrInvalidUUID),
 			errors.Is(err, organization.ErrNotExist):
 			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

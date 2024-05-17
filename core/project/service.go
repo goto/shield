@@ -65,7 +65,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Project, error) {
 func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Project{}, err
 	}
 
 	newProject, err := s.repository.Create(ctx, Project{
@@ -101,7 +101,7 @@ func (s Service) List(ctx context.Context) ([]Project, error) {
 func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Project{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Project{}, err
 	}
 
 	if prj.ID != "" {

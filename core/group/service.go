@@ -59,7 +59,7 @@ func NewService(logger log.Logger, repository Repository, relationService Relati
 func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Group{}, err
 	}
 
 	newGroup, err := s.repository.Create(ctx, grp)
@@ -105,7 +105,7 @@ func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Group{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Group{}, err
 	}
 
 	if strings.TrimSpace(grp.ID) != "" {

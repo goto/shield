@@ -119,6 +119,9 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 			stats.Record(ctx, telemetry.MMissingMetadataKeys.M(1))
 
 			return nil, grpcBadBodyError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -156,6 +159,9 @@ func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.C
 		switch {
 		case errors.Is(err, user.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}
@@ -271,6 +277,9 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 				return nil, grpcBadBodyError
 			case errors.Is(err, user.ErrConflict):
 				return nil, grpcConflictError
+			case errors.Is(err, user.ErrInvalidEmail),
+				errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
 			default:
 				return nil, grpcInternalServerError
 			}
@@ -347,6 +356,9 @@ func (h Handler) UpdateCurrentUser(ctx context.Context, request *shieldv1beta1.U
 		switch {
 		case errors.Is(err, user.ErrNotExist):
 			return nil, grpcUserNotFoundError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

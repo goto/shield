@@ -84,7 +84,8 @@ func (h Handler) CreateOrganization(ctx context.Context, request *shieldv1beta1.
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, organization.ErrInvalidDetail):
 			return nil, grpcBadBodyError
@@ -171,6 +172,9 @@ func (h Handler) UpdateOrganization(ctx context.Context, request *shieldv1beta1.
 			return nil, grpcOrgNotFoundErr
 		case errors.Is(err, organization.ErrConflict):
 			return nil, grpcConflictError
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
 		default:
 			return nil, grpcInternalServerError
 		}

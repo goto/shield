@@ -46,7 +46,7 @@ func (s Service) Get(ctx context.Context, id string) (Action, error) {
 func (s Service) Create(ctx context.Context, action Action) (Action, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Action{}, err
 	}
 
 	newAction, err := s.repository.Create(ctx, action)
@@ -73,7 +73,7 @@ func (s Service) List(ctx context.Context) ([]Action, error) {
 func (s Service) Update(ctx context.Context, id string, action Action) (Action, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Action{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Action{}, err
 	}
 
 	updatedAction, err := s.repository.Update(ctx, Action{
