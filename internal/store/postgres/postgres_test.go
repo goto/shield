@@ -20,7 +20,6 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
-	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/internal/store/postgres/migrations"
@@ -495,34 +494,4 @@ func bootstrapActivity(
 	}
 
 	return returnData, nil
-}
-
-func bootstrapServiceDataKey(client *db.Client, resources []resource.Resource, projects []project.Project) ([]servicedata.Key, error) {
-	serviceDataRepository := postgres.NewServiceDataRepository(client)
-
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-servicedata-keys.json")
-	if err != nil {
-		return nil, err
-	}
-
-	var data []servicedata.Key
-	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
-		return nil, err
-	}
-
-	var insertedData []servicedata.Key
-	for i, d := range data {
-		d.ProjectID = projects[i].ID
-		d.ResourceID = resources[i].Idxa
-		d.URN = d.CreateURN()
-
-		insertedKey, err := serviceDataRepository.CreateKey(context.Background(), d)
-		if err != nil {
-			return nil, err
-		}
-
-		insertedData = append(insertedData, insertedKey)
-	}
-
-	return insertedData, nil
 }

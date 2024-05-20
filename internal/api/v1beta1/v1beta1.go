@@ -15,42 +15,40 @@ type RelationTransformer interface {
 
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
-	orgService         OrganizationService
-	projectService     ProjectService
-	groupService       GroupService
-	roleService        RoleService
-	policyService      PolicyService
-	userService        UserService
-	namespaceService   NamespaceService
-	actionService      ActionService
-	relationService    RelationService
-	resourceService    ResourceService
-	ruleService        RuleService
-	activityService    ActivityService
-	serviceDataService ServiceDataService
-	relationAdapter    RelationTransformer
-	checkAPILimit      int
+	orgService       OrganizationService
+	projectService   ProjectService
+	groupService     GroupService
+	roleService      RoleService
+	policyService    PolicyService
+	userService      UserService
+	namespaceService NamespaceService
+	actionService    ActionService
+	relationService  RelationService
+	resourceService  ResourceService
+	ruleService      RuleService
+	activityService  ActivityService
+	relationAdapter  RelationTransformer
+	checkAPILimit    int
 }
 
 func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit int) error {
 	s.RegisterService(
 		&shieldv1beta1.ShieldService_ServiceDesc,
 		&Handler{
-			orgService:         deps.OrgService,
-			projectService:     deps.ProjectService,
-			groupService:       deps.GroupService,
-			roleService:        deps.RoleService,
-			policyService:      deps.PolicyService,
-			userService:        deps.UserService,
-			namespaceService:   deps.NamespaceService,
-			actionService:      deps.ActionService,
-			relationService:    deps.RelationService,
-			resourceService:    deps.ResourceService,
-			ruleService:        deps.RuleService,
-			activityService:    deps.ActivityService,
-			serviceDataService: deps.ServiceDataService,
-			relationAdapter:    deps.RelationAdapter,
-			checkAPILimit:      checkAPILimit,
+			orgService:       deps.OrgService,
+			projectService:   deps.ProjectService,
+			groupService:     deps.GroupService,
+			roleService:      deps.RoleService,
+			policyService:    deps.PolicyService,
+			userService:      deps.UserService,
+			namespaceService: deps.NamespaceService,
+			actionService:    deps.ActionService,
+			relationService:  deps.RelationService,
+			resourceService:  deps.ResourceService,
+			ruleService:      deps.RuleService,
+			activityService:  deps.ActivityService,
+			relationAdapter:  deps.RelationAdapter,
+			checkAPILimit:    checkAPILimit,
 		},
 	)
 

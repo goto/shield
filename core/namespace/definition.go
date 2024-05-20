@@ -1,6 +1,6 @@
 package namespace
 
-var systemIdsDefinition = []string{DefinitionTeam.ID, DefinitionUser.ID, DefinitionOrg.ID, DefinitionProject.ID, DefinitionServiceDataKey.ID}
+var systemIdsDefinition = []string{DefinitionTeam.ID, DefinitionUser.ID, DefinitionOrg.ID, DefinitionProject.ID}
 
 var DefinitionOrg = Namespace{
 	ID:   "shield/organization",
@@ -20,9 +20,4 @@ var DefinitionTeam = Namespace{
 var DefinitionUser = Namespace{
 	ID:   "shield/user",
 	Name: "User",
-}
-
-var DefinitionServiceDataKey = Namespace{
-	ID:   "shield/servicedata_key",
-	Name: "Service Data Key",
 }

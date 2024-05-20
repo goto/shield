@@ -39,9 +39,6 @@ packages:
       RuleService:
         config:
           filename: "rule_service.go"
-      ServiceDataService:
-        config:
-          filename: "servicedata_service.go"
       UserService:
         config:
           filename: "user_service.go"

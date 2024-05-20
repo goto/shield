@@ -20,21 +20,19 @@ var (
 )
 
 const (
-	TABLE_ACTIONS           = "actions"
-	TABLE_GROUPS            = "groups"
-	TABLE_NAMESPACES        = "namespaces"
-	TABLE_ORGANIZATIONS     = "organizations"
-	TABLE_POLICIES          = "policies"
-	TABLE_PROJECTS          = "projects"
-	TABLE_RELATIONS         = "relations"
-	TABLE_RESOURCES         = "resources"
-	TABLE_ROLES             = "roles"
-	TABLE_USERS             = "users"
-	TABLE_METADATA          = "metadata"
-	TABLE_METADATA_KEYS     = "metadata_keys"
-	TABLE_ACTIVITY          = "activities"
-	TABLE_SERVICE_DATA      = "servicedata"
-	TABLE_SERVICE_DATA_KEYS = "servicedata_keys"
+	TABLE_ACTIONS       = "actions"
+	TABLE_GROUPS        = "groups"
+	TABLE_NAMESPACES    = "namespaces"
+	TABLE_ORGANIZATIONS = "organizations"
+	TABLE_POLICIES      = "policies"
+	TABLE_PROJECTS      = "projects"
+	TABLE_RELATIONS     = "relations"
+	TABLE_RESOURCES     = "resources"
+	TABLE_ROLES         = "roles"
+	TABLE_USERS         = "users"
+	TABLE_METADATA      = "metadata"
+	TABLE_METADATA_KEYS = "metadata_keys"
+	TABLE_ACTIVITY      = "activities"
 )
 
 func checkPostgresError(err error) error {
