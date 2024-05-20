@@ -13,7 +13,6 @@ import (
 
 	"github.com/goto/shield/core/relation"
 	errpkg "github.com/goto/shield/pkg/errors"
-	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
@@ -58,10 +57,6 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
 	if request.GetBody() == nil {
-		return nil, grpcBadBodyError
-	}
-
-	if !uuid.IsValid(request.GetBody().GetObjectId()) {
 		return nil, grpcBadBodyError
 	}
 
