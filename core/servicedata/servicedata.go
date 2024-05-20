@@ -6,7 +6,14 @@ import (
 )
 
 type Repository interface {
+	Transactor
 	CreateKey(ctx context.Context, key Key) (Key, error)
+}
+
+type Transactor interface {
+	WithTransaction(ctx context.Context) context.Context
+	Rollback(ctx context.Context, err error) error
+	Commit(ctx context.Context) error
 }
 
 type Key struct {
