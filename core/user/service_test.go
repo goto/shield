@@ -40,7 +40,10 @@ func TestService_Create(t *testing.T) {
 				logger := shieldlogger.InitLogger(logger.Config{})
 				repository.EXPECT().
 					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
-					Return(user.User{}, nil)
+					Return(user.User{
+						ID:    "test-id",
+						Email: "jane.doe@gotocompany.com",
+					}, nil)
 				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "John Doe",
@@ -50,7 +53,10 @@ func TestService_Create(t *testing.T) {
 						Email: "john.doe@gotocompany.com"}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
+						ID:    "test-id",
+						Email: "jane.doe@gotocompany.com",
+					}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -58,6 +64,58 @@ func TestService_Create(t *testing.T) {
 				Email: "john.doe@gotocompany.com",
 			},
 			wantErr: nil,
+		},
+		{
+			name: "CreateUserSelfRegister",
+			user: user.User{
+				Name:  "Jane Doe",
+				Email: "jane.doe@gotocompany.com",
+			},
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, user.ErrNotExist)
+				repository.EXPECT().
+					Create(mock.Anything, user.User{
+						Name:  "Jane Doe",
+						Email: "jane.doe@gotocompany.com"}).
+					Return(user.User{
+						Name:  "Jane Doe",
+						Email: "jane.doe@gotocompany.com"}, nil).Once()
+
+				activityService.EXPECT().
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
+						Email: "jane.doe@gotocompany.com",
+					}, user.UserLogData{Entity: "user", Name: "Jane Doe", Email: "jane.doe@gotocompany.com"}).Return(nil).Once()
+				return user.NewService(logger, repository, activityService)
+			},
+			want: user.User{
+				Name:  "Jane Doe",
+				Email: "jane.doe@gotocompany.com",
+			},
+			wantErr: nil,
+		},
+		{
+			name: "CreateUserInvalidHeader",
+			user: user.User{
+				Name:  "John Doe",
+				Email: "john.doe@gotocompany.com",
+			},
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "jane.doe@gotocompany.com").
+					Return(user.User{}, user.ErrNotExist)
+				return user.NewService(logger, repository, activityService)
+			},
+			wantErr: user.ErrInvalidEmail,
 		},
 	}
 

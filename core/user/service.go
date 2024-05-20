@@ -2,6 +2,7 @@ package user
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -57,7 +58,16 @@ func (s Service) GetByEmail(ctx context.Context, email string) (User, error) {
 func (s Service) Create(ctx context.Context, user User) (User, error) {
 	currentUser, err := s.FetchCurrentUser(ctx)
 	if err != nil {
-		return User{}, err
+		switch {
+		case errors.Is(err, ErrInvalidEmail):
+			fmt.Println(user.Email)
+			email, _ := GetEmailFromContext(ctx)
+			if email != user.Email {
+				return User{}, err
+			}
+		default:
+			return User{}, err
+		}
 	}
 
 	newUser, err := s.repository.Create(ctx, User{
@@ -67,6 +77,10 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	})
 	if err != nil {
 		return User{}, err
+	}
+
+	if currentUser.ID == "" {
+		currentUser.ID, currentUser.Email = newUser.ID, newUser.Email
 	}
 
 	go func() {
