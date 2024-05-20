@@ -63,6 +63,7 @@ const (
 	ShieldService_UpdateResource_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/UpdateResource"
 	ShieldService_CheckResourcePermission_FullMethodName     = "/gotocompany.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListActivities_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/ListActivities"
+	ShieldService_CreateServiceDataKey_FullMethodName        = "/gotocompany.shield.v1beta1.ShieldService/CreateServiceDataKey"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -125,6 +126,8 @@ type ShieldServiceClient interface {
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Activity
 	ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesResponse, error)
+	// Service Data
+	CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -531,6 +534,15 @@ func (c *shieldServiceClient) ListActivities(ctx context.Context, in *ListActivi
 	return out, nil
 }
 
+func (c *shieldServiceClient) CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error) {
+	out := new(CreateServiceDataKeyResponse)
+	err := c.cc.Invoke(ctx, ShieldService_CreateServiceDataKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -591,6 +603,8 @@ type ShieldServiceServer interface {
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Activity
 	ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error)
+	// Service Data
+	CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -729,6 +743,9 @@ func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context,
 }
 func (UnimplementedShieldServiceServer) ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListActivities not implemented")
+}
+func (UnimplementedShieldServiceServer) CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceDataKey not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -1535,6 +1552,24 @@ func _ShieldService_ListActivities_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_CreateServiceDataKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceDataKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).CreateServiceDataKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_CreateServiceDataKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).CreateServiceDataKey(ctx, req.(*CreateServiceDataKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1717,6 +1752,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListActivities",
 			Handler:    _ShieldService_ListActivities_Handler,
+		},
+		{
+			MethodName: "CreateServiceDataKey",
+			Handler:    _ShieldService_CreateServiceDataKey_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
