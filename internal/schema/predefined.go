@@ -3,10 +3,9 @@ package schema
 // SpiceDB readable format is stored in predefined_schema.txt
 const (
 	// namespace
-	OrganizationNamespace   = "shield/organization"
-	ProjectNamespace        = "shield/project"
-	GroupNamespace          = "shield/group"
-	ServiceDataKeyNamespace = "shield/servicedata_key"
+	OrganizationNamespace = "shield/organization"
+	ProjectNamespace      = "shield/project"
+	GroupNamespace        = "shield/group"
 
 	// relation
 	OrganizationRelationName = "organization"
@@ -114,47 +113,6 @@ var GroupNamespaceConfig = NamespaceConfig{
 		},
 		MembershipPermission: {
 			MemberRole, ManagerRole,
-		},
-	},
-}
-
-var ServiceDataKeyConfig = NamespaceConfig{
-	InheritedNamespaces: []InheritedNamespace{
-		{
-			Name:        OrganizationRelationName,
-			NamespaceId: OrganizationNamespace,
-		},
-		{
-			Name:        ProjectRelationName,
-			NamespaceId: ProjectNamespace,
-		},
-	},
-	Roles: map[string][]string{
-		EditorRole: {UserPrincipal, GroupPrincipal},
-		ViewerRole: {UserPrincipal, GroupPrincipal},
-		OwnerRole:  {UserPrincipal, GroupPrincipal},
-	},
-	Permissions: map[string][]string{
-		EditPermission: {
-			OwnerRole, EditorRole,
-			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
-			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
-			PermissionInheritanceFormatter(ProjectRelationName, EditorRole),
-		},
-		ViewPermission: {
-			OwnerRole, EditorRole, ViewerRole,
-			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
-			PermissionInheritanceFormatter(OrganizationRelationName, EditorRole),
-			PermissionInheritanceFormatter(OrganizationRelationName, ViewerRole),
-			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
-			PermissionInheritanceFormatter(ProjectRelationName, EditorRole),
-			PermissionInheritanceFormatter(ProjectRelationName, ViewerRole),
-		},
-		DeletePermission: {
-			OwnerRole,
-			PermissionInheritanceFormatter(OrganizationRelationName, OwnerRole),
-			PermissionInheritanceFormatter(ProjectRelationName, OwnerRole),
 		},
 	},
 }
