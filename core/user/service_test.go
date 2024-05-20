@@ -21,6 +21,7 @@ func TestService_Create(t *testing.T) {
 
 	tests := []struct {
 		name    string
+		email   string
 		user    user.User
 		setup   func(t *testing.T) *user.Service
 		urn     string
@@ -28,7 +29,8 @@ func TestService_Create(t *testing.T) {
 		wantErr error
 	}{
 		{
-			name: "CreateUserWithUpperCase",
+			name:  "CreateUserWithUpperCase",
+			email: "jane.doe@gotocompany.com",
 			user: user.User{
 				Name:  "John Doe",
 				Email: "John.Doe@gotocompany.com",
@@ -66,7 +68,8 @@ func TestService_Create(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "CreateUserSelfRegister",
+			name:  "CreateUserSelfRegister",
+			email: "jane.doe@gotocompany.com",
 			user: user.User{
 				Name:  "Jane Doe",
 				Email: "jane.doe@gotocompany.com",
@@ -100,7 +103,8 @@ func TestService_Create(t *testing.T) {
 			wantErr: nil,
 		},
 		{
-			name: "CreateUserInvalidHeader",
+			name:  "CreateUserInvalidHeader",
+			email: "jane.doe@gotocompany.com",
 			user: user.User{
 				Name:  "John Doe",
 				Email: "john.doe@gotocompany.com",
@@ -117,6 +121,24 @@ func TestService_Create(t *testing.T) {
 			},
 			wantErr: user.ErrInvalidEmail,
 		},
+		{
+			name: "CreateUserMissingHeader",
+			user: user.User{
+				Name:  "John Doe",
+				Email: "john.doe@gotocompany.com",
+			},
+			setup: func(t *testing.T) *user.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				activityService := &mocks.ActivityService{}
+				logger := shieldlogger.InitLogger(logger.Config{})
+				repository.EXPECT().
+					GetByEmail(mock.Anything, "").
+					Return(user.User{}, user.ErrMissingEmail)
+				return user.NewService(logger, repository, activityService)
+			},
+			wantErr: user.ErrMissingEmail,
+		},
 	}
 
 	for _, tt := range tests {
@@ -127,7 +149,7 @@ func TestService_Create(t *testing.T) {
 
 			assert.NotNil(t, svc)
 
-			ctx := user.SetContextWithEmail(context.TODO(), "jane.doe@gotocompany.com")
+			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
 			got, err := svc.Create(ctx, tt.user)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
