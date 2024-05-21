@@ -2,7 +2,6 @@ package servicedata
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
@@ -57,7 +56,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// fetch current user
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Key{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Key{}, err
 	}
 
 	// convert project slug to project id

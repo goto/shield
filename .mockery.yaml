@@ -75,3 +75,24 @@ packages:
       Repository:
         config:
           filename: "user_repository.go"
+  github.com/goto/shield/core/servicedata:
+    config:
+      dir: "core/servicedata/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      UserService:
+        config:
+          filename: "user_service.go"
+      RelationService:
+        config:
+          filename: "relation_service.go"
+      ProjectService:
+        config:
+          filename: "project_service.go"
+      ResourceService:
+        config:
+          filename: "resource_service.go"
+      Repository:
+        config:
+          filename: "servicedata_repository.go"
