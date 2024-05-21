@@ -792,6 +792,27 @@ paths:
             $ref: '#/definitions/RoleRequestBody'
       tags:
         - Role
+  /v1beta1/servicedata:
+    post:
+      summary: Create Service Data Key
+      operationId: ShieldService_CreateServiceDataKey
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/CreateServiceDataKeyResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/ServiceDataKeyRequestBody'
+      tags:
+        - Service Data
   /v1beta1/users:
     get:
       summary: Get All Users
@@ -1136,6 +1157,11 @@ definitions:
     properties:
       role:
         $ref: '#/definitions/Role'
+  CreateServiceDataKeyResponse:
+    type: object
+    properties:
+      service_data_key:
+        $ref: '#/definitions/ServiceDataKey'
   CreateUserResponse:
     type: object
     properties:
@@ -1604,6 +1630,22 @@ definitions:
         type: string
       metadata:
         type: object
+  ServiceDataKey:
+    type: object
+    properties:
+      urn:
+        type: string
+      id:
+        type: string
+  ServiceDataKeyRequestBody:
+    type: object
+    properties:
+      project:
+        type: string
+      key:
+        type: string
+      description:
+        type: string
   Status:
     type: object
     properties:

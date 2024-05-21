@@ -68,7 +68,8 @@ type UserRepository interface {
 }
 
 type SchemaMigrationConfig struct {
-	DefaultSystemEmail string
+	DefaultSystemEmail      string
+	BootstrapServiceDataKey bool
 }
 
 type SchemaService struct {
@@ -127,6 +128,11 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
 		return err
+	}
+
+	// append service data key schema if configured to be bootstrapped automatically
+	if s.schemaMigrationConfig.BootstrapServiceDataKey {
+		PreDefinedSystemNamespaceConfig[ServiceDataKeyNamespace] = ServiceDataKeyConfig
 	}
 
 	// combining predefined and configured namespaces
@@ -268,8 +274,9 @@ func MergeNamespaceConfigMap(smallMap, largeMap NamespaceConfigMapType) Namespac
 	return combinedMap
 }
 
-func NewSchemaMigrationConfig(defaultSystemEmail string) SchemaMigrationConfig {
+func NewSchemaMigrationConfig(defaultSystemEmail string, bootstrapServiceDataKey bool) SchemaMigrationConfig {
 	return SchemaMigrationConfig{
-		DefaultSystemEmail: defaultSystemEmail,
+		DefaultSystemEmail:      defaultSystemEmail,
+		BootstrapServiceDataKey: bootstrapServiceDataKey,
 	}
 }

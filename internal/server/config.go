@@ -58,4 +58,6 @@ type Config struct {
 	CheckAPILimit int `yaml:"check_api_limit" mapstructure:"check_api_limit" default:"5"`
 
 	DefaultSystemEmail string `yaml:"default_system_email" mapstructure:"default_system_email"  default:"shield-service@gotocompany.com"`
+
+	BootstrapServiceDataKey bool `yaml:"bootstrap_service_data_key" mapstructure:"bootstrap_service_data_key" default:"true"`
 }
