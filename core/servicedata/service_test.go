@@ -16,6 +16,41 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
+var (
+	testResourceID = "test-resource-id"
+	testUserID     = "test-user-id"
+	testProjectID  = "test-project-id"
+	testKey        = servicedata.Key{
+		ProjectID:   "test-project-slug",
+		Key:         "test-key",
+		Description: "test key no 01",
+	}
+	testCreatedKey = servicedata.Key{
+		URN:         "test-project-id:servicedata_key:test-key",
+		ProjectID:   testProjectID,
+		Key:         "test-key",
+		Description: "test key no 01",
+		ResourceID:  testResourceID,
+	}
+	testResource = resource.Resource{
+		Name:        "test-project-id:servicedata_key:test-key",
+		ProjectID:   testProjectID,
+		NamespaceID: schema.ServiceDataKeyNamespace,
+		UserID:      testUserID,
+	}
+	testRelation = relation.RelationV2{
+		Object: relation.Object{
+			ID:          testResourceID,
+			NamespaceID: schema.ServiceDataKeyNamespace,
+		},
+		Subject: relation.Subject{
+			ID:        testUserID,
+			RoleID:    schema.OwnerRole,
+			Namespace: schema.UserPrincipal,
+		},
+	}
+)
+
 func TestService_CreateKey(t *testing.T) {
 	t.Parallel()
 
@@ -30,11 +65,7 @@ func TestService_CreateKey(t *testing.T) {
 		{
 			name:  "CreateKey",
 			email: "john.doe@gotocompany.com",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			key:   testKey,
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
 				repository := &mocks.Repository{}
@@ -46,61 +77,28 @@ func TestService_CreateKey(t *testing.T) {
 				repository.On("Commit", mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
-						ID:    "test-user-id",
+						ID:    testUserID,
 						Email: "john.doe@gotocompany.com",
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: "test-project-id",
+						ID: testProjectID,
 					}, nil)
-				resourceService.EXPECT().Create(mock.Anything, resource.Resource{
-					Name:        "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					NamespaceID: "shield/servicedata_key",
-					UserID:      "test-user-id",
-				}).Return(resource.Resource{
-					Idxa: "test-resource-id",
+				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
+					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, servicedata.Key{
-					URN:         "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					Key:         "test-key",
-					Description: "test key no 01",
-					ResourceID:  "test-resource-id",
-				}).Return(servicedata.Key{
-					URN:         "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					Key:         "test-key",
-					Description: "test key no 01",
-					ResourceID:  "test-resource-id",
-				}, nil)
-				relationService.EXPECT().Create(mock.Anything, relation.RelationV2{
-					Object: relation.Object{
-						ID:          "test-resource-id",
-						NamespaceID: schema.ServiceDataKeyNamespace,
-					},
-					Subject: relation.Subject{
-						ID:        "test-user-id",
-						RoleID:    schema.OwnerRole,
-						Namespace: schema.UserPrincipal,
-					},
-				}).Return(relation.RelationV2{}, nil)
+				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(testCreatedKey, nil)
+				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, nil)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
-			want: servicedata.Key{
-				URN:         "test-project-id:servicedata_key:test-key",
-				ProjectID:   "test-project-id",
-				Key:         "test-key",
-				Description: "test key no 01",
-				ResourceID:  "test-resource-id",
-			},
+			want: testCreatedKey,
 		},
 		{
 			name: "CreateKeyEmpty",
 			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
+				ProjectID:   testKey.ProjectID,
 				Key:         "",
-				Description: "test key no 01",
+				Description: testKey.Description,
 			},
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
@@ -115,11 +113,7 @@ func TestService_CreateKey(t *testing.T) {
 		},
 		{
 			name: "CreateKeyMissingEmail",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			key:  testKey,
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
 				repository := &mocks.Repository{}
@@ -133,12 +127,8 @@ func TestService_CreateKey(t *testing.T) {
 			wantErr: user.ErrMissingEmail,
 		},
 		{
-			name: "CreateKeyInvalidEmail",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			name:  "CreateKeyInvalidEmail",
+			key:   testKey,
 			email: "jane.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
@@ -156,8 +146,8 @@ func TestService_CreateKey(t *testing.T) {
 			name: "CreateKeyInvalidProjectID",
 			key: servicedata.Key{
 				ProjectID:   "invalid-test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
+				Key:         testKey.Key,
+				Description: testKey.Description,
 			},
 			email: "jane.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
@@ -174,12 +164,8 @@ func TestService_CreateKey(t *testing.T) {
 			wantErr: project.ErrNotExist,
 		},
 		{
-			name: "CreateKeyErrCreateResource",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			name:  "CreateKeyErrCreateResource",
+			key:   testKey,
 			email: "john.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
@@ -192,30 +178,21 @@ func TestService_CreateKey(t *testing.T) {
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
-						ID:    "test-user-id",
+						ID:    testUserID,
 						Email: "john.doe@gotocompany.com",
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: "test-project-id",
+						ID: testProjectID,
 					}, nil)
-				resourceService.EXPECT().Create(mock.Anything, resource.Resource{
-					Name:        "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					NamespaceID: "shield/servicedata_key",
-					UserID:      "test-user-id",
-				}).Return(resource.Resource{}, resource.ErrConflict)
+				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{}, resource.ErrConflict)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
 			wantErr: resource.ErrConflict,
 		},
 		{
-			name: "CreateKeyErrCreateKey",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			name:  "CreateKeyErrCreateKey",
+			key:   testKey,
 			email: "john.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
@@ -228,39 +205,24 @@ func TestService_CreateKey(t *testing.T) {
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
-						ID:    "test-user-id",
+						ID:    testUserID,
 						Email: "john.doe@gotocompany.com",
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: "test-project-id",
+						ID: testProjectID,
 					}, nil)
-				resourceService.EXPECT().Create(mock.Anything, resource.Resource{
-					Name:        "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					NamespaceID: "shield/servicedata_key",
-					UserID:      "test-user-id",
-				}).Return(resource.Resource{
-					Idxa: "test-resource-id",
+				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
+					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, servicedata.Key{
-					URN:         "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					Key:         "test-key",
-					Description: "test key no 01",
-					ResourceID:  "test-resource-id",
-				}).Return(servicedata.Key{}, servicedata.ErrConflict)
+				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(servicedata.Key{}, servicedata.ErrConflict)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
 			wantErr: servicedata.ErrConflict,
 		},
 		{
-			name: "CreateKeyErrCreateRelation",
-			key: servicedata.Key{
-				ProjectID:   "test-project-slug",
-				Key:         "test-key",
-				Description: "test key no 01",
-			},
+			name:  "CreateKeyErrCreateRelation",
+			key:   testKey,
 			email: "john.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
 				t.Helper()
@@ -273,45 +235,18 @@ func TestService_CreateKey(t *testing.T) {
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
-						ID:    "test-user-id",
+						ID:    testUserID,
 						Email: "john.doe@gotocompany.com",
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: "test-project-id",
+						ID: testProjectID,
 					}, nil)
-				resourceService.EXPECT().Create(mock.Anything, resource.Resource{
-					Name:        "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					NamespaceID: "shield/servicedata_key",
-					UserID:      "test-user-id",
-				}).Return(resource.Resource{
-					Idxa: "test-resource-id",
+				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
+					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, servicedata.Key{
-					URN:         "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					Key:         "test-key",
-					Description: "test key no 01",
-					ResourceID:  "test-resource-id",
-				}).Return(servicedata.Key{
-					URN:         "test-project-id:servicedata_key:test-key",
-					ProjectID:   "test-project-id",
-					Key:         "test-key",
-					Description: "test key no 01",
-					ResourceID:  "test-resource-id",
-				}, nil)
-				relationService.EXPECT().Create(mock.Anything, relation.RelationV2{
-					Object: relation.Object{
-						ID:          "test-resource-id",
-						NamespaceID: schema.ServiceDataKeyNamespace,
-					},
-					Subject: relation.Subject{
-						ID:        "test-user-id",
-						RoleID:    schema.OwnerRole,
-						Namespace: schema.UserPrincipal,
-					},
-				}).Return(relation.RelationV2{}, relation.ErrCreatingRelationInAuthzEngine)
+				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(testCreatedKey, nil)
+				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, relation.ErrCreatingRelationInAuthzEngine)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
 			wantErr: relation.ErrCreatingRelationInAuthzEngine,
