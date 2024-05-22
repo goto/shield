@@ -20,11 +20,12 @@ type Key struct {
 	ID          string
 	URN         string
 	ProjectID   string
+	ProjectSlug string
 	Key         string
 	Description string
 	ResourceID  string
 }
 
 func (key Key) CreateURN() string {
-	return fmt.Sprintf("%s:servicedata_key:%s", key.ProjectID, key.Key)
+	return fmt.Sprintf("%s:servicedata_key:%s", key.ProjectSlug, key.Key)
 }

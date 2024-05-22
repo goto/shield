@@ -453,7 +453,7 @@ func bootstrapResource(
 
 	var insertedData []resource.Resource
 	for _, d := range data {
-		domain, err := resRepository.Create(context.Background(), d)
+		domain, err := resRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}

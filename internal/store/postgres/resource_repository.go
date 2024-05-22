@@ -25,7 +25,7 @@ func NewResourceRepository(dbc *db.Client) *ResourceRepository {
 	}
 }
 
-func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+func (r ResourceRepository) Upsert(ctx context.Context, res resource.Resource) (resource.Resource, error) {
 	if strings.TrimSpace(res.URN) == "" {
 		return resource.Resource{}, resource.ErrInvalidURN
 	}
@@ -73,6 +73,57 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 			return resource.Resource{}, resource.ErrInvalidDetail
 		case errors.Is(err, errInvalidTexRepresentation):
 			return resource.Resource{}, resource.ErrInvalidUUID
+		default:
+			return resource.Resource{}, err
+		}
+	}
+
+	return resourceModel.transformToResource(), nil
+}
+
+func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (resource.Resource, error) {
+	if strings.TrimSpace(res.URN) == "" {
+		return resource.Resource{}, resource.ErrInvalidURN
+	}
+
+	userID := sql.NullString{String: res.UserID, Valid: res.UserID != ""}
+
+	query, params, err := dialect.Insert(TABLE_RESOURCES).Rows(
+		goqu.Record{
+			"urn":          res.URN,
+			"name":         res.Name,
+			"project_id":   res.ProjectID,
+			"org_id":       res.OrganizationID,
+			"namespace_id": res.NamespaceID,
+			"user_id":      userID,
+		}).Returning(&ResourceCols{}).ToSQL()
+	if err != nil {
+		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	var resourceModel Resource
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_RESOURCES,
+				Operation:  "Create",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, errForeignKeyViolation):
+			return resource.Resource{}, resource.ErrInvalidDetail
+		case errors.Is(err, errInvalidTexRepresentation):
+			return resource.Resource{}, resource.ErrInvalidUUID
+		case errors.Is(err, errDuplicateKey):
+			return resource.Resource{}, resource.ErrConflict
 		default:
 			return resource.Resource{}, err
 		}

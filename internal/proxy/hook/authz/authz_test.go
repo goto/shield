@@ -312,7 +312,7 @@ func TestServeHook(t *testing.T) {
 			NamespaceID: namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
-		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+		mockResourceService.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
@@ -405,7 +405,7 @@ func TestServeHook(t *testing.T) {
 
 		mockRelationTransformer.EXPECT().TransformRelation(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(relation.RelationV2{}, nil)
 
-		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+		mockResourceService.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
@@ -504,7 +504,7 @@ func TestServeHook(t *testing.T) {
 			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
-		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+		mockResourceService.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
@@ -604,7 +604,7 @@ func TestServeHook(t *testing.T) {
 			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
-		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+		mockResourceService.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,
@@ -703,7 +703,7 @@ func TestServeHook(t *testing.T) {
 			NamespaceID:    namespace.CreateID(testPermissionAttributesMap["namespace"].(string), testPermissionAttributesMap["resource_type"].(string)),
 		}
 
-		mockResourceService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
+		mockResourceService.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), rsc).Return(resource.Resource{
 			Idxa:           uuid.NewString(),
 			URN:            "new-resource-urn",
 			ProjectID:      rsc.ProjectID,

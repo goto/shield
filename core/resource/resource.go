@@ -17,6 +17,7 @@ const (
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Resource, error)
 	GetByURN(ctx context.Context, urn string) (Resource, error)
+	Upsert(ctx context.Context, resource Resource) (Resource, error)
 	Create(ctx context.Context, resource Resource) (Resource, error)
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)

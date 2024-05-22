@@ -6,6 +6,7 @@ import (
 
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
@@ -35,10 +36,10 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
-		case errors.Is(err, project.ErrNotExist) || errors.Is(err, servicedata.ErrInvalidDetail) ||
+		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 			errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
-		case errors.Is(err, servicedata.ErrConflict):
+		case errors.Is(err, servicedata.ErrConflict), errors.Is(err, resource.ErrConflict):
 			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError

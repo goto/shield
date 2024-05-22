@@ -17,23 +17,32 @@ import (
 )
 
 var (
-	testResourceID = "test-resource-id"
-	testUserID     = "test-user-id"
-	testProjectID  = "test-project-id"
-	testKey        = servicedata.Key{
+	testResourceID  = "test-resource-id"
+	testUserID      = "test-user-id"
+	testProjectID   = "test-project-id"
+	testProjectSlug = "test-project-slug"
+	testKey         = servicedata.Key{
 		ProjectID:   "test-project-slug",
 		Key:         "test-key",
 		Description: "test key no 01",
 	}
+	testCreateKey = servicedata.Key{
+		URN:         "test-project-slug:servicedata_key:test-key",
+		ProjectID:   testProjectID,
+		ProjectSlug: testProjectSlug,
+		Key:         "test-key",
+		Description: "test key no 01",
+		ResourceID:  testResourceID,
+	}
 	testCreatedKey = servicedata.Key{
-		URN:         "test-project-id:servicedata_key:test-key",
+		URN:         "test-project-slug:servicedata_key:test-key",
 		ProjectID:   testProjectID,
 		Key:         "test-key",
 		Description: "test key no 01",
 		ResourceID:  testResourceID,
 	}
 	testResource = resource.Resource{
-		Name:        "test-project-id:servicedata_key:test-key",
+		Name:        "test-project-slug:servicedata_key:test-key",
 		ProjectID:   testProjectID,
 		NamespaceID: schema.ServiceDataKeyNamespace,
 		UserID:      testUserID,
@@ -82,12 +91,13 @@ func TestService_CreateKey(t *testing.T) {
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: testProjectID,
+						ID:   testProjectID,
+						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
 					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(testCreatedKey, nil)
+				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(testCreatedKey, nil)
 				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, nil)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
@@ -183,7 +193,8 @@ func TestService_CreateKey(t *testing.T) {
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: testProjectID,
+						ID:   testProjectID,
+						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{}, resource.ErrConflict)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
@@ -210,12 +221,13 @@ func TestService_CreateKey(t *testing.T) {
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: testProjectID,
+						ID:   testProjectID,
+						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
 					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(servicedata.Key{}, servicedata.ErrConflict)
+				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(servicedata.Key{}, servicedata.ErrConflict)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
 			wantErr: servicedata.ErrConflict,
@@ -240,12 +252,13 @@ func TestService_CreateKey(t *testing.T) {
 					}, nil)
 				projectService.EXPECT().Get(mock.Anything, "test-project-slug").
 					Return(project.Project{
-						ID: testProjectID,
+						ID:   testProjectID,
+						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{
 					Idxa: testResourceID,
 				}, nil)
-				repository.EXPECT().CreateKey(mock.Anything, testCreatedKey).Return(testCreatedKey, nil)
+				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(testCreatedKey, nil)
 				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, relation.ErrCreatingRelationInAuthzEngine)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},

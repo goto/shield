@@ -204,7 +204,7 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 	}
 }
 
-func (s *ResourceRepositoryTestSuite) TestCreate() {
+func (s *ResourceRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description      string
 		ResourceToCreate resource.Resource
@@ -324,7 +324,7 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.ResourceToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.ResourceToCreate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

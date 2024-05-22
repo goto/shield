@@ -81,6 +81,64 @@ func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 	return s.repository.GetByID(ctx, id)
 }
 
+func (s Service) Upsert(ctx context.Context, res Resource) (Resource, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return Resource{}, err
+	}
+
+	urn := res.CreateURN()
+
+	if err != nil {
+		return Resource{}, err
+	}
+
+	fetchedProject, err := s.projectService.Get(ctx, res.ProjectID)
+	if err != nil {
+		return Resource{}, err
+	}
+
+	userId := res.UserID
+	if strings.TrimSpace(userId) == "" {
+		userId = currentUser.ID
+	}
+
+	newResource, err := s.repository.Upsert(ctx, Resource{
+		URN:            urn,
+		Name:           res.Name,
+		OrganizationID: fetchedProject.Organization.ID,
+		ProjectID:      fetchedProject.ID,
+		NamespaceID:    res.NamespaceID,
+		UserID:         userId,
+	})
+	if err != nil {
+		return Resource{}, err
+	}
+
+	if err = s.relationService.DeleteSubjectRelations(ctx, newResource.NamespaceID, newResource.Idxa); err != nil {
+		return Resource{}, err
+	}
+
+	if err = s.AddProjectToResource(ctx, project.Project{ID: res.ProjectID}, newResource); err != nil {
+		return Resource{}, err
+	}
+
+	if err = s.AddOrgToResource(ctx, organization.Organization{ID: newResource.OrganizationID}, newResource); err != nil {
+		return Resource{}, err
+	}
+
+	go func() {
+		ctx := pkgctx.WithoutCancel(ctx)
+		resourceLogData := newResource.ToResourceLogData()
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
+
+	return newResource, nil
+}
+
 func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
