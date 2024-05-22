@@ -8,7 +8,6 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/uuid"
 )
 
 const keyNamespace = "shield/servicedata_key"
@@ -59,14 +58,13 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 		return Key{}, err
 	}
 
-	// convert project slug to project id
-	if !uuid.IsValid(key.ProjectID) {
-		project, err := s.projectService.Get(ctx, key.ProjectID)
-		if err != nil {
-			return Key{}, err
-		}
-		key.ProjectID = project.ID
+	// Get Project
+	project, err := s.projectService.Get(ctx, key.ProjectID)
+	if err != nil {
+		return Key{}, err
 	}
+	key.ProjectID = project.ID
+	key.ProjectSlug = project.Slug
 
 	// create URN
 	key.URN = key.CreateURN()

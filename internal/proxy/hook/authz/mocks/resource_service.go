@@ -22,12 +22,12 @@ func (_m *ResourceService) EXPECT() *ResourceService_Expecter {
 	return &ResourceService_Expecter{mock: &_m.Mock}
 }
 
-// Create provides a mock function with given fields: ctx, _a1
-func (_m *ResourceService) Create(ctx context.Context, _a1 resource.Resource) (resource.Resource, error) {
+// Upsert provides a mock function with given fields: ctx, _a1
+func (_m *ResourceService) Upsert(ctx context.Context, _a1 resource.Resource) (resource.Resource, error) {
 	ret := _m.Called(ctx, _a1)
 
 	if len(ret) == 0 {
-		panic("no return value specified for Create")
+		panic("no return value specified for Upsert")
 	}
 
 	var r0 resource.Resource
@@ -50,31 +50,31 @@ func (_m *ResourceService) Create(ctx context.Context, _a1 resource.Resource) (r
 	return r0, r1
 }
 
-// ResourceService_Create_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Create'
-type ResourceService_Create_Call struct {
+// ResourceService_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type ResourceService_Upsert_Call struct {
 	*mock.Call
 }
 
-// Create is a helper method to define mock.On call
+// Upsert is a helper method to define mock.On call
 //   - ctx context.Context
 //   - _a1 resource.Resource
-func (_e *ResourceService_Expecter) Create(ctx interface{}, _a1 interface{}) *ResourceService_Create_Call {
-	return &ResourceService_Create_Call{Call: _e.mock.On("Create", ctx, _a1)}
+func (_e *ResourceService_Expecter) Upsert(ctx interface{}, _a1 interface{}) *ResourceService_Upsert_Call {
+	return &ResourceService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, _a1)}
 }
 
-func (_c *ResourceService_Create_Call) Run(run func(ctx context.Context, _a1 resource.Resource)) *ResourceService_Create_Call {
+func (_c *ResourceService_Upsert_Call) Run(run func(ctx context.Context, _a1 resource.Resource)) *ResourceService_Upsert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(resource.Resource))
 	})
 	return _c
 }
 
-func (_c *ResourceService_Create_Call) Return(_a0 resource.Resource, _a1 error) *ResourceService_Create_Call {
+func (_c *ResourceService_Upsert_Call) Return(_a0 resource.Resource, _a1 error) *ResourceService_Upsert_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_Create_Call) RunAndReturn(run func(context.Context, resource.Resource) (resource.Resource, error)) *ResourceService_Create_Call {
+func (_c *ResourceService_Upsert_Call) RunAndReturn(run func(context.Context, resource.Resource) (resource.Resource, error)) *ResourceService_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

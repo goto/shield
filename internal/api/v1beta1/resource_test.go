@@ -120,7 +120,7 @@ func TestHandler_CreateResource(t *testing.T) {
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
 
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), resource.Resource{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -174,7 +174,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					},
 				}, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					NamespaceID:    testResource.NamespaceID,
@@ -207,7 +207,7 @@ func TestHandler_CreateResource(t *testing.T) {
 					},
 				}, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,
@@ -256,7 +256,7 @@ func TestHandler_CreateResource(t *testing.T) {
 
 				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), theRelation).Return(relation.RelationV2{}, nil)
 
-				rs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
 					Name:           testResource.Name,
 					ProjectID:      testResource.ProjectID,
 					OrganizationID: testResource.OrganizationID,

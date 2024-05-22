@@ -23,7 +23,7 @@ import (
 )
 
 type ResourceService interface {
-	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
+	Upsert(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 }
 
 type RelationService interface {
@@ -226,7 +226,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 	}
 	for _, resource := range resources {
-		newResource, err := a.resourceService.Create(res.Request.Context(), resource)
+		newResource, err := a.resourceService.Upsert(res.Request.Context(), resource)
 		if err != nil {
 			a.log.Error(err.Error())
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))

@@ -204,7 +204,7 @@ func (s *ResourceRepositoryTestSuite) TestGetByURN() {
 	}
 }
 
-func (s *ResourceRepositoryTestSuite) TestCreate() {
+func (s *ResourceRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description      string
 		ResourceToCreate resource.Resource
@@ -319,6 +319,130 @@ func (s *ResourceRepositoryTestSuite) TestCreate() {
 		{
 			Description: "should return error if resource urn is empty",
 			ErrString:   resource.ErrInvalidURN.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.Upsert(s.ctx, tc.ResourceToCreate)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedResource, cmpopts.IgnoreFields(resource.Resource{},
+				"Idxa",
+				"CreatedAt",
+				"UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedResource)
+			}
+		})
+	}
+}
+
+func (s *ResourceRepositoryTestSuite) TestCreate() {
+	type testCase struct {
+		Description      string
+		ResourceToCreate resource.Resource
+		ExpectedResource resource.Resource
+		ErrString        string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should create a resource",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-4",
+				Name:           "resource4",
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ExpectedResource: resource.Resource{
+				URN:            "new-urn-4",
+				Name:           "resource4",
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+		},
+		{
+			Description: "should return error if namespace id does not exist",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-notexist",
+				Name:           "resource4",
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    "some-ns",
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrInvalidDetail.Error(),
+		},
+		{
+			Description: "should return error if org id does not exist",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-notexist",
+				Name:           "resource4",
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: uuid.NewString(),
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrInvalidDetail.Error(),
+		},
+		{
+			Description: "should return error if org id is not uuid",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-notexist",
+				Name:           "resource4",
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: "some-str",
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrInvalidUUID.Error(),
+		},
+		{
+			Description: "should return error if project id does not exist",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-notexist",
+				Name:           "resource4",
+				ProjectID:      uuid.NewString(),
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrInvalidDetail.Error(),
+		},
+		{
+			Description: "should return error if project id is not uuid",
+			ResourceToCreate: resource.Resource{
+				URN:            "new-urn-notexist",
+				Name:           "resource4",
+				ProjectID:      "some-id",
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrInvalidUUID.Error(),
+		},
+		{
+			Description: "should return error if resource urn is empty",
+			ErrString:   resource.ErrInvalidURN.Error(),
+		},
+		{
+			Description: "should return error if urn already exist",
+			ResourceToCreate: resource.Resource{
+				URN:            s.resources[0].URN,
+				Name:           s.resources[0].Name,
+				ProjectID:      s.resources[0].ProjectID,
+				OrganizationID: s.resources[0].OrganizationID,
+				NamespaceID:    s.resources[0].NamespaceID,
+				UserID:         s.resources[0].UserID,
+			},
+			ErrString: resource.ErrConflict.Error(),
 		},
 	}
 

@@ -20,7 +20,7 @@ import (
 type ResourceService interface {
 	Get(ctx context.Context, id string) (resource.Resource, error)
 	List(ctx context.Context, flt resource.Filter) (resource.PagedResources, error)
-	Create(ctx context.Context, resource resource.Resource) (resource.Resource, error)
+	Upsert(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 }
@@ -81,7 +81,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		}
 	}
 
-	newResource, err := h.resourceService.Create(ctx, resource.Resource{
+	newResource, err := h.resourceService.Upsert(ctx, resource.Resource{
 		OrganizationID: project.Organization.ID,
 		ProjectID:      request.GetBody().GetProjectId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
