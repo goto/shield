@@ -2,7 +2,6 @@ package servicedata
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
@@ -57,7 +56,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// fetch current user
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		return Key{}, fmt.Errorf("%w: %s", user.ErrInvalidEmail, err.Error())
+		return Key{}, err
 	}
 
 	// convert project slug to project id
@@ -72,6 +71,10 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// create URN
 	key.URN = key.CreateURN()
 
+	// Transaction for postgres repository
+	// TODO find way to use transaction for spicedb
+	ctx = s.repository.WithTransaction(ctx)
+
 	// insert the service data key
 	resource, err := s.resourceService.Create(ctx, resource.Resource{
 		Name:        key.URN,
@@ -80,6 +83,9 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 		UserID:      currentUser.ID,
 	})
 	if err != nil {
+		if err := s.repository.Rollback(ctx, err); err != nil {
+			return Key{}, err
+		}
 		return Key{}, err
 	}
 	key.ResourceID = resource.Idxa
@@ -87,6 +93,9 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// insert service data key to the servicedata_keys table
 	createdServiceDataKey, err := s.repository.CreateKey(ctx, key)
 	if err != nil {
+		if err := s.repository.Rollback(ctx, err); err != nil {
+			return Key{}, err
+		}
 		return Key{}, err
 	}
 
@@ -103,6 +112,13 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 		},
 	})
 	if err != nil {
+		if err := s.repository.Rollback(ctx, err); err != nil {
+			return Key{}, err
+		}
+		return Key{}, err
+	}
+
+	if err := s.repository.Commit(ctx); err != nil {
 		return Key{}, err
 	}
 

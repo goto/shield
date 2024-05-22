@@ -154,7 +154,7 @@ func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Con
 // ExecQueries is used for executing list of db query
 func execQueries(ctx context.Context, client *db.Client, queries []string) error {
 	for _, query := range queries {
-		if _, err := client.DB.ExecContext(ctx, query); err != nil {
+		if _, err := client.ExecContext(ctx, query); err != nil {
 			return err
 		}
 	}

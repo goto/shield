@@ -123,7 +123,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		defer res.Body.Close()
 
 		resourceSelectQuery := "SELECT name FROM resources"
-		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		resources, err := s.dbClient.Query(resourceSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -295,7 +295,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 
 		resourceSelectQuery := "SELECT name FROM resources"
-		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		resources, err := s.dbClient.Query(resourceSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -308,7 +308,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal("test-resource-group-slug", resourceName)
 
 		relationSelectQuery := "SELECT subject_id FROM relations ORDER BY created_at DESC LIMIT 1"
-		relations, err := s.dbClient.DB.Query(relationSelectQuery)
+		relations, err := s.dbClient.Query(relationSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -344,7 +344,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 
 		resourceSelectQuery := "SELECT name FROM resources"
-		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		resources, err := s.dbClient.Query(resourceSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -357,7 +357,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal("test-resource-user-id", resourceName)
 
 		relationSelectQuery := "SELECT subject_id FROM relations ORDER BY created_at DESC LIMIT 1"
-		relations, err := s.dbClient.DB.Query(relationSelectQuery)
+		relations, err := s.dbClient.Query(relationSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -396,7 +396,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(200, res.StatusCode)
 
 		resourceSelectQuery := "SELECT name FROM resources"
-		resources, err := s.dbClient.DB.Query(resourceSelectQuery)
+		resources, err := s.dbClient.Query(resourceSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 
@@ -409,7 +409,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal("test-resource-user-email", resourceName)
 
 		relationSelectQuery := "SELECT subject_id FROM relations ORDER BY created_at DESC LIMIT 1"
-		relations, err := s.dbClient.DB.Query(relationSelectQuery)
+		relations, err := s.dbClient.Query(relationSelectQuery)
 		s.Require().NoError(err)
 		defer resources.Close()
 

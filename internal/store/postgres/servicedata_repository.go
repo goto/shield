@@ -2,7 +2,9 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/servicedata"
@@ -63,4 +65,19 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 		}
 	}
 	return serviceDataKeyModel.transformToServiceDataKey(), nil
+}
+
+func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {
+	return r.dbc.WithTransaction(ctx, sql.TxOptions{})
+}
+
+func (r ServiceDataRepository) Rollback(ctx context.Context, err error) error {
+	if txErr := r.dbc.Rollback(ctx); txErr != nil {
+		return fmt.Errorf("rollback error %s with error: %w", txErr.Error(), err)
+	}
+	return nil
+}
+
+func (r ServiceDataRepository) Commit(ctx context.Context) error {
+	return r.dbc.Commit(ctx)
 }
