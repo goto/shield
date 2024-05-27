@@ -14,8 +14,8 @@ import (
 )
 
 const (
-	keyNamespace = "shield/servicedata_key"
-	editActionID = "edit"
+	keyNamespace = schema.ServiceDataKeyNamespace
+	editActionID = schema.EditPermission
 )
 
 type ResourceService interface {
@@ -142,6 +142,9 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 
 	returnedServiceData, err := s.repository.Upsert(ctx, servicedata)
 	if err != nil {
+		if err := s.repository.Rollback(ctx, err); err != nil {
+			return ServiceData{}, err
+		}
 		return ServiceData{}, err
 	}
 

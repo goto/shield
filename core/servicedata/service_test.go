@@ -5,6 +5,8 @@ import (
 	"errors"
 	"testing"
 
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
@@ -57,6 +59,15 @@ var (
 			RoleID:    schema.OwnerRole,
 			Namespace: schema.UserPrincipal,
 		},
+	}
+	testEntityID    = "test-entity-id"
+	testNamespaceID = "test-namespace-id"
+	testValue       = "test-value"
+	testServiceData = servicedata.ServiceData{
+		EntityID:    testEntityID,
+		NamespaceID: testNamespaceID,
+		Key:         testCreateKey,
+		Value:       testValue,
 	}
 )
 
@@ -276,6 +287,232 @@ func TestService_CreateKey(t *testing.T) {
 
 			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
 			got, err := svc.CreateKey(ctx, tt.key)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_Upsert(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		email   string
+		data    servicedata.ServiceData
+		setup   func(t *testing.T) *servicedata.Service
+		want    servicedata.ServiceData
+		wantErr error
+	}{
+		{
+			name:  "Upsert",
+			email: "john.doe@gotocompany.com",
+			data:  testServiceData,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
+				repository.On("Commit", mock.Anything).Return(nil)
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectID).
+					Return(project.Project{
+						ID:   testProjectID,
+						Slug: testProjectSlug,
+					}, nil)
+				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
+					Idxa: testResourceID,
+				}, nil)
+				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
+					ID:    testUserID,
+					Email: "john.doe@gotocompany.com",
+				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					testResourceID, action.Action{ID: "edit"}).Return(true, nil)
+				repository.EXPECT().Upsert(mock.Anything, testServiceData).Return(testServiceData, nil)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			want: testServiceData,
+		},
+		{
+			name: "UpsertKeyEmpty",
+			data: servicedata.ServiceData{
+				Key: servicedata.Key{
+					Key: "",
+				},
+			},
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: servicedata.ErrInvalidDetail,
+		},
+		{
+			name:  "UpsertInvalidEmail",
+			data:  testServiceData,
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: user.ErrInvalidEmail,
+		},
+		{
+			name: "UpsertInvalidProjectID",
+			data: servicedata.ServiceData{
+				Key: servicedata.Key{
+					Key:       testKey.Key,
+					ProjectID: "invalid-test-project-slug",
+				},
+			},
+			email: "jane.doe@gotocompany.com",
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com"}, nil)
+				projectService.EXPECT().Get(mock.Anything, "invalid-test-project-slug").Return(project.Project{}, project.ErrNotExist)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: project.ErrNotExist,
+		},
+		{
+			name:  "UpsertErrCreateResource",
+			data:  testServiceData,
+			email: "john.doe@gotocompany.com",
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
+				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectID).
+					Return(project.Project{
+						ID:   testProjectID,
+						Slug: testProjectSlug,
+					}, nil)
+				resourceService.EXPECT().GetByURN(mock.Anything, testServiceData.Key.URN).Return(resource.Resource{}, resource.ErrNotExist)
+				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{}, resource.ErrInvalidDetail)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: resource.ErrInvalidDetail,
+		},
+		{
+			name:  "UpsertErrUnauthenticated",
+			email: "john.doe@gotocompany.com",
+			data:  testServiceData,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
+				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectID).
+					Return(project.Project{
+						ID:   testProjectID,
+						Slug: testProjectSlug,
+					}, nil)
+				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
+					Idxa: testResourceID,
+				}, nil)
+				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
+					ID:    testUserID,
+					Email: "john.doe@gotocompany.com",
+				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					testResourceID, action.Action{ID: "edit"}).Return(false, nil)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: user.ErrInvalidEmail,
+		},
+		{
+			name:  "UpsertErr",
+			email: "john.doe@gotocompany.com",
+			data:  testServiceData,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				resourceService := &mocks.ResourceService{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				userService := &mocks.UserService{}
+				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
+				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectID).
+					Return(project.Project{
+						ID:   testProjectID,
+						Slug: testProjectSlug,
+					}, nil)
+				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
+					Idxa: testResourceID,
+				}, nil)
+				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
+					ID:    testUserID,
+					Email: "john.doe@gotocompany.com",
+				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					testResourceID, action.Action{ID: "edit"}).Return(true, nil)
+				repository.EXPECT().Upsert(mock.Anything, testServiceData).Return(servicedata.ServiceData{}, servicedata.ErrInvalidDetail)
+				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+			},
+			wantErr: servicedata.ErrInvalidDetail,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
+			got, err := svc.Upsert(ctx, tt.data)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))

@@ -86,7 +86,7 @@ func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.Serv
 		)).Returning("id", "entity_id", "namespace_id", "key_id", "value", "created_at", "updated_at")).
 		Select(&UpsertServiceData{}).From("data").Join(goqu.T("key"), goqu.On(goqu.I("key.id").Eq(goqu.I("data.key_id")))).ToSQL()
 	if err != nil {
-		return servicedata.ServiceData{}, err
+		return servicedata.ServiceData{}, queryErr
 	}
 
 	var serviceDataModel UpsertServiceData

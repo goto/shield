@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
+	"github.com/goto/shield/pkg/uuid"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 )
@@ -97,6 +98,11 @@ func (s *ServiceDataRepositoryTestSuite) TearDownTest() {
 func (s *ServiceDataRepositoryTestSuite) cleanup() error {
 	queries := []string{
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_SERVICE_DATA_KEYS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_SERVICE_DATA),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ORGANIZATIONS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_PROJECTS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_RESOURCES),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -185,6 +191,59 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 				"ID",
 			)) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedKey)
+			}
+		})
+	}
+}
+
+func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
+	type testCase struct {
+		Description         string
+		ServiceDataToCreate servicedata.ServiceData
+		ExpectedServiceData servicedata.ServiceData
+		ErrString           string
+	}
+
+	testNamespaceID := uuid.NewString()
+	testEntityID := uuid.NewString()
+	testValue := "test-value"
+
+	var testCases = []testCase{
+		{
+			Description: "should create a service data",
+			ServiceDataToCreate: servicedata.ServiceData{
+				NamespaceID: testNamespaceID,
+				EntityID:    testEntityID,
+				Key: servicedata.Key{
+					Key: s.keys[0].Key,
+					URN: s.keys[0].URN,
+				},
+				Value: testValue,
+			},
+			ExpectedServiceData: servicedata.ServiceData{
+				NamespaceID: testNamespaceID,
+				EntityID:    testEntityID,
+				Key: servicedata.Key{
+					ID:  s.keys[0].ID,
+					URN: s.keys[0].URN,
+				},
+				Value: testValue,
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.Upsert(s.ctx, tc.ServiceDataToCreate)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedServiceData, cmpopts.IgnoreFields(servicedata.ServiceData{},
+				"ID",
+			)) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedServiceData)
 			}
 		})
 	}
