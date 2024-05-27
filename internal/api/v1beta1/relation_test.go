@@ -26,14 +26,27 @@ var (
 			RoleID:    "role1",
 		},
 		Object: relation.Object{
-			ID:          "object-id",
+			ID:          "5e70ba45-dc63-4152-9d72-27cbc34d9d13",
+			NamespaceID: "ns2",
+		},
+	}
+
+	testRelationV2Invalid = relation.RelationV2{
+		ID: "relation-id-1",
+		Subject: relation.Subject{
+			ID:        "subject-id",
+			Namespace: "ns1",
+			RoleID:    "role1",
+		},
+		Object: relation.Object{
+			ID:          "non-uuid",
 			NamespaceID: "ns2",
 		},
 	}
 
 	testRelationPB = &shieldv1beta1.Relation{
 		Id:              "relation-id-1",
-		ObjectId:        "object-id",
+		ObjectId:        "5e70ba45-dc63-4152-9d72-27cbc34d9d13",
 		ObjectNamespace: "ns2",
 		Subject:         "ns1:subject-id",
 		RoleName:        "role1",
@@ -110,6 +123,20 @@ func TestHandler_CreateRelation(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
+		},
+		{
+			name:  "should return bad body error if object id is not uuid",
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {},
+			request: &shieldv1beta1.CreateRelationRequest{
+				Body: &shieldv1beta1.RelationRequestBody{
+					ObjectId:        testRelationV2Invalid.Object.ID,
+					ObjectNamespace: testRelationV2Invalid.Object.NamespaceID,
+					Subject:         generateSubject(testRelationV2Invalid.Subject.ID, testRelationV2Invalid.Subject.Namespace),
+					RoleName:        testRelationV2Invalid.Subject.RoleID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return permision denied error if resource service's CheckAuthz function returns false",
