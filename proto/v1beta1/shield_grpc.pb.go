@@ -64,6 +64,8 @@ const (
 	ShieldService_CheckResourcePermission_FullMethodName     = "/gotocompany.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListActivities_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/ListActivities"
 	ShieldService_CreateServiceDataKey_FullMethodName        = "/gotocompany.shield.v1beta1.ShieldService/CreateServiceDataKey"
+	ShieldService_UpdateUserServiceData_FullMethodName       = "/gotocompany.shield.v1beta1.ShieldService/UpdateUserServiceData"
+	ShieldService_UpdateGroupServiceData_FullMethodName      = "/gotocompany.shield.v1beta1.ShieldService/UpdateGroupServiceData"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -128,6 +130,8 @@ type ShieldServiceClient interface {
 	ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesResponse, error)
 	// Service Data
 	CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error)
+	UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error)
+	UpdateGroupServiceData(ctx context.Context, in *UpdateGroupServiceDataRequest, opts ...grpc.CallOption) (*UpdateGroupServiceDataResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -543,6 +547,24 @@ func (c *shieldServiceClient) CreateServiceDataKey(ctx context.Context, in *Crea
 	return out, nil
 }
 
+func (c *shieldServiceClient) UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error) {
+	out := new(UpdateUserServiceDataResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpdateUserServiceData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) UpdateGroupServiceData(ctx context.Context, in *UpdateGroupServiceDataRequest, opts ...grpc.CallOption) (*UpdateGroupServiceDataResponse, error) {
+	out := new(UpdateGroupServiceDataResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpdateGroupServiceData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -605,6 +627,8 @@ type ShieldServiceServer interface {
 	ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error)
 	// Service Data
 	CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error)
+	UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error)
+	UpdateGroupServiceData(context.Context, *UpdateGroupServiceDataRequest) (*UpdateGroupServiceDataResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -746,6 +770,12 @@ func (UnimplementedShieldServiceServer) ListActivities(context.Context, *ListAct
 }
 func (UnimplementedShieldServiceServer) CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceDataKey not implemented")
+}
+func (UnimplementedShieldServiceServer) UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserServiceData not implemented")
+}
+func (UnimplementedShieldServiceServer) UpdateGroupServiceData(context.Context, *UpdateGroupServiceDataRequest) (*UpdateGroupServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpdateGroupServiceData not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -1570,6 +1600,42 @@ func _ShieldService_CreateServiceDataKey_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_UpdateUserServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateUserServiceDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).UpdateUserServiceData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_UpdateUserServiceData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).UpdateUserServiceData(ctx, req.(*UpdateUserServiceDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_UpdateGroupServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpdateGroupServiceDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).UpdateGroupServiceData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_UpdateGroupServiceData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).UpdateGroupServiceData(ctx, req.(*UpdateGroupServiceDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1756,6 +1822,14 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateServiceDataKey",
 			Handler:    _ShieldService_CreateServiceDataKey_Handler,
+		},
+		{
+			MethodName: "UpdateUserServiceData",
+			Handler:    _ShieldService_UpdateUserServiceData_Handler,
+		},
+		{
+			MethodName: "UpdateGroupServiceData",
+			Handler:    _ShieldService_UpdateGroupServiceData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

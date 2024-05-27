@@ -1,0 +1,2 @@
+ALTER TABLE servicedata
+DROP CONSTRAINT servicedata_namespace_id_entity_id_key_id_key;

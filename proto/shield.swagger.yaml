@@ -235,6 +235,31 @@ paths:
           type: string
       tags:
         - Group
+  /v1beta1/groups/{id}/servicedata:
+    put:
+      summary: Update Group Service Data
+      operationId: ShieldService_UpdateGroupServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateGroupServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateServiceDataRequestBody'
+      tags:
+        - Service Data
   /v1beta1/metadatakey:
     post:
       summary: Create Metadata Key
@@ -991,6 +1016,31 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{id}/servicedata:
+    put:
+      summary: Update User Service Data
+      operationId: ShieldService_UpdateUserServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpdateUserServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpdateServiceDataRequestBody'
+      tags:
+        - Service Data
 definitions:
   Action:
     type: object
@@ -1669,6 +1719,11 @@ definitions:
     properties:
       group:
         $ref: '#/definitions/Group'
+  UpdateGroupServiceDataResponse:
+    type: object
+    properties:
+      urn:
+        type: string
   UpdateNamespaceResponse:
     type: object
     properties:
@@ -1689,11 +1744,25 @@ definitions:
     properties:
       resource:
         $ref: '#/definitions/Resource'
+  UpdateServiceDataRequestBody:
+    type: object
+    properties:
+      project:
+        type: string
+      data:
+        type: object
+        additionalProperties:
+          type: string
   UpdateUserResponse:
     type: object
     properties:
       user:
         $ref: '#/definitions/User'
+  UpdateUserServiceDataResponse:
+    type: object
+    properties:
+      urn:
+        type: string
   User:
     type: object
     properties:
