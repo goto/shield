@@ -2251,6 +2251,10 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	// no validation rules for Keyword
 
+	// no validation rules for Sort
+
+	// no validation rules for Direction
+
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}

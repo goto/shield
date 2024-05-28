@@ -841,6 +841,14 @@ paths:
           in: query
           required: false
           type: string
+        - name: sort
+          in: query
+          required: false
+          type: string
+        - name: direction
+          in: query
+          required: false
+          type: string
       tags:
         - User
     post:

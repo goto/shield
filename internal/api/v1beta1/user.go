@@ -40,9 +40,11 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	var users []*shieldv1beta1.User
 
 	userResp, err := h.userService.List(ctx, user.Filter{
-		Limit:   request.GetPageSize(),
-		Page:    request.GetPageNum(),
-		Keyword: request.GetKeyword(),
+		Limit:         request.GetPageSize(),
+		Page:          request.GetPageNum(),
+		Keyword:       request.GetKeyword(),
+		SortBy:        request.GetSort(),
+		SortDirection: request.GetDirection(),
 	})
 	if err != nil {
 		logger.Error(err.Error())
