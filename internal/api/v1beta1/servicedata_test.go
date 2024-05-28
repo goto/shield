@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/servicedata"
@@ -33,10 +34,19 @@ var (
 		Id:  testKey.ID,
 		Urn: testKey.URN,
 	}
-	testEntityID          = uuid.NewString()
-	testServiceDataCreate = servicedata.ServiceData{
+	testEntityID              = uuid.NewString()
+	testUserServiceDataCreate = servicedata.ServiceData{
 		EntityID:    testEntityID,
 		NamespaceID: userNamespaceID,
+		Key: servicedata.Key{
+			Key:       testKeyName,
+			ProjectID: testKeyProjectID,
+		},
+		Value: testValue,
+	}
+	testGroupServiceDataCreate = servicedata.ServiceData{
+		EntityID:    testEntityID,
+		NamespaceID: groupNamepaceID,
 		Key: servicedata.Key{
 			Key:       testKeyName,
 			ProjectID: testKeyProjectID,
@@ -202,46 +212,46 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		want    *shieldv1beta1.UpdateUserServiceDataResponse
 		wantErr error
 	}{
-		// {
-		// 	name:    "should return bad body error if no request body",
-		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{},
-		// 	want:    nil,
-		// 	wantErr: grpcBadBodyError,
-		// },
-		// {
-		// 	name: "should return bad body error if no id in param",
-		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
-		// 		Id:   "",
-		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
-		// 	},
-		// 	want:    nil,
-		// 	wantErr: grpcBadBodyError,
-		// },
-		// {
-		// 	name: "should return bad body error if request body data is empty",
-		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
-		// 		Id: "",
-		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{
-		// 			Data: map[string]string{},
-		// 		},
-		// 	},
-		// 	want:    nil,
-		// 	wantErr: grpcBadBodyError,
-		// },
-		// {
-		// 	name: "should return bad body error if request body data is more than a pair",
-		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
-		// 		Id: "",
-		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{
-		// 			Data: map[string]string{
-		// 				"test-key-1": "test-value-1",
-		// 				"test-key-2": "test-value-2",
-		// 			},
-		// 		},
-		// 	},
-		// 	want:    nil,
-		// 	wantErr: grpcBadBodyError,
-		// },
+		{
+			name:    "should return bad body error if no request body",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if no id in param",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id:   "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if request body data is empty",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if request body data is more than a pair",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{
+						"test-key-1": "test-value-1",
+						"test-key-2": "test-value-2",
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
 		{
 			name: "should return bad body error if user id or email in param does not exist",
 			request: &shieldv1beta1.UpdateUserServiceDataRequest{
@@ -272,7 +282,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
 				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
-				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{}, user.ErrInvalidEmail)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testUserServiceDataCreate).Return(servicedata.ServiceData{}, user.ErrInvalidEmail)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want:    nil,
@@ -291,7 +301,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
 				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
-				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{}, project.ErrNotExist)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testUserServiceDataCreate).Return(servicedata.ServiceData{}, project.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want:    nil,
@@ -310,7 +320,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
 				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
-				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testUserServiceDataCreate).Return(servicedata.ServiceData{
 					Key: servicedata.Key{URN: testKey.URN},
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
@@ -331,6 +341,150 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			}
 			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService}
 			resp, err := mockDep.UpdateUserServiceData(ctx, tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_UpdateGroupServiceData(t *testing.T) {
+	email := "user@gotocompany.com"
+	tests := []struct {
+		name    string
+		setup   func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context
+		request *shieldv1beta1.UpdateGroupServiceDataRequest
+		want    *shieldv1beta1.UpdateGroupServiceDataResponse
+		wantErr error
+	}{
+		{
+			name:    "should return bad body error if no request body",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if no id in param",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id:   "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if request body data is empty",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if request body data is more than a pair",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: "",
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{
+						"test-key-1": "test-value-1",
+						"test-key-2": "test-value-2",
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if group id or slug in param does not exist",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
+				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testEntityID).Return(group.Group{}, group.ErrNotExist)
+				return ctx
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return unauthenticated error if email in header invalid",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
+				gs.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(group.Group{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testGroupServiceDataCreate).Return(servicedata.ServiceData{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
+			name: "should return bad body error if project id or slug is invalid",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
+				gs.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(group.Group{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testGroupServiceDataCreate).Return(servicedata.ServiceData{}, project.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return created service data urn",
+			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
+				gs.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(group.Group{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testGroupServiceDataCreate).Return(servicedata.ServiceData{
+					Key: servicedata.Key{URN: testKey.URN},
+				}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want: &shieldv1beta1.UpdateGroupServiceDataResponse{
+				Urn: testKey.URN,
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceDataService := new(mocks.ServiceDataService)
+			mockGroupService := new(mocks.GroupService)
+			ctx := context.TODO()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockServiceDataService, mockGroupService)
+			}
+			mockDep := Handler{serviceDataService: mockServiceDataService, groupService: mockGroupService}
+			resp, err := mockDep.UpdateGroupServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
