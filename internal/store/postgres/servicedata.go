@@ -20,14 +20,7 @@ type Key struct {
 }
 
 type UpsertServiceData struct {
-	ID          string    `db:"data.id"`
-	NamespaceID string    `db:"data.namespace_id"`
-	EntityID    string    `db:"data.entity_id"`
-	KeyID       string    `db:"data.key_id"`
-	KeyURN      string    `db:"key.urn"`
-	Value       string    `db:"data.value"`
-	CreatedAt   time.Time `db:"data.created_at"`
-	UpdatedAt   time.Time `db:"data.updated_at"`
+	KeyURN string `db:"key.urn"`
 }
 
 func (from Key) transformToServiceDataKey() servicedata.Key {
@@ -43,14 +36,9 @@ func (from Key) transformToServiceDataKey() servicedata.Key {
 
 func (from UpsertServiceData) transformToServiceData() servicedata.ServiceData {
 	data := servicedata.ServiceData{
-		ID:          from.ID,
-		NamespaceID: from.NamespaceID,
-		EntityID:    from.EntityID,
 		Key: servicedata.Key{
-			ID:  from.KeyID,
 			URN: from.KeyURN,
 		},
-		Value: from.Value,
 	}
 	return data
 }
