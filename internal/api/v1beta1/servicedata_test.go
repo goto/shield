@@ -19,17 +19,29 @@ var (
 	testKeyProjectID  = uuid.NewString()
 	testKeyID         = uuid.NewString()
 	testKeyResourceID = uuid.NewString()
+	testKeyName       = "test-key"
+	testValue         = "test-value"
 	testKey           = servicedata.Key{
 		ID:          testKeyID,
 		URN:         "key-urn",
 		ProjectID:   testKeyProjectID,
-		Key:         "test-key",
+		Key:         testKeyName,
 		Description: "test description",
 		ResourceID:  testKeyResourceID,
 	}
 	testKeyPB = &shieldv1beta1.ServiceDataKey{
 		Id:  testKey.ID,
 		Urn: testKey.URN,
+	}
+	testEntityID          = uuid.NewString()
+	testServiceDataCreate = servicedata.ServiceData{
+		EntityID:    testEntityID,
+		NamespaceID: userNamespaceID,
+		Key: servicedata.Key{
+			Key:       testKeyName,
+			ProjectID: testKeyProjectID,
+		},
+		Value: testValue,
 	}
 )
 
@@ -175,6 +187,150 @@ func TestHandler_CreateKey(t *testing.T) {
 			}
 			mockDep := Handler{serviceDataService: mockServiceDataService}
 			resp, err := mockDep.CreateServiceDataKey(ctx, tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_UpdateUserServiceData(t *testing.T) {
+	email := "user@gotocompany.com"
+	tests := []struct {
+		name    string
+		setup   func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context
+		request *shieldv1beta1.UpdateUserServiceDataRequest
+		want    *shieldv1beta1.UpdateUserServiceDataResponse
+		wantErr error
+	}{
+		// {
+		// 	name:    "should return bad body error if no request body",
+		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{},
+		// 	want:    nil,
+		// 	wantErr: grpcBadBodyError,
+		// },
+		// {
+		// 	name: "should return bad body error if no id in param",
+		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
+		// 		Id:   "",
+		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
+		// 	},
+		// 	want:    nil,
+		// 	wantErr: grpcBadBodyError,
+		// },
+		// {
+		// 	name: "should return bad body error if request body data is empty",
+		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
+		// 		Id: "",
+		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+		// 			Data: map[string]string{},
+		// 		},
+		// 	},
+		// 	want:    nil,
+		// 	wantErr: grpcBadBodyError,
+		// },
+		// {
+		// 	name: "should return bad body error if request body data is more than a pair",
+		// 	request: &shieldv1beta1.UpdateUserServiceDataRequest{
+		// 		Id: "",
+		// 		Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+		// 			Data: map[string]string{
+		// 				"test-key-1": "test-value-1",
+		// 				"test-key-2": "test-value-2",
+		// 			},
+		// 		},
+		// 	},
+		// 	want:    nil,
+		// 	wantErr: grpcBadBodyError,
+		// },
+		{
+			name: "should return bad body error if user id or email in param does not exist",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testEntityID).Return(user.User{}, user.ErrInvalidEmail)
+				return ctx
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return unauthenticated error if email in header invalid",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
+				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
+		},
+		{
+			name: "should return bad body error if project id or slug is invalid",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
+				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{}, project.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return created service data urn",
+			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+				Id: testEntityID,
+				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+					Project: testKeyProjectID,
+					Data: map[string]string{
+						testKeyName: testValue,
+					},
+				},
+			},
+			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
+				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
+				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testServiceDataCreate).Return(servicedata.ServiceData{
+					Key: servicedata.Key{URN: testKey.URN},
+				}, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			want: &shieldv1beta1.UpdateUserServiceDataResponse{
+				Urn: testKey.URN,
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceDataService := new(mocks.ServiceDataService)
+			mockUserService := new(mocks.UserService)
+			ctx := context.TODO()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockServiceDataService, mockUserService)
+			}
+			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService}
+			resp, err := mockDep.UpdateUserServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

@@ -112,13 +112,11 @@ func (h Handler) UpdateUserServiceData(ctx context.Context, request *shieldv1bet
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 			errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
-		case errors.Is(err, servicedata.ErrConflict), errors.Is(err, resource.ErrConflict):
-			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}
