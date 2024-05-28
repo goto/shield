@@ -66,6 +66,17 @@ func Serve(
 		return err
 	}
 
+	grpcPublicGateway := runtime.NewServeMux(
+		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
+	)
+
+	httpMux.Handle("/shield/", http.StripPrefix("/shield", grpcPublicGateway))
+
+	if err := shieldv1beta1.RegisterShieldPublicServiceHandler(ctx, grpcPublicGateway, grpcConn); err != nil {
+		return err
+	}
+
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
 	reflection.Register(grpcServer)
 

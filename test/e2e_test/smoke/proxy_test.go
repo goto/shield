@@ -18,22 +18,24 @@ import (
 
 type EndToEndProxySmokeTestSuite struct {
 	suite.Suite
-	userID       string
-	orgID        string
-	orgSlug      string
-	projID       string
-	projSlug     string
-	groupID      string
-	client       shieldv1beta1.ShieldServiceClient
-	cancelClient func()
-	testBench    *testbench.TestBench
-	dbClient     *db.Client
-	appConfig    *config.Shield
+	userID             string
+	orgID              string
+	orgSlug            string
+	projID             string
+	projSlug           string
+	groupID            string
+	client             shieldv1beta1.ShieldServiceClient
+	publicClient       shieldv1beta1.ShieldPublicServiceClient
+	cancelClient       func()
+	cancelPublicClient func()
+	testBench          *testbench.TestBench
+	dbClient           *db.Client
+	appConfig          *config.Shield
 }
 
 func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T())
+	s.client, s.publicClient, s.appConfig, s.cancelClient, s.cancelPublicClient, _ = testbench.SetupTests(s.T())
 
 	dbClient, err := testbench.SetupDB(s.appConfig.DB)
 	if err != nil {
@@ -69,6 +71,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 
 func (s *EndToEndProxySmokeTestSuite) TearDownTest() {
 	s.cancelClient()
+	s.cancelPublicClient()
 	// Clean tests
 	err := s.testBench.CleanUp()
 	s.Require().NoError(err)

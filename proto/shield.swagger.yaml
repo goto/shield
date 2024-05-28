@@ -3,6 +3,7 @@ info:
   title: Shield
   version: 0.1.0
 tags:
+  - name: ShieldPublicService
   - name: ShieldService
 schemes:
   - http
@@ -238,7 +239,7 @@ paths:
   /v1beta1/groups/{id}/servicedata:
     put:
       summary: Update Group Service Data
-      operationId: ShieldService_UpdateGroupServiceData
+      operationId: ShieldPublicService_UpdateGroupServiceData
       responses:
         "200":
           description: A successful response.
@@ -866,6 +867,14 @@ paths:
           in: query
           required: false
           type: string
+        - name: sort
+          in: query
+          required: false
+          type: string
+        - name: direction
+          in: query
+          required: false
+          type: string
       tags:
         - User
     post:
@@ -1019,7 +1028,7 @@ paths:
   /v1beta1/users/{id}/servicedata:
     put:
       summary: Update User Service Data
-      operationId: ShieldService_UpdateUserServiceData
+      operationId: ShieldPublicService_UpdateUserServiceData
       responses:
         "200":
           description: A successful response.

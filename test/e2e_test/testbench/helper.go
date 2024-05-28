@@ -60,6 +60,20 @@ func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 	return client, cancel, nil
 }
 
+func CreatePublicClient(ctx context.Context, host string) (shieldv1beta1.ShieldPublicServiceClient, func(), error) {
+	conn, err := createConnection(ctx, host)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cancel := func() {
+		conn.Close()
+	}
+
+	client := shieldv1beta1.NewShieldPublicServiceClient(conn)
+	return client, cancel, nil
+}
+
 func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-user.json")
 	if err != nil {
