@@ -198,11 +198,12 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 			GRPC: server.GRPCConfig{
 				Port: apiGRPCPort,
 			},
-			DefaultSystemEmail:  DefaultSystemEmail,
-			IdentityProxyHeader: IdentityHeader,
-			UserIDHeader:        userIDHeaderKey,
-			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
-			RulesPath:           fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
+			DefaultSystemEmail:      DefaultSystemEmail,
+			IdentityProxyHeader:     IdentityHeader,
+			UserIDHeader:            userIDHeaderKey,
+			ResourcesConfigPath:     fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
+			RulesPath:               fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
+			BootstrapServiceDataKey: true,
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{

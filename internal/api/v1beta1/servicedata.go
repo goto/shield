@@ -43,7 +43,7 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 			errors.Is(err, relation.ErrInvalidDetail):
@@ -173,7 +173,7 @@ func (h Handler) UpdateGroupServiceData(ctx context.Context, request *shieldv1be
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 			errors.Is(err, relation.ErrInvalidDetail):
