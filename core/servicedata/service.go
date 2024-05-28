@@ -119,11 +119,10 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 		switch {
 		case errors.Is(err, resource.ErrNotExist):
 			// create service data key if resource not exist
-			key, err := s.createKey(ctx, servicedata.Key, currentUser)
+			_, err := s.createKey(ctx, servicedata.Key, currentUser)
 			if err != nil {
 				return ServiceData{}, err
 			}
-			res.Idxa = key.ResourceID
 		default:
 			return ServiceData{}, err
 		}
