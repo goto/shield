@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:57437"
+        target: "http://localhost:60481"
         frontends:
           - name: ping
             path: "/api/ping"
