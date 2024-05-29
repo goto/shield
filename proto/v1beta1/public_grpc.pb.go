@@ -19,6 +19,7 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
+	ShieldPublicService_CreateServiceDataKey_FullMethodName   = "/gotocompany.shield.v1beta1.ShieldPublicService/CreateServiceDataKey"
 	ShieldPublicService_UpdateUserServiceData_FullMethodName  = "/gotocompany.shield.v1beta1.ShieldPublicService/UpdateUserServiceData"
 	ShieldPublicService_UpdateGroupServiceData_FullMethodName = "/gotocompany.shield.v1beta1.ShieldPublicService/UpdateGroupServiceData"
 )
@@ -27,6 +28,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type ShieldPublicServiceClient interface {
+	// Service Data
+	CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error)
 	UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error)
 	UpdateGroupServiceData(ctx context.Context, in *UpdateGroupServiceDataRequest, opts ...grpc.CallOption) (*UpdateGroupServiceDataResponse, error)
 }
@@ -37,6 +40,15 @@ type shieldPublicServiceClient struct {
 
 func NewShieldPublicServiceClient(cc grpc.ClientConnInterface) ShieldPublicServiceClient {
 	return &shieldPublicServiceClient{cc}
+}
+
+func (c *shieldPublicServiceClient) CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error) {
+	out := new(CreateServiceDataKeyResponse)
+	err := c.cc.Invoke(ctx, ShieldPublicService_CreateServiceDataKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
 }
 
 func (c *shieldPublicServiceClient) UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error) {
@@ -61,6 +73,8 @@ func (c *shieldPublicServiceClient) UpdateGroupServiceData(ctx context.Context, 
 // All implementations must embed UnimplementedShieldPublicServiceServer
 // for forward compatibility
 type ShieldPublicServiceServer interface {
+	// Service Data
+	CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error)
 	UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error)
 	UpdateGroupServiceData(context.Context, *UpdateGroupServiceDataRequest) (*UpdateGroupServiceDataResponse, error)
 	mustEmbedUnimplementedShieldPublicServiceServer()
@@ -70,6 +84,9 @@ type ShieldPublicServiceServer interface {
 type UnimplementedShieldPublicServiceServer struct {
 }
 
+func (UnimplementedShieldPublicServiceServer) CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceDataKey not implemented")
+}
 func (UnimplementedShieldPublicServiceServer) UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserServiceData not implemented")
 }
@@ -87,6 +104,24 @@ type UnsafeShieldPublicServiceServer interface {
 
 func RegisterShieldPublicServiceServer(s grpc.ServiceRegistrar, srv ShieldPublicServiceServer) {
 	s.RegisterService(&ShieldPublicService_ServiceDesc, srv)
+}
+
+func _ShieldPublicService_CreateServiceDataKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateServiceDataKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldPublicServiceServer).CreateServiceDataKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldPublicService_CreateServiceDataKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldPublicServiceServer).CreateServiceDataKey(ctx, req.(*CreateServiceDataKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
 }
 
 func _ShieldPublicService_UpdateUserServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
@@ -132,6 +167,10 @@ var ShieldPublicService_ServiceDesc = grpc.ServiceDesc{
 	ServiceName: "gotocompany.shield.v1beta1.ShieldPublicService",
 	HandlerType: (*ShieldPublicServiceServer)(nil),
 	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateServiceDataKey",
+			Handler:    _ShieldPublicService_CreateServiceDataKey_Handler,
+		},
 		{
 			MethodName: "UpdateUserServiceData",
 			Handler:    _ShieldPublicService_UpdateUserServiceData_Handler,

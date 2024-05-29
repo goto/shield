@@ -821,7 +821,7 @@ paths:
   /v1beta1/servicedata:
     post:
       summary: Create Service Data Key
-      operationId: ShieldService_CreateServiceDataKey
+      operationId: ShieldPublicService_CreateServiceDataKey
       responses:
         "200":
           description: A successful response.
