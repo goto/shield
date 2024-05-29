@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  title: Shield
+  title: Service Data
   version: 0.1.0
 tags:
-  - name: ShieldPublicService
+  - name: ServiceDataService
   - name: ShieldService
 schemes:
   - http
@@ -239,7 +239,7 @@ paths:
   /v1beta1/groups/{id}/servicedata:
     put:
       summary: Upsert Group Service Data
-      operationId: ShieldPublicService_UpsertGroupServiceData
+      operationId: ServiceDataService_UpsertGroupServiceData
       responses:
         "200":
           description: A successful response.
@@ -821,7 +821,7 @@ paths:
   /v1beta1/servicedata:
     post:
       summary: Create Service Data Key
-      operationId: ShieldPublicService_CreateServiceDataKey
+      operationId: ServiceDataService_CreateServiceDataKey
       responses:
         "200":
           description: A successful response.
@@ -1028,7 +1028,7 @@ paths:
   /v1beta1/users/{id}/servicedata:
     put:
       summary: Upsert User Service Data
-      operationId: ShieldPublicService_UpsertUserServiceData
+      operationId: ServiceDataService_UpsertUserServiceData
       responses:
         "200":
           description: A successful response.

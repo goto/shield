@@ -15,7 +15,7 @@ type RelationTransformer interface {
 
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
-	shieldv1beta1.UnimplementedShieldPublicServiceServer
+	shieldv1beta1.UnimplementedServiceDataServiceServer
 	orgService         OrganizationService
 	projectService     ProjectService
 	groupService       GroupService
@@ -56,7 +56,7 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit 
 	)
 
 	s.RegisterService(
-		&shieldv1beta1.ShieldPublicService_ServiceDesc,
+		&shieldv1beta1.ServiceDataService_ServiceDesc,
 		&Handler{
 			orgService:         deps.OrgService,
 			projectService:     deps.ProjectService,

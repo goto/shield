@@ -66,12 +66,12 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	}
 
 	// Get Project
-	project, err := s.projectService.Get(ctx, key.ProjectID)
+	prj, err := s.projectService.Get(ctx, key.ProjectID)
 	if err != nil {
 		return Key{}, err
 	}
-	key.ProjectID = project.ID
-	key.ProjectSlug = project.Slug
+	key.ProjectID = prj.ID
+	key.ProjectSlug = prj.Slug
 
 	// create URN
 	key.URN = key.CreateURN()
@@ -81,7 +81,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	ctx = s.repository.WithTransaction(ctx)
 
 	// insert the service data key
-	resource, err := s.resourceService.Create(ctx, resource.Resource{
+	res, err := s.resourceService.Create(ctx, resource.Resource{
 		Name:        key.URN,
 		NamespaceID: keyNamespace,
 		ProjectID:   key.ProjectID,
@@ -93,7 +93,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 		}
 		return Key{}, err
 	}
-	key.ResourceID = resource.Idxa
+	key.ResourceID = res.Idxa
 
 	// insert service data key to the servicedata_keys table
 	createdServiceDataKey, err := s.repository.CreateKey(ctx, key)
@@ -107,7 +107,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// create relation
 	_, err = s.relationService.Create(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID:          resource.Idxa,
+			ID:          res.Idxa,
 			NamespaceID: schema.ServiceDataKeyNamespace,
 		},
 		Subject: relation.Subject{
@@ -140,12 +140,12 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 		return ServiceData{}, err
 	}
 
-	project, err := s.projectService.Get(ctx, servicedata.Key.ProjectID)
+	prj, err := s.projectService.Get(ctx, servicedata.Key.ProjectID)
 	if err != nil {
 		return ServiceData{}, err
 	}
-	servicedata.Key.ProjectID = project.ID
-	servicedata.Key.ProjectSlug = project.Slug
+	servicedata.Key.ProjectID = prj.ID
+	servicedata.Key.ProjectSlug = prj.Slug
 
 	servicedata.Key.URN = servicedata.Key.CreateURN()
 

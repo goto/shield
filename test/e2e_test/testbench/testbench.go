@@ -141,7 +141,7 @@ func (te *TestBench) CleanUp() error {
 	return nil
 }
 
-func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.ShieldPublicServiceClient, *config.Shield, func(), func(), func()) {
+func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.ServiceDataServiceClient, *config.Shield, func(), func(), func()) {
 	t.Helper()
 
 	wd, err := os.Getwd()
@@ -229,7 +229,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 		t.Fatal(err)
 	}
 
-	publicClient, cancePublicClient, err := CreatePublicClient(ctx, shieldHost)
+	serviceDataClient, canceserviceDataClient, err := CreateServiceDataClient(ctx, shieldHost)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +266,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 	if err := AssignGroupManager(ctx, client, OrgAdminEmail); err != nil {
 		t.Fatal(err)
 	}
-	return client, publicClient, appConfig, cancelClient, cancePublicClient, cancelContextFunc
+	return client, serviceDataClient, appConfig, cancelClient, canceserviceDataClient, cancelContextFunc
 }
 func migrateShield(appConfig *config.Shield) error {
 	return db.RunMigrations(db.Config{

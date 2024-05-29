@@ -16,17 +16,17 @@ import (
 
 type EndToEndAPIRegressionTestSuite struct {
 	suite.Suite
-	client             shieldv1beta1.ShieldServiceClient
-	publicClient       shieldv1beta1.ShieldPublicServiceClient
-	cancelClient       func()
-	cancelPublicClient func()
-	testBench          *testbench.TestBench
-	appConfig          *config.Shield
+	client                  shieldv1beta1.ShieldServiceClient
+	serviceDataClient       shieldv1beta1.ServiceDataServiceClient
+	cancelClient            func()
+	cancelServiceDataClient func()
+	testBench               *testbench.TestBench
+	appConfig               *config.Shield
 }
 
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.publicClient, s.appConfig, s.cancelClient, s.cancelPublicClient, _ = testbench.SetupTests(s.T())
+	s.client, s.serviceDataClient, s.appConfig, s.cancelClient, s.cancelServiceDataClient, _ = testbench.SetupTests(s.T())
 
 	// validate
 	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup
@@ -53,7 +53,7 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
 	s.cancelClient()
-	s.cancelPublicClient()
+	s.cancelServiceDataClient()
 	// Clean tests
 	err := s.testBench.CleanUp()
 	s.Require().NoError(err)
@@ -469,7 +469,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	myUser := usr.GetUsers()[0]
 
 	s.Run("1. org admin create a new service data key with empty auth email should return unauthenticated error", func() {
-		_, err := s.publicClient.CreateServiceDataKey(context.Background(), &shieldv1beta1.CreateServiceDataKeyRequest{
+		_, err := s.serviceDataClient.CreateServiceDataKey(context.Background(), &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
 				Key:         "new-key-01",
@@ -480,7 +480,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("2. org admin create a new service data key with blank key should return invalid argument error", func() {
-		_, err := s.publicClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+		_, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
 				Key:         "",
@@ -491,7 +491,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("3. org admin create a new service data key with invalid project id should return invalid argument error", func() {
-		_, err := s.publicClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+		_, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     "invalid-project-id",
 				Key:         "new-key-01",
@@ -502,7 +502,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("4. org admin create a new service data key in same project with same name should conflict", func() {
-		res, err := s.publicClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+		res, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
 				Key:         "new-key-01",
@@ -513,7 +513,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 		newServiceDataKey := res.GetServiceDataKey()
 		s.Assert().NotNil(newServiceDataKey)
 
-		_, err = s.publicClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+		_, err = s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
 				Key:         "new-key-01",
@@ -524,7 +524,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("5. org admin update a user service data with invalid user id should return invalid argument error", func() {
-		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: "invalid-user-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
@@ -537,7 +537,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("6. org admin update a user service data with invalid project id should return invalid argument error", func() {
-		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: "invalid-project-id",
@@ -550,7 +550,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("7. org admin update multiple service data return invalid argument error", func() {
-		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
@@ -564,7 +564,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("8. update service data org admin created without edit permission should return unauthenticated error", func() {
-		res, err := s.publicClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+		res, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
 				Key:         "new-key",
@@ -579,7 +579,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			testbench.IdentityHeader: myUser.Email,
 		}))
 
-		_, err = s.publicClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{
+		_, err = s.serviceDataClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
@@ -592,7 +592,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
-		_, err := s.publicClient.UpsertGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertGroupServiceDataRequest{
+		_, err := s.serviceDataClient.UpsertGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertGroupServiceDataRequest{
 			Id: "invalid-group-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
