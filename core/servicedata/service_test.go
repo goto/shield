@@ -320,8 +320,6 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
-				repository.On("Commit", mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -402,7 +400,7 @@ func TestService_Upsert(t *testing.T) {
 			wantErr: project.ErrNotExist,
 		},
 		{
-			name:  "UpsertErrCreateResource",
+			name:  "UpsertErrGetResource",
 			data:  testServiceData,
 			email: "john.doe@gotocompany.com",
 			setup: func(t *testing.T) *servicedata.Service {
@@ -412,8 +410,6 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
-				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -425,10 +421,9 @@ func TestService_Upsert(t *testing.T) {
 						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().GetByURN(mock.Anything, testServiceData.Key.URN).Return(resource.Resource{}, resource.ErrNotExist)
-				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{}, resource.ErrInvalidDetail)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
-			wantErr: resource.ErrInvalidDetail,
+			wantErr: resource.ErrNotExist,
 		},
 		{
 			name:  "UpsertErrUnauthenticated",
@@ -441,8 +436,6 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
-				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -476,8 +469,6 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
-				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,

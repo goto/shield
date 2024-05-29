@@ -66,7 +66,7 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 	}, nil
 }
 
-func (h Handler) UpdateUserServiceData(ctx context.Context, request *shieldv1beta1.UpdateUserServiceDataRequest) (*shieldv1beta1.UpdateUserServiceDataResponse, error) {
+func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1beta1.UpsertUserServiceDataRequest) (*shieldv1beta1.UpsertUserServiceDataResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	requestBody := request.GetBody()
@@ -122,12 +122,12 @@ func (h Handler) UpdateUserServiceData(ctx context.Context, request *shieldv1bet
 		}
 	}
 
-	return &shieldv1beta1.UpdateUserServiceDataResponse{
+	return &shieldv1beta1.UpsertUserServiceDataResponse{
 		Urn: serviceDataResp.Key.URN,
 	}, nil
 }
 
-func (h Handler) UpdateGroupServiceData(ctx context.Context, request *shieldv1beta1.UpdateGroupServiceDataRequest) (*shieldv1beta1.UpdateGroupServiceDataResponse, error) {
+func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1beta1.UpsertGroupServiceDataRequest) (*shieldv1beta1.UpsertGroupServiceDataResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	requestBody := request.GetBody()
@@ -185,7 +185,7 @@ func (h Handler) UpdateGroupServiceData(ctx context.Context, request *shieldv1be
 		}
 	}
 
-	return &shieldv1beta1.UpdateGroupServiceDataResponse{
+	return &shieldv1beta1.UpsertGroupServiceDataResponse{
 		Urn: serviceDataResp.Key.URN,
 	}, nil
 }

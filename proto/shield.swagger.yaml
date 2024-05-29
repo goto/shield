@@ -238,13 +238,13 @@ paths:
         - Group
   /v1beta1/groups/{id}/servicedata:
     put:
-      summary: Update Group Service Data
-      operationId: ShieldPublicService_UpdateGroupServiceData
+      summary: Upsert Group Service Data
+      operationId: ShieldPublicService_UpsertGroupServiceData
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/UpdateGroupServiceDataResponse'
+            $ref: '#/definitions/UpsertGroupServiceDataResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -258,7 +258,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UpdateServiceDataRequestBody'
+            $ref: '#/definitions/UpsertServiceDataRequestBody'
       tags:
         - Service Data
   /v1beta1/metadatakey:
@@ -1027,13 +1027,13 @@ paths:
         - User
   /v1beta1/users/{id}/servicedata:
     put:
-      summary: Update User Service Data
-      operationId: ShieldPublicService_UpdateUserServiceData
+      summary: Upsert User Service Data
+      operationId: ShieldPublicService_UpsertUserServiceData
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/UpdateUserServiceDataResponse'
+            $ref: '#/definitions/UpsertUserServiceDataResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -1047,7 +1047,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UpdateServiceDataRequestBody'
+            $ref: '#/definitions/UpsertServiceDataRequestBody'
       tags:
         - Service Data
 definitions:
@@ -1728,11 +1728,6 @@ definitions:
     properties:
       group:
         $ref: '#/definitions/Group'
-  UpdateGroupServiceDataResponse:
-    type: object
-    properties:
-      urn:
-        type: string
   UpdateNamespaceResponse:
     type: object
     properties:
@@ -1753,7 +1748,17 @@ definitions:
     properties:
       resource:
         $ref: '#/definitions/Resource'
-  UpdateServiceDataRequestBody:
+  UpdateUserResponse:
+    type: object
+    properties:
+      user:
+        $ref: '#/definitions/User'
+  UpsertGroupServiceDataResponse:
+    type: object
+    properties:
+      urn:
+        type: string
+  UpsertServiceDataRequestBody:
     type: object
     properties:
       project:
@@ -1762,12 +1767,7 @@ definitions:
         type: object
         additionalProperties:
           type: string
-  UpdateUserResponse:
-    type: object
-    properties:
-      user:
-        $ref: '#/definitions/User'
-  UpdateUserServiceDataResponse:
+  UpsertUserServiceDataResponse:
     type: object
     properties:
       urn:

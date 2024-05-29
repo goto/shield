@@ -20,8 +20,8 @@ const _ = grpc.SupportPackageIsVersion7
 
 const (
 	ShieldPublicService_CreateServiceDataKey_FullMethodName   = "/gotocompany.shield.v1beta1.ShieldPublicService/CreateServiceDataKey"
-	ShieldPublicService_UpdateUserServiceData_FullMethodName  = "/gotocompany.shield.v1beta1.ShieldPublicService/UpdateUserServiceData"
-	ShieldPublicService_UpdateGroupServiceData_FullMethodName = "/gotocompany.shield.v1beta1.ShieldPublicService/UpdateGroupServiceData"
+	ShieldPublicService_UpsertUserServiceData_FullMethodName  = "/gotocompany.shield.v1beta1.ShieldPublicService/UpsertUserServiceData"
+	ShieldPublicService_UpsertGroupServiceData_FullMethodName = "/gotocompany.shield.v1beta1.ShieldPublicService/UpsertGroupServiceData"
 )
 
 // ShieldPublicServiceClient is the client API for ShieldPublicService service.
@@ -30,8 +30,8 @@ const (
 type ShieldPublicServiceClient interface {
 	// Service Data
 	CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error)
-	UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error)
-	UpdateGroupServiceData(ctx context.Context, in *UpdateGroupServiceDataRequest, opts ...grpc.CallOption) (*UpdateGroupServiceDataResponse, error)
+	UpsertUserServiceData(ctx context.Context, in *UpsertUserServiceDataRequest, opts ...grpc.CallOption) (*UpsertUserServiceDataResponse, error)
+	UpsertGroupServiceData(ctx context.Context, in *UpsertGroupServiceDataRequest, opts ...grpc.CallOption) (*UpsertGroupServiceDataResponse, error)
 }
 
 type shieldPublicServiceClient struct {
@@ -51,18 +51,18 @@ func (c *shieldPublicServiceClient) CreateServiceDataKey(ctx context.Context, in
 	return out, nil
 }
 
-func (c *shieldPublicServiceClient) UpdateUserServiceData(ctx context.Context, in *UpdateUserServiceDataRequest, opts ...grpc.CallOption) (*UpdateUserServiceDataResponse, error) {
-	out := new(UpdateUserServiceDataResponse)
-	err := c.cc.Invoke(ctx, ShieldPublicService_UpdateUserServiceData_FullMethodName, in, out, opts...)
+func (c *shieldPublicServiceClient) UpsertUserServiceData(ctx context.Context, in *UpsertUserServiceDataRequest, opts ...grpc.CallOption) (*UpsertUserServiceDataResponse, error) {
+	out := new(UpsertUserServiceDataResponse)
+	err := c.cc.Invoke(ctx, ShieldPublicService_UpsertUserServiceData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
 	return out, nil
 }
 
-func (c *shieldPublicServiceClient) UpdateGroupServiceData(ctx context.Context, in *UpdateGroupServiceDataRequest, opts ...grpc.CallOption) (*UpdateGroupServiceDataResponse, error) {
-	out := new(UpdateGroupServiceDataResponse)
-	err := c.cc.Invoke(ctx, ShieldPublicService_UpdateGroupServiceData_FullMethodName, in, out, opts...)
+func (c *shieldPublicServiceClient) UpsertGroupServiceData(ctx context.Context, in *UpsertGroupServiceDataRequest, opts ...grpc.CallOption) (*UpsertGroupServiceDataResponse, error) {
+	out := new(UpsertGroupServiceDataResponse)
+	err := c.cc.Invoke(ctx, ShieldPublicService_UpsertGroupServiceData_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -75,8 +75,8 @@ func (c *shieldPublicServiceClient) UpdateGroupServiceData(ctx context.Context, 
 type ShieldPublicServiceServer interface {
 	// Service Data
 	CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error)
-	UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error)
-	UpdateGroupServiceData(context.Context, *UpdateGroupServiceDataRequest) (*UpdateGroupServiceDataResponse, error)
+	UpsertUserServiceData(context.Context, *UpsertUserServiceDataRequest) (*UpsertUserServiceDataResponse, error)
+	UpsertGroupServiceData(context.Context, *UpsertGroupServiceDataRequest) (*UpsertGroupServiceDataResponse, error)
 	mustEmbedUnimplementedShieldPublicServiceServer()
 }
 
@@ -87,11 +87,11 @@ type UnimplementedShieldPublicServiceServer struct {
 func (UnimplementedShieldPublicServiceServer) CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateServiceDataKey not implemented")
 }
-func (UnimplementedShieldPublicServiceServer) UpdateUserServiceData(context.Context, *UpdateUserServiceDataRequest) (*UpdateUserServiceDataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateUserServiceData not implemented")
+func (UnimplementedShieldPublicServiceServer) UpsertUserServiceData(context.Context, *UpsertUserServiceDataRequest) (*UpsertUserServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertUserServiceData not implemented")
 }
-func (UnimplementedShieldPublicServiceServer) UpdateGroupServiceData(context.Context, *UpdateGroupServiceDataRequest) (*UpdateGroupServiceDataResponse, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method UpdateGroupServiceData not implemented")
+func (UnimplementedShieldPublicServiceServer) UpsertGroupServiceData(context.Context, *UpsertGroupServiceDataRequest) (*UpsertGroupServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertGroupServiceData not implemented")
 }
 func (UnimplementedShieldPublicServiceServer) mustEmbedUnimplementedShieldPublicServiceServer() {}
 
@@ -124,38 +124,38 @@ func _ShieldPublicService_CreateServiceDataKey_Handler(srv interface{}, ctx cont
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldPublicService_UpdateUserServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateUserServiceDataRequest)
+func _ShieldPublicService_UpsertUserServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertUserServiceDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldPublicServiceServer).UpdateUserServiceData(ctx, in)
+		return srv.(ShieldPublicServiceServer).UpsertUserServiceData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldPublicService_UpdateUserServiceData_FullMethodName,
+		FullMethod: ShieldPublicService_UpsertUserServiceData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldPublicServiceServer).UpdateUserServiceData(ctx, req.(*UpdateUserServiceDataRequest))
+		return srv.(ShieldPublicServiceServer).UpsertUserServiceData(ctx, req.(*UpsertUserServiceDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
 
-func _ShieldPublicService_UpdateGroupServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(UpdateGroupServiceDataRequest)
+func _ShieldPublicService_UpsertGroupServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertGroupServiceDataRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
 	if interceptor == nil {
-		return srv.(ShieldPublicServiceServer).UpdateGroupServiceData(ctx, in)
+		return srv.(ShieldPublicServiceServer).UpsertGroupServiceData(ctx, in)
 	}
 	info := &grpc.UnaryServerInfo{
 		Server:     srv,
-		FullMethod: ShieldPublicService_UpdateGroupServiceData_FullMethodName,
+		FullMethod: ShieldPublicService_UpsertGroupServiceData_FullMethodName,
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(ShieldPublicServiceServer).UpdateGroupServiceData(ctx, req.(*UpdateGroupServiceDataRequest))
+		return srv.(ShieldPublicServiceServer).UpsertGroupServiceData(ctx, req.(*UpsertGroupServiceDataRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -172,12 +172,12 @@ var ShieldPublicService_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _ShieldPublicService_CreateServiceDataKey_Handler,
 		},
 		{
-			MethodName: "UpdateUserServiceData",
-			Handler:    _ShieldPublicService_UpdateUserServiceData_Handler,
+			MethodName: "UpsertUserServiceData",
+			Handler:    _ShieldPublicService_UpsertUserServiceData_Handler,
 		},
 		{
-			MethodName: "UpdateGroupServiceData",
-			Handler:    _ShieldPublicService_UpdateGroupServiceData_Handler,
+			MethodName: "UpsertGroupServiceData",
+			Handler:    _ShieldPublicService_UpsertGroupServiceData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

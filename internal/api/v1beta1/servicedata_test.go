@@ -208,30 +208,30 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context
-		request *shieldv1beta1.UpdateUserServiceDataRequest
-		want    *shieldv1beta1.UpdateUserServiceDataResponse
+		request *shieldv1beta1.UpsertUserServiceDataRequest
+		want    *shieldv1beta1.UpsertUserServiceDataResponse
 		wantErr error
 	}{
 		{
 			name:    "should return bad body error if no request body",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{},
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return bad body error if no id in param",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id:   "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return bad body error if request body data is empty",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{},
 				},
 			},
@@ -240,9 +240,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if request body data is more than a pair",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						"test-key-1": "test-value-1",
 						"test-key-2": "test-value-2",
@@ -254,9 +254,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if user id or email in param does not exist",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						testKeyName: testValue,
 					},
@@ -271,9 +271,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		},
 		{
 			name: "should return unauthenticated error if email in header invalid",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -290,9 +290,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if project id or slug is invalid",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -309,9 +309,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		},
 		{
 			name: "should return created service data urn",
-			request: &shieldv1beta1.UpdateUserServiceDataRequest{
+			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -325,7 +325,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			want: &shieldv1beta1.UpdateUserServiceDataResponse{
+			want: &shieldv1beta1.UpsertUserServiceDataResponse{
 				Urn: testKey.URN,
 			},
 			wantErr: nil,
@@ -340,7 +340,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				ctx = tt.setup(ctx, mockServiceDataService, mockUserService)
 			}
 			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService}
-			resp, err := mockDep.UpdateUserServiceData(ctx, tt.request)
+			resp, err := mockDep.UpsertUserServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
@@ -352,30 +352,30 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context
-		request *shieldv1beta1.UpdateGroupServiceDataRequest
-		want    *shieldv1beta1.UpdateGroupServiceDataResponse
+		request *shieldv1beta1.UpsertGroupServiceDataRequest
+		want    *shieldv1beta1.UpsertGroupServiceDataResponse
 		wantErr error
 	}{
 		{
 			name:    "should return bad body error if no request body",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{},
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return bad body error if no id in param",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id:   "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{},
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
 		},
 		{
 			name: "should return bad body error if request body data is empty",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{},
 				},
 			},
@@ -384,9 +384,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if request body data is more than a pair",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: "",
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						"test-key-1": "test-value-1",
 						"test-key-2": "test-value-2",
@@ -398,9 +398,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if group id or slug in param does not exist",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						testKeyName: testValue,
 					},
@@ -415,9 +415,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		},
 		{
 			name: "should return unauthenticated error if email in header invalid",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -434,9 +434,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		},
 		{
 			name: "should return bad body error if project id or slug is invalid",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -453,9 +453,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		},
 		{
 			name: "should return created service data urn",
-			request: &shieldv1beta1.UpdateGroupServiceDataRequest{
+			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				Id: testEntityID,
-				Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -469,7 +469,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
-			want: &shieldv1beta1.UpdateGroupServiceDataResponse{
+			want: &shieldv1beta1.UpsertGroupServiceDataResponse{
 				Urn: testKey.URN,
 			},
 			wantErr: nil,
@@ -484,7 +484,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 				ctx = tt.setup(ctx, mockServiceDataService, mockGroupService)
 			}
 			mockDep := Handler{serviceDataService: mockServiceDataService, groupService: mockGroupService}
-			resp, err := mockDep.UpdateGroupServiceData(ctx, tt.request)
+			resp, err := mockDep.UpsertGroupServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

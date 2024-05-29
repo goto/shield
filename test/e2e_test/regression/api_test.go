@@ -524,9 +524,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("5. org admin update a user service data with invalid user id should return invalid argument error", func() {
-		_, err := s.publicClient.UpdateUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserServiceDataRequest{
+		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: "invalid-user-id",
-			Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
 					"update-key": "update value",
@@ -537,9 +537,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("6. org admin update a user service data with invalid project id should return invalid argument error", func() {
-		_, err := s.publicClient.UpdateUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserServiceDataRequest{
+		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
-			Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: "invalid-project-id",
 				Data: map[string]string{
 					"update-key": "update value",
@@ -550,9 +550,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("7. org admin update multiple service data return invalid argument error", func() {
-		_, err := s.publicClient.UpdateUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpdateUserServiceDataRequest{
+		_, err := s.publicClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
-			Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
 					"update-key-1": "update value-1",
@@ -579,9 +579,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			testbench.IdentityHeader: myUser.Email,
 		}))
 
-		_, err = s.publicClient.UpdateUserServiceData(ctxTestUser, &shieldv1beta1.UpdateUserServiceDataRequest{
+		_, err = s.publicClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{
 			Id: testbench.OrgAdminEmail,
-			Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
 					"new-key": "new-value",
@@ -592,9 +592,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	})
 
 	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
-		_, err := s.publicClient.UpdateGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpdateGroupServiceDataRequest{
+		_, err := s.publicClient.UpsertGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertGroupServiceDataRequest{
 			Id: "invalid-group-id",
-			Body: &shieldv1beta1.UpdateServiceDataRequestBody{
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
 					"update-key": "update value",

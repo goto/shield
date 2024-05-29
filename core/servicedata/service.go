@@ -2,7 +2,6 @@ package servicedata
 
 import (
 	"context"
-	"errors"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
@@ -81,80 +80,6 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// TODO find way to use transaction for spicedb
 	ctx = s.repository.WithTransaction(ctx)
 
-	createdServiceDataKey, err := s.createKey(ctx, key, currentUser)
-	if err != nil {
-		return Key{}, err
-	}
-
-	if err := s.repository.Commit(ctx); err != nil {
-		return Key{}, err
-	}
-
-	return createdServiceDataKey, nil
-}
-
-func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error) {
-	if servicedata.Key.Key == "" {
-		return ServiceData{}, ErrInvalidDetail
-	}
-
-	currentUser, err := s.userService.FetchCurrentUser(ctx)
-	if err != nil {
-		return ServiceData{}, err
-	}
-
-	project, err := s.projectService.Get(ctx, servicedata.Key.ProjectID)
-	if err != nil {
-		return ServiceData{}, err
-	}
-	servicedata.Key.ProjectID = project.ID
-	servicedata.Key.ProjectSlug = project.Slug
-
-	servicedata.Key.URN = servicedata.Key.CreateURN()
-
-	ctx = s.repository.WithTransaction(ctx)
-
-	res, err := s.resourceService.GetByURN(ctx, servicedata.Key.URN)
-	if err != nil {
-		switch {
-		case errors.Is(err, resource.ErrNotExist):
-			// create service data key if resource not exist
-			_, err := s.createKey(ctx, servicedata.Key, currentUser)
-			if err != nil {
-				return ServiceData{}, err
-			}
-		default:
-			return ServiceData{}, err
-		}
-	}
-
-	if err == nil {
-		permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
-			res.Idxa, action.Action{ID: editActionID})
-		if err != nil {
-			return ServiceData{}, err
-		}
-		if !permission {
-			return ServiceData{}, user.ErrInvalidEmail
-		}
-	}
-
-	returnedServiceData, err := s.repository.Upsert(ctx, servicedata)
-	if err != nil {
-		if err := s.repository.Rollback(ctx, err); err != nil {
-			return ServiceData{}, err
-		}
-		return ServiceData{}, err
-	}
-
-	if err := s.repository.Commit(ctx); err != nil {
-		return ServiceData{}, err
-	}
-
-	return returnedServiceData, nil
-}
-
-func (s Service) createKey(ctx context.Context, key Key, currentUser user.User) (Key, error) {
 	// insert the service data key
 	resource, err := s.resourceService.Create(ctx, resource.Resource{
 		Name:        key.URN,
@@ -198,5 +123,50 @@ func (s Service) createKey(ctx context.Context, key Key, currentUser user.User) 
 		return Key{}, err
 	}
 
+	if err := s.repository.Commit(ctx); err != nil {
+		return Key{}, err
+	}
+
 	return createdServiceDataKey, nil
+}
+
+func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error) {
+	if servicedata.Key.Key == "" {
+		return ServiceData{}, ErrInvalidDetail
+	}
+
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	project, err := s.projectService.Get(ctx, servicedata.Key.ProjectID)
+	if err != nil {
+		return ServiceData{}, err
+	}
+	servicedata.Key.ProjectID = project.ID
+	servicedata.Key.ProjectSlug = project.Slug
+
+	servicedata.Key.URN = servicedata.Key.CreateURN()
+
+	res, err := s.resourceService.GetByURN(ctx, servicedata.Key.URN)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+		res.Idxa, action.Action{ID: editActionID})
+	if err != nil {
+		return ServiceData{}, err
+	}
+	if !permission {
+		return ServiceData{}, user.ErrInvalidEmail
+	}
+
+	returnedServiceData, err := s.repository.Upsert(ctx, servicedata)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	return returnedServiceData, nil
 }

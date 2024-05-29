@@ -511,22 +511,22 @@ var _ interface {
 	ErrorName() string
 } = CreateServiceDataKeyResponseValidationError{}
 
-// Validate checks the field values on UpdateServiceDataRequestBody with the
+// Validate checks the field values on UpsertServiceDataRequestBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateServiceDataRequestBody) Validate() error {
+func (m *UpsertServiceDataRequestBody) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateServiceDataRequestBody with the
+// ValidateAll checks the field values on UpsertServiceDataRequestBody with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateServiceDataRequestBodyMultiError, or nil if none found.
-func (m *UpdateServiceDataRequestBody) ValidateAll() error {
+// UpsertServiceDataRequestBodyMultiError, or nil if none found.
+func (m *UpsertServiceDataRequestBody) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateServiceDataRequestBody) validate(all bool) error {
+func (m *UpsertServiceDataRequestBody) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -536,7 +536,7 @@ func (m *UpdateServiceDataRequestBody) validate(all bool) error {
 	// no validation rules for Project
 
 	if len(m.GetData()) != 1 {
-		err := UpdateServiceDataRequestBodyValidationError{
+		err := UpsertServiceDataRequestBodyValidationError{
 			field:  "Data",
 			reason: "value must contain exactly 1 pair(s)",
 		}
@@ -547,19 +547,19 @@ func (m *UpdateServiceDataRequestBody) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateServiceDataRequestBodyMultiError(errors)
+		return UpsertServiceDataRequestBodyMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateServiceDataRequestBodyMultiError is an error wrapping multiple
-// validation errors returned by UpdateServiceDataRequestBody.ValidateAll() if
+// UpsertServiceDataRequestBodyMultiError is an error wrapping multiple
+// validation errors returned by UpsertServiceDataRequestBody.ValidateAll() if
 // the designated constraints aren't met.
-type UpdateServiceDataRequestBodyMultiError []error
+type UpsertServiceDataRequestBodyMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateServiceDataRequestBodyMultiError) Error() string {
+func (m UpsertServiceDataRequestBodyMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -568,12 +568,12 @@ func (m UpdateServiceDataRequestBodyMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateServiceDataRequestBodyMultiError) AllErrors() []error { return m }
+func (m UpsertServiceDataRequestBodyMultiError) AllErrors() []error { return m }
 
-// UpdateServiceDataRequestBodyValidationError is the validation error returned
-// by UpdateServiceDataRequestBody.Validate if the designated constraints
+// UpsertServiceDataRequestBodyValidationError is the validation error returned
+// by UpsertServiceDataRequestBody.Validate if the designated constraints
 // aren't met.
-type UpdateServiceDataRequestBodyValidationError struct {
+type UpsertServiceDataRequestBodyValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -581,24 +581,24 @@ type UpdateServiceDataRequestBodyValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateServiceDataRequestBodyValidationError) Field() string { return e.field }
+func (e UpsertServiceDataRequestBodyValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateServiceDataRequestBodyValidationError) Reason() string { return e.reason }
+func (e UpsertServiceDataRequestBodyValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateServiceDataRequestBodyValidationError) Cause() error { return e.cause }
+func (e UpsertServiceDataRequestBodyValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateServiceDataRequestBodyValidationError) Key() bool { return e.key }
+func (e UpsertServiceDataRequestBodyValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateServiceDataRequestBodyValidationError) ErrorName() string {
-	return "UpdateServiceDataRequestBodyValidationError"
+func (e UpsertServiceDataRequestBodyValidationError) ErrorName() string {
+	return "UpsertServiceDataRequestBodyValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateServiceDataRequestBodyValidationError) Error() string {
+func (e UpsertServiceDataRequestBodyValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -610,14 +610,14 @@ func (e UpdateServiceDataRequestBodyValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateServiceDataRequestBody.%s: %s%s",
+		"invalid %sUpsertServiceDataRequestBody.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateServiceDataRequestBodyValidationError{}
+var _ error = UpsertServiceDataRequestBodyValidationError{}
 
 var _ interface {
 	Field() string
@@ -625,24 +625,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateServiceDataRequestBodyValidationError{}
+} = UpsertServiceDataRequestBodyValidationError{}
 
-// Validate checks the field values on UpdateUserServiceDataRequest with the
+// Validate checks the field values on UpsertUserServiceDataRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateUserServiceDataRequest) Validate() error {
+func (m *UpsertUserServiceDataRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateUserServiceDataRequest with the
+// ValidateAll checks the field values on UpsertUserServiceDataRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the result is a list of violation errors wrapped in
-// UpdateUserServiceDataRequestMultiError, or nil if none found.
-func (m *UpdateUserServiceDataRequest) ValidateAll() error {
+// UpsertUserServiceDataRequestMultiError, or nil if none found.
+func (m *UpsertUserServiceDataRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateUserServiceDataRequest) validate(all bool) error {
+func (m *UpsertUserServiceDataRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -655,7 +655,7 @@ func (m *UpdateUserServiceDataRequest) validate(all bool) error {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateUserServiceDataRequestValidationError{
+				errors = append(errors, UpsertUserServiceDataRequestValidationError{
 					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -663,7 +663,7 @@ func (m *UpdateUserServiceDataRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateUserServiceDataRequestValidationError{
+				errors = append(errors, UpsertUserServiceDataRequestValidationError{
 					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -672,7 +672,7 @@ func (m *UpdateUserServiceDataRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateUserServiceDataRequestValidationError{
+			return UpsertUserServiceDataRequestValidationError{
 				field:  "Body",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -681,19 +681,19 @@ func (m *UpdateUserServiceDataRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateUserServiceDataRequestMultiError(errors)
+		return UpsertUserServiceDataRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateUserServiceDataRequestMultiError is an error wrapping multiple
-// validation errors returned by UpdateUserServiceDataRequest.ValidateAll() if
+// UpsertUserServiceDataRequestMultiError is an error wrapping multiple
+// validation errors returned by UpsertUserServiceDataRequest.ValidateAll() if
 // the designated constraints aren't met.
-type UpdateUserServiceDataRequestMultiError []error
+type UpsertUserServiceDataRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateUserServiceDataRequestMultiError) Error() string {
+func (m UpsertUserServiceDataRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -702,12 +702,12 @@ func (m UpdateUserServiceDataRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateUserServiceDataRequestMultiError) AllErrors() []error { return m }
+func (m UpsertUserServiceDataRequestMultiError) AllErrors() []error { return m }
 
-// UpdateUserServiceDataRequestValidationError is the validation error returned
-// by UpdateUserServiceDataRequest.Validate if the designated constraints
+// UpsertUserServiceDataRequestValidationError is the validation error returned
+// by UpsertUserServiceDataRequest.Validate if the designated constraints
 // aren't met.
-type UpdateUserServiceDataRequestValidationError struct {
+type UpsertUserServiceDataRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -715,24 +715,24 @@ type UpdateUserServiceDataRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateUserServiceDataRequestValidationError) Field() string { return e.field }
+func (e UpsertUserServiceDataRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateUserServiceDataRequestValidationError) Reason() string { return e.reason }
+func (e UpsertUserServiceDataRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateUserServiceDataRequestValidationError) Cause() error { return e.cause }
+func (e UpsertUserServiceDataRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateUserServiceDataRequestValidationError) Key() bool { return e.key }
+func (e UpsertUserServiceDataRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateUserServiceDataRequestValidationError) ErrorName() string {
-	return "UpdateUserServiceDataRequestValidationError"
+func (e UpsertUserServiceDataRequestValidationError) ErrorName() string {
+	return "UpsertUserServiceDataRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateUserServiceDataRequestValidationError) Error() string {
+func (e UpsertUserServiceDataRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -744,14 +744,14 @@ func (e UpdateUserServiceDataRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateUserServiceDataRequest.%s: %s%s",
+		"invalid %sUpsertUserServiceDataRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateUserServiceDataRequestValidationError{}
+var _ error = UpsertUserServiceDataRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -759,24 +759,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateUserServiceDataRequestValidationError{}
+} = UpsertUserServiceDataRequestValidationError{}
 
-// Validate checks the field values on UpdateGroupServiceDataRequest with the
+// Validate checks the field values on UpsertGroupServiceDataRequest with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateGroupServiceDataRequest) Validate() error {
+func (m *UpsertGroupServiceDataRequest) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateGroupServiceDataRequest with
+// ValidateAll checks the field values on UpsertGroupServiceDataRequest with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// UpdateGroupServiceDataRequestMultiError, or nil if none found.
-func (m *UpdateGroupServiceDataRequest) ValidateAll() error {
+// UpsertGroupServiceDataRequestMultiError, or nil if none found.
+func (m *UpsertGroupServiceDataRequest) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateGroupServiceDataRequest) validate(all bool) error {
+func (m *UpsertGroupServiceDataRequest) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -789,7 +789,7 @@ func (m *UpdateGroupServiceDataRequest) validate(all bool) error {
 		switch v := interface{}(m.GetBody()).(type) {
 		case interface{ ValidateAll() error }:
 			if err := v.ValidateAll(); err != nil {
-				errors = append(errors, UpdateGroupServiceDataRequestValidationError{
+				errors = append(errors, UpsertGroupServiceDataRequestValidationError{
 					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -797,7 +797,7 @@ func (m *UpdateGroupServiceDataRequest) validate(all bool) error {
 			}
 		case interface{ Validate() error }:
 			if err := v.Validate(); err != nil {
-				errors = append(errors, UpdateGroupServiceDataRequestValidationError{
+				errors = append(errors, UpsertGroupServiceDataRequestValidationError{
 					field:  "Body",
 					reason: "embedded message failed validation",
 					cause:  err,
@@ -806,7 +806,7 @@ func (m *UpdateGroupServiceDataRequest) validate(all bool) error {
 		}
 	} else if v, ok := interface{}(m.GetBody()).(interface{ Validate() error }); ok {
 		if err := v.Validate(); err != nil {
-			return UpdateGroupServiceDataRequestValidationError{
+			return UpsertGroupServiceDataRequestValidationError{
 				field:  "Body",
 				reason: "embedded message failed validation",
 				cause:  err,
@@ -815,19 +815,19 @@ func (m *UpdateGroupServiceDataRequest) validate(all bool) error {
 	}
 
 	if len(errors) > 0 {
-		return UpdateGroupServiceDataRequestMultiError(errors)
+		return UpsertGroupServiceDataRequestMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateGroupServiceDataRequestMultiError is an error wrapping multiple
-// validation errors returned by UpdateGroupServiceDataRequest.ValidateAll()
+// UpsertGroupServiceDataRequestMultiError is an error wrapping multiple
+// validation errors returned by UpsertGroupServiceDataRequest.ValidateAll()
 // if the designated constraints aren't met.
-type UpdateGroupServiceDataRequestMultiError []error
+type UpsertGroupServiceDataRequestMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateGroupServiceDataRequestMultiError) Error() string {
+func (m UpsertGroupServiceDataRequestMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -836,12 +836,12 @@ func (m UpdateGroupServiceDataRequestMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateGroupServiceDataRequestMultiError) AllErrors() []error { return m }
+func (m UpsertGroupServiceDataRequestMultiError) AllErrors() []error { return m }
 
-// UpdateGroupServiceDataRequestValidationError is the validation error
-// returned by UpdateGroupServiceDataRequest.Validate if the designated
+// UpsertGroupServiceDataRequestValidationError is the validation error
+// returned by UpsertGroupServiceDataRequest.Validate if the designated
 // constraints aren't met.
-type UpdateGroupServiceDataRequestValidationError struct {
+type UpsertGroupServiceDataRequestValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -849,24 +849,24 @@ type UpdateGroupServiceDataRequestValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateGroupServiceDataRequestValidationError) Field() string { return e.field }
+func (e UpsertGroupServiceDataRequestValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateGroupServiceDataRequestValidationError) Reason() string { return e.reason }
+func (e UpsertGroupServiceDataRequestValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateGroupServiceDataRequestValidationError) Cause() error { return e.cause }
+func (e UpsertGroupServiceDataRequestValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateGroupServiceDataRequestValidationError) Key() bool { return e.key }
+func (e UpsertGroupServiceDataRequestValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateGroupServiceDataRequestValidationError) ErrorName() string {
-	return "UpdateGroupServiceDataRequestValidationError"
+func (e UpsertGroupServiceDataRequestValidationError) ErrorName() string {
+	return "UpsertGroupServiceDataRequestValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateGroupServiceDataRequestValidationError) Error() string {
+func (e UpsertGroupServiceDataRequestValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -878,14 +878,14 @@ func (e UpdateGroupServiceDataRequestValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateGroupServiceDataRequest.%s: %s%s",
+		"invalid %sUpsertGroupServiceDataRequest.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateGroupServiceDataRequestValidationError{}
+var _ error = UpsertGroupServiceDataRequestValidationError{}
 
 var _ interface {
 	Field() string
@@ -893,24 +893,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateGroupServiceDataRequestValidationError{}
+} = UpsertGroupServiceDataRequestValidationError{}
 
-// Validate checks the field values on UpdateUserServiceDataResponse with the
+// Validate checks the field values on UpsertUserServiceDataResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateUserServiceDataResponse) Validate() error {
+func (m *UpsertUserServiceDataResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateUserServiceDataResponse with
+// ValidateAll checks the field values on UpsertUserServiceDataResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// UpdateUserServiceDataResponseMultiError, or nil if none found.
-func (m *UpdateUserServiceDataResponse) ValidateAll() error {
+// UpsertUserServiceDataResponseMultiError, or nil if none found.
+func (m *UpsertUserServiceDataResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateUserServiceDataResponse) validate(all bool) error {
+func (m *UpsertUserServiceDataResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -920,19 +920,19 @@ func (m *UpdateUserServiceDataResponse) validate(all bool) error {
 	// no validation rules for Urn
 
 	if len(errors) > 0 {
-		return UpdateUserServiceDataResponseMultiError(errors)
+		return UpsertUserServiceDataResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateUserServiceDataResponseMultiError is an error wrapping multiple
-// validation errors returned by UpdateUserServiceDataResponse.ValidateAll()
+// UpsertUserServiceDataResponseMultiError is an error wrapping multiple
+// validation errors returned by UpsertUserServiceDataResponse.ValidateAll()
 // if the designated constraints aren't met.
-type UpdateUserServiceDataResponseMultiError []error
+type UpsertUserServiceDataResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateUserServiceDataResponseMultiError) Error() string {
+func (m UpsertUserServiceDataResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -941,12 +941,12 @@ func (m UpdateUserServiceDataResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateUserServiceDataResponseMultiError) AllErrors() []error { return m }
+func (m UpsertUserServiceDataResponseMultiError) AllErrors() []error { return m }
 
-// UpdateUserServiceDataResponseValidationError is the validation error
-// returned by UpdateUserServiceDataResponse.Validate if the designated
+// UpsertUserServiceDataResponseValidationError is the validation error
+// returned by UpsertUserServiceDataResponse.Validate if the designated
 // constraints aren't met.
-type UpdateUserServiceDataResponseValidationError struct {
+type UpsertUserServiceDataResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -954,24 +954,24 @@ type UpdateUserServiceDataResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateUserServiceDataResponseValidationError) Field() string { return e.field }
+func (e UpsertUserServiceDataResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateUserServiceDataResponseValidationError) Reason() string { return e.reason }
+func (e UpsertUserServiceDataResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateUserServiceDataResponseValidationError) Cause() error { return e.cause }
+func (e UpsertUserServiceDataResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateUserServiceDataResponseValidationError) Key() bool { return e.key }
+func (e UpsertUserServiceDataResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateUserServiceDataResponseValidationError) ErrorName() string {
-	return "UpdateUserServiceDataResponseValidationError"
+func (e UpsertUserServiceDataResponseValidationError) ErrorName() string {
+	return "UpsertUserServiceDataResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateUserServiceDataResponseValidationError) Error() string {
+func (e UpsertUserServiceDataResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -983,14 +983,14 @@ func (e UpdateUserServiceDataResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateUserServiceDataResponse.%s: %s%s",
+		"invalid %sUpsertUserServiceDataResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateUserServiceDataResponseValidationError{}
+var _ error = UpsertUserServiceDataResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -998,24 +998,24 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateUserServiceDataResponseValidationError{}
+} = UpsertUserServiceDataResponseValidationError{}
 
-// Validate checks the field values on UpdateGroupServiceDataResponse with the
+// Validate checks the field values on UpsertGroupServiceDataResponse with the
 // rules defined in the proto definition for this message. If any rules are
 // violated, the first error encountered is returned, or nil if there are no violations.
-func (m *UpdateGroupServiceDataResponse) Validate() error {
+func (m *UpsertGroupServiceDataResponse) Validate() error {
 	return m.validate(false)
 }
 
-// ValidateAll checks the field values on UpdateGroupServiceDataResponse with
+// ValidateAll checks the field values on UpsertGroupServiceDataResponse with
 // the rules defined in the proto definition for this message. If any rules
 // are violated, the result is a list of violation errors wrapped in
-// UpdateGroupServiceDataResponseMultiError, or nil if none found.
-func (m *UpdateGroupServiceDataResponse) ValidateAll() error {
+// UpsertGroupServiceDataResponseMultiError, or nil if none found.
+func (m *UpsertGroupServiceDataResponse) ValidateAll() error {
 	return m.validate(true)
 }
 
-func (m *UpdateGroupServiceDataResponse) validate(all bool) error {
+func (m *UpsertGroupServiceDataResponse) validate(all bool) error {
 	if m == nil {
 		return nil
 	}
@@ -1025,19 +1025,19 @@ func (m *UpdateGroupServiceDataResponse) validate(all bool) error {
 	// no validation rules for Urn
 
 	if len(errors) > 0 {
-		return UpdateGroupServiceDataResponseMultiError(errors)
+		return UpsertGroupServiceDataResponseMultiError(errors)
 	}
 
 	return nil
 }
 
-// UpdateGroupServiceDataResponseMultiError is an error wrapping multiple
-// validation errors returned by UpdateGroupServiceDataResponse.ValidateAll()
+// UpsertGroupServiceDataResponseMultiError is an error wrapping multiple
+// validation errors returned by UpsertGroupServiceDataResponse.ValidateAll()
 // if the designated constraints aren't met.
-type UpdateGroupServiceDataResponseMultiError []error
+type UpsertGroupServiceDataResponseMultiError []error
 
 // Error returns a concatenation of all the error messages it wraps.
-func (m UpdateGroupServiceDataResponseMultiError) Error() string {
+func (m UpsertGroupServiceDataResponseMultiError) Error() string {
 	var msgs []string
 	for _, err := range m {
 		msgs = append(msgs, err.Error())
@@ -1046,12 +1046,12 @@ func (m UpdateGroupServiceDataResponseMultiError) Error() string {
 }
 
 // AllErrors returns a list of validation violation errors.
-func (m UpdateGroupServiceDataResponseMultiError) AllErrors() []error { return m }
+func (m UpsertGroupServiceDataResponseMultiError) AllErrors() []error { return m }
 
-// UpdateGroupServiceDataResponseValidationError is the validation error
-// returned by UpdateGroupServiceDataResponse.Validate if the designated
+// UpsertGroupServiceDataResponseValidationError is the validation error
+// returned by UpsertGroupServiceDataResponse.Validate if the designated
 // constraints aren't met.
-type UpdateGroupServiceDataResponseValidationError struct {
+type UpsertGroupServiceDataResponseValidationError struct {
 	field  string
 	reason string
 	cause  error
@@ -1059,24 +1059,24 @@ type UpdateGroupServiceDataResponseValidationError struct {
 }
 
 // Field function returns field value.
-func (e UpdateGroupServiceDataResponseValidationError) Field() string { return e.field }
+func (e UpsertGroupServiceDataResponseValidationError) Field() string { return e.field }
 
 // Reason function returns reason value.
-func (e UpdateGroupServiceDataResponseValidationError) Reason() string { return e.reason }
+func (e UpsertGroupServiceDataResponseValidationError) Reason() string { return e.reason }
 
 // Cause function returns cause value.
-func (e UpdateGroupServiceDataResponseValidationError) Cause() error { return e.cause }
+func (e UpsertGroupServiceDataResponseValidationError) Cause() error { return e.cause }
 
 // Key function returns key value.
-func (e UpdateGroupServiceDataResponseValidationError) Key() bool { return e.key }
+func (e UpsertGroupServiceDataResponseValidationError) Key() bool { return e.key }
 
 // ErrorName returns error name.
-func (e UpdateGroupServiceDataResponseValidationError) ErrorName() string {
-	return "UpdateGroupServiceDataResponseValidationError"
+func (e UpsertGroupServiceDataResponseValidationError) ErrorName() string {
+	return "UpsertGroupServiceDataResponseValidationError"
 }
 
 // Error satisfies the builtin error interface
-func (e UpdateGroupServiceDataResponseValidationError) Error() string {
+func (e UpsertGroupServiceDataResponseValidationError) Error() string {
 	cause := ""
 	if e.cause != nil {
 		cause = fmt.Sprintf(" | caused by: %v", e.cause)
@@ -1088,14 +1088,14 @@ func (e UpdateGroupServiceDataResponseValidationError) Error() string {
 	}
 
 	return fmt.Sprintf(
-		"invalid %sUpdateGroupServiceDataResponse.%s: %s%s",
+		"invalid %sUpsertGroupServiceDataResponse.%s: %s%s",
 		key,
 		e.field,
 		e.reason,
 		cause)
 }
 
-var _ error = UpdateGroupServiceDataResponseValidationError{}
+var _ error = UpsertGroupServiceDataResponseValidationError{}
 
 var _ interface {
 	Field() string
@@ -1103,4 +1103,4 @@ var _ interface {
 	Key() bool
 	Cause() error
 	ErrorName() string
-} = UpdateGroupServiceDataResponseValidationError{}
+} = UpsertGroupServiceDataResponseValidationError{}
