@@ -115,7 +115,7 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
-			errors.Is(err, relation.ErrInvalidDetail):
+			errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, resource.ErrNotExist):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -176,10 +176,8 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
-			errors.Is(err, relation.ErrInvalidDetail):
+			errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, resource.ErrNotExist):
 			return nil, grpcBadBodyError
-		case errors.Is(err, servicedata.ErrConflict), errors.Is(err, resource.ErrConflict):
-			return nil, grpcConflictError
 		default:
 			return nil, grpcInternalServerError
 		}
