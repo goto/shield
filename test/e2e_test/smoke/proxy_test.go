@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/suite"
 
 	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/goto/shield/test/e2e_test/testbench"
@@ -101,6 +102,36 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		defer res.Body.Close()
 		s.Assert().Equal(200, res.StatusCode)
 	})
+
+	s.Run("user not part of group will not be authenticated by middleware auth", func() {
+		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
+		s.Require().NoError(err)
+
+		url := fmt.Sprintf("http://localhost:%d/api/resource_slug", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]string{
+			"project":    s.projID,
+			"name":       "test-resource-group-slug",
+			"group_slug": groupDetail.GetGroup().GetSlug(),
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+
+		s.Assert().Equal(401, res.StatusCode)
+	})
+}
+
+func (s *EndToEndProxySmokeTestSuite) TestResourceRelation() {
 	s.Run("resource created on echo server should persist in shieldDB", func() {
 		url := fmt.Sprintf("http://localhost:%d/api/resource", s.appConfig.Proxy.Services[0].Port)
 		reqBodyMap := map[string]string{
@@ -369,6 +400,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		}
 		s.Assert().Equal(s.userID, subjectID)
 	})
+
 	s.Run("resource created on echo server should persist in shieldDB when using user e-mail", func() {
 		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
 		s.Require().NoError(err)
@@ -420,6 +452,81 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 			}
 		}
 		s.Assert().Equal(s.userID, subjectID)
+	})
+}
+
+func (s *EndToEndProxySmokeTestSuite) TestEdgeCases() {
+	s.Run("Two relations created in POST hook won't be overwritten when 1 relation in PUT hook is created", func() {
+		var (
+			resourceName    = "test-resource-overwrite"
+			staticGroupUUID = "6b591fe0-fc94-4fd2-82bc-45f8a5d12a88"
+		)
+
+		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		s.Require().NoError(err)
+		sqlRes, err := s.dbClient.DB.Exec(fmt.Sprintf("UPDATE groups SET id = '%s' WHERE slug = 'org1-group3'", staticGroupUUID))
+		s.Require().NoError(err)
+		rowsAffected, err := sqlRes.RowsAffected()
+		s.Require().NoError(err)
+		s.Require().Equal(int64(1), rowsAffected)
+
+		// POST
+		url := fmt.Sprintf("http://localhost:%d/api/resource", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]string{
+			"project":    s.projID,
+			"group":      s.groupID,
+			"name":       resourceName,
+			"user_email": userDetail.GetUser().GetEmail(),
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+		defer res.Body.Close()
+
+		s.Require().Equal(200, res.StatusCode)
+
+		// Validate resource & relation
+		var resourceShield = struct {
+			ID   string `db:"id"`
+			Name string `db:"name"`
+		}{}
+
+		s.Require().NoError(s.dbClient.DB.Get(&resourceShield, fmt.Sprintf("SELECT id, name FROM resources WHERE name = '%s'", resourceName)))
+		s.Assert().Equal(resourceShield.Name, resourceName)
+
+		var relationsShield []postgres.Relation
+		s.Require().NoError(s.dbClient.DB.Select(&relationsShield, "SELECT * FROM relations WHERE role_id = 'entropy/firehose:owner'"))
+		s.Assert().Len(relationsShield, 2)
+
+		// PUT
+		req, err = http.NewRequest(http.MethodPut, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err = http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+		defer res.Body.Close()
+
+		s.Require().Equal(200, res.StatusCode)
+
+		// Validate resource & relation
+		s.Require().NoError(s.dbClient.DB.Get(&resourceShield, fmt.Sprintf("SELECT id, name FROM resources WHERE name = '%s'", resourceName)))
+		s.Assert().Equal(resourceShield.Name, resourceName)
+
+		var updatedRelations []postgres.Relation
+		s.Require().NoError(s.dbClient.DB.Select(&updatedRelations, "SELECT * FROM relations WHERE role_id = 'entropy/firehose:owner'"))
+		fmt.Println(updatedRelations)
+		s.Assert().Len(updatedRelations, 2)
 	})
 }
 
