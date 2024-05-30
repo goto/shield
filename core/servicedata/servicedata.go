@@ -10,6 +10,7 @@ type Repository interface {
 	CreateKey(ctx context.Context, key Key) (Key, error)
 	Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error)
 	GetKeyByURN(ctx context.Context, URN string) (Key, error)
+	Get(ctx context.Context, filter Filter) ([]ServiceData, error)
 }
 
 type Transactor interface {
@@ -34,6 +35,14 @@ type ServiceData struct {
 	EntityID    string
 	Key         Key
 	Value       string
+}
+
+type Filter struct {
+	ID        string
+	Namespace string
+	Entity    []string
+	EntityIDs [][]string
+	Project   string
 }
 
 func (key Key) CreateURN() string {

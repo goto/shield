@@ -145,6 +145,66 @@ func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (ser
 	return keyModel.transformToServiceDataKey(), nil
 }
 
+func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error) {
+	sqlStatement := dialect.Select(
+		goqu.I("sk.urn"),
+		goqu.I("sk.project_id"),
+		goqu.I("sk.resource_id"),
+		goqu.I("sd.namespace_id"),
+		goqu.I("sd.entity_id"),
+		goqu.I("sk.key"),
+		goqu.I("sd.value"),
+	).From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
+		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(
+			goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
+		Where(goqu.L(
+			"(sd.namespace_id, sd.entity_id)",
+		).In(filter.EntityIDs))
+
+	if filter.Project != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"sk.project_id": filter.Project})
+	}
+
+	query, params, err := sqlStatement.ToSQL()
+	if err != nil {
+		return []servicedata.ServiceData{}, err
+	}
+
+	var serviceDataModel []GetServiceData
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SERVICE_DATA,
+				Operation:  "Get",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.SelectContext(ctx, &serviceDataModel, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []servicedata.ServiceData{}, nil
+		case errors.Is(err, errInvalidTexRepresentation):
+			return []servicedata.ServiceData{}, servicedata.ErrInvalidDetail
+		default:
+			return []servicedata.ServiceData{}, err
+		}
+	}
+
+	var transformedServiceData []servicedata.ServiceData
+	for _, sdm := range serviceDataModel {
+		sd := sdm.transformToServiceData()
+		transformedServiceData = append(transformedServiceData, sd)
+	}
+
+	return transformedServiceData, nil
+}
+
 func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {
 	return r.dbc.WithTransaction(ctx, sql.TxOptions{})
 }

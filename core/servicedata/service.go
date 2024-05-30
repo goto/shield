@@ -2,6 +2,7 @@ package servicedata
 
 import (
 	"context"
+	"slices"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
@@ -13,8 +14,12 @@ import (
 )
 
 const (
-	keyNamespace = schema.ServiceDataKeyNamespace
-	editActionID = schema.EditPermission
+	keyNamespace         = schema.ServiceDataKeyNamespace
+	userNamespace        = schema.UserPrincipal
+	groupNamespace       = schema.GroupPrincipal
+	viewActionID         = schema.ViewPermission
+	editActionID         = schema.EditPermission
+	membershipPermission = schema.MembershipPermission
 )
 
 type ResourceService interface {
@@ -25,6 +30,7 @@ type ResourceService interface {
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error)
 }
 
 type ProjectService interface {
@@ -168,4 +174,59 @@ func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error
 	}
 
 	return returnedServiceData, nil
+}
+
+func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) {
+	// fetch current user
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []ServiceData{}, err
+	}
+
+	// validate project and get project id from project slug
+	if filter.Project != "" {
+		prj, err := s.projectService.Get(ctx, filter.Project)
+		if err != nil {
+			return []ServiceData{}, err
+		}
+		filter.Project = prj.ID
+	}
+
+	// build entity ID filter
+	filter.EntityIDs = [][]string{}
+	if filter.Namespace == groupNamespace {
+		filter.EntityIDs = append(filter.EntityIDs, []string{groupNamespace, filter.ID})
+	}
+	if filter.Namespace == userNamespace && slices.Contains(filter.Entity, userNamespace) {
+		filter.EntityIDs = append(filter.EntityIDs, []string{userNamespace, filter.ID})
+	}
+	if filter.Namespace == userNamespace && slices.Contains(filter.Entity, groupNamespace) {
+		entityGroup, err := s.relationService.LookupResources(ctx, groupNamespace, membershipPermission, userNamespace, filter.ID)
+		if err != nil {
+			return []ServiceData{}, err
+		}
+		for _, ent := range entityGroup {
+			filter.EntityIDs = append(filter.EntityIDs, []string{groupNamespace, ent})
+		}
+	}
+
+	// get all service data key resources that visible by current user
+	viewSD, err := s.relationService.LookupResources(ctx, keyNamespace, viewActionID, userNamespace, currentUser.ID)
+	if err != nil {
+		return []ServiceData{}, err
+	}
+
+	serviceData, err := s.repository.Get(ctx, filter)
+	if err != nil {
+		return []ServiceData{}, err
+	}
+
+	resultSD := []ServiceData{}
+	for _, sd := range serviceData {
+		if slices.Contains(viewSD, sd.Key.ResourceID) {
+			resultSD = append(resultSD, sd)
+		}
+	}
+
+	return resultSD, nil
 }
