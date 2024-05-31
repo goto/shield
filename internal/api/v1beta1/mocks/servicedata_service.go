@@ -79,9 +79,9 @@ func (_c *ServiceDataService_CreateKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
-// Upsert provides a mock function with given fields: ctx, _a1
-func (_m *ServiceDataService) Upsert(ctx context.Context, _a1 servicedata.ServiceData) (servicedata.ServiceData, error) {
-	ret := _m.Called(ctx, _a1)
+// Upsert provides a mock function with given fields: ctx, serviceData
+func (_m *ServiceDataService) Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error) {
+	ret := _m.Called(ctx, serviceData)
 
 	if len(ret) == 0 {
 		panic("no return value specified for Upsert")
@@ -90,16 +90,16 @@ func (_m *ServiceDataService) Upsert(ctx context.Context, _a1 servicedata.Servic
 	var r0 servicedata.ServiceData
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, servicedata.ServiceData) (servicedata.ServiceData, error)); ok {
-		return rf(ctx, _a1)
+		return rf(ctx, serviceData)
 	}
 	if rf, ok := ret.Get(0).(func(context.Context, servicedata.ServiceData) servicedata.ServiceData); ok {
-		r0 = rf(ctx, _a1)
+		r0 = rf(ctx, serviceData)
 	} else {
 		r0 = ret.Get(0).(servicedata.ServiceData)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, servicedata.ServiceData) error); ok {
-		r1 = rf(ctx, _a1)
+		r1 = rf(ctx, serviceData)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -114,12 +114,12 @@ type ServiceDataService_Upsert_Call struct {
 
 // Upsert is a helper method to define mock.On call
 //   - ctx context.Context
-//   - _a1 servicedata.ServiceData
-func (_e *ServiceDataService_Expecter) Upsert(ctx interface{}, _a1 interface{}) *ServiceDataService_Upsert_Call {
-	return &ServiceDataService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, _a1)}
+//   - serviceData servicedata.ServiceData
+func (_e *ServiceDataService_Expecter) Upsert(ctx interface{}, serviceData interface{}) *ServiceDataService_Upsert_Call {
+	return &ServiceDataService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, serviceData)}
 }
 
-func (_c *ServiceDataService_Upsert_Call) Run(run func(ctx context.Context, _a1 servicedata.ServiceData)) *ServiceDataService_Upsert_Call {
+func (_c *ServiceDataService_Upsert_Call) Run(run func(ctx context.Context, serviceData servicedata.ServiceData)) *ServiceDataService_Upsert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(servicedata.ServiceData))
 	})

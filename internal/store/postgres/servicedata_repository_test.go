@@ -222,8 +222,9 @@ func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
 			},
 			ExpectedServiceData: servicedata.ServiceData{
 				Key: servicedata.Key{
-					URN: s.keys[0].URN,
+					Key: s.keys[0].Key,
 				},
+				Value: testValue,
 			},
 		},
 	}

@@ -13,6 +13,10 @@ type RelationTransformer interface {
 	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
 }
 
+type ServiceDataConfig struct {
+	MaxUpsert int
+}
+
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
 	shieldv1beta1.UnimplementedServiceDataServiceServer
@@ -31,9 +35,10 @@ type Handler struct {
 	serviceDataService ServiceDataService
 	relationAdapter    RelationTransformer
 	checkAPILimit      int
+	serviceDataConfig  ServiceDataConfig
 }
 
-func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit int) error {
+func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit int, serviceDataConfig ServiceDataConfig) error {
 	handler := &Handler{
 		orgService:         deps.OrgService,
 		projectService:     deps.ProjectService,
@@ -50,6 +55,7 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit 
 		serviceDataService: deps.ServiceDataService,
 		relationAdapter:    deps.RelationAdapter,
 		checkAPILimit:      checkAPILimit,
+		serviceDataConfig:  serviceDataConfig,
 	}
 	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
 	s.RegisterService(&shieldv1beta1.ServiceDataService_ServiceDesc, handler)

@@ -93,7 +93,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail, cfg.App.BootstrapServiceDataKey)
+	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail, cfg.App.ServiceData.BootstrapServiceDataKey)
 
 	appConfig := activity.AppConfig{Version: config.Version}
 	var activityRepository activity.Repository
@@ -143,7 +143,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
 	if err != nil {
 		return err
 	}
@@ -185,6 +185,7 @@ func BuildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	cfg *config.Shield,
 ) (api.Deps, error) {
 	appConfig := activity.AppConfig{Version: config.Version}
 	activityService := activity.NewService(appConfig, activityRepository)

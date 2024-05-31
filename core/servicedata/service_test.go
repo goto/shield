@@ -330,8 +330,8 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
-					Idxa: testResourceID,
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{
+					ResourceID: testResourceID,
 				}, nil)
 				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
 					ID:    testUserID,
@@ -420,10 +420,10 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				resourceService.EXPECT().GetByURN(mock.Anything, testServiceData.Key.URN).Return(resource.Resource{}, resource.ErrNotExist)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{}, servicedata.ErrNotExist)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
-			wantErr: resource.ErrNotExist,
+			wantErr: servicedata.ErrNotExist,
 		},
 		{
 			name:  "UpsertErrUnauthenticated",
@@ -446,8 +446,8 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
-					Idxa: testResourceID,
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{
+					ResourceID: testResourceID,
 				}, nil)
 				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
 					ID:    testUserID,
@@ -479,8 +479,8 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				resourceService.EXPECT().GetByURN(mock.Anything, testCreateKey.URN).Return(resource.Resource{
-					Idxa: testResourceID,
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{
+					ResourceID: testResourceID,
 				}, nil)
 				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
 					ID:    testUserID,

@@ -20,7 +20,8 @@ type Key struct {
 }
 
 type UpsertServiceData struct {
-	KeyURN string `db:"key.urn"`
+	Key   string `db:"key.key"`
+	Value string `db:"data.value"`
 }
 
 func (from Key) transformToServiceDataKey() servicedata.Key {
@@ -37,8 +38,9 @@ func (from Key) transformToServiceDataKey() servicedata.Key {
 func (from UpsertServiceData) transformToServiceData() servicedata.ServiceData {
 	data := servicedata.ServiceData{
 		Key: servicedata.Key{
-			URN: from.KeyURN,
+			Key: from.Key,
 		},
+		Value: from.Value,
 	}
 	return data
 }

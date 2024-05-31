@@ -525,7 +525,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 
 	s.Run("5. org admin update a user service data with invalid user id should return invalid argument error", func() {
 		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
-			Id: "invalid-user-id",
+			UserId: "invalid-user-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
@@ -538,7 +538,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 
 	s.Run("6. org admin update a user service data with invalid project id should return invalid argument error", func() {
 		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
-			Id: testbench.OrgAdminEmail,
+			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: "invalid-project-id",
 				Data: map[string]string{
@@ -551,7 +551,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 
 	s.Run("7. org admin update multiple service data return invalid argument error", func() {
 		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
-			Id: testbench.OrgAdminEmail,
+			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
@@ -580,7 +580,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 		}))
 
 		_, err = s.serviceDataClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{
-			Id: testbench.OrgAdminEmail,
+			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{
@@ -593,7 +593,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 
 	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
 		_, err := s.serviceDataClient.UpsertGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertGroupServiceDataRequest{
-			Id: "invalid-group-id",
+			GroupId: "invalid-group-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
 				Data: map[string]string{

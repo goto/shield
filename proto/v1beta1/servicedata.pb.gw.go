@@ -72,14 +72,14 @@ func request_ServiceDataService_UpsertUserServiceData_0(ctx context.Context, mar
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["user_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.UserId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
 
 	msg, err := client.UpsertUserServiceData(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -102,14 +102,14 @@ func local_request_ServiceDataService_UpsertUserServiceData_0(ctx context.Contex
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["user_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "user_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.UserId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "user_id", err)
 	}
 
 	msg, err := server.UpsertUserServiceData(ctx, &protoReq)
@@ -132,14 +132,14 @@ func request_ServiceDataService_UpsertGroupServiceData_0(ctx context.Context, ma
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["group_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.GroupId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
 	}
 
 	msg, err := client.UpsertGroupServiceData(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
@@ -162,14 +162,14 @@ func local_request_ServiceDataService_UpsertGroupServiceData_0(ctx context.Conte
 		_   = err
 	)
 
-	val, ok = pathParams["id"]
+	val, ok = pathParams["group_id"]
 	if !ok {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "id")
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "missing parameter %s", "group_id")
 	}
 
-	protoReq.Id, err = runtime.String(val)
+	protoReq.GroupId, err = runtime.String(val)
 	if err != nil {
-		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "id", err)
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "type mismatch, parameter: %s, error: %v", "group_id", err)
 	}
 
 	msg, err := server.UpsertGroupServiceData(ctx, &protoReq)
@@ -216,7 +216,7 @@ func RegisterServiceDataServiceHandlerServer(ctx context.Context, mux *runtime.S
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertUserServiceData", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/servicedata"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertUserServiceData", runtime.WithHTTPPathPattern("/v1beta1/users/{user_id}/servicedata"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -241,7 +241,7 @@ func RegisterServiceDataServiceHandlerServer(ctx context.Context, mux *runtime.S
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertGroupServiceData", runtime.WithHTTPPathPattern("/v1beta1/groups/{id}/servicedata"))
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertGroupServiceData", runtime.WithHTTPPathPattern("/v1beta1/groups/{group_id}/servicedata"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -327,7 +327,7 @@ func RegisterServiceDataServiceHandlerClient(ctx context.Context, mux *runtime.S
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertUserServiceData", runtime.WithHTTPPathPattern("/v1beta1/users/{id}/servicedata"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertUserServiceData", runtime.WithHTTPPathPattern("/v1beta1/users/{user_id}/servicedata"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -349,7 +349,7 @@ func RegisterServiceDataServiceHandlerClient(ctx context.Context, mux *runtime.S
 		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
 		var err error
 		var annotatedContext context.Context
-		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertGroupServiceData", runtime.WithHTTPPathPattern("/v1beta1/groups/{id}/servicedata"))
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/UpsertGroupServiceData", runtime.WithHTTPPathPattern("/v1beta1/groups/{group_id}/servicedata"))
 		if err != nil {
 			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
 			return
@@ -371,9 +371,9 @@ func RegisterServiceDataServiceHandlerClient(ctx context.Context, mux *runtime.S
 var (
 	pattern_ServiceDataService_CreateServiceDataKey_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1}, []string{"v1beta1", "servicedata"}, ""))
 
-	pattern_ServiceDataService_UpsertUserServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "id", "servicedata"}, ""))
+	pattern_ServiceDataService_UpsertUserServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "user_id", "servicedata"}, ""))
 
-	pattern_ServiceDataService_UpsertGroupServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "groups", "id", "servicedata"}, ""))
+	pattern_ServiceDataService_UpsertGroupServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "groups", "group_id", "servicedata"}, ""))
 )
 
 var (

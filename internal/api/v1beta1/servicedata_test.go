@@ -221,8 +221,8 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if no id in param",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id:   "",
-				Body: &shieldv1beta1.UpsertServiceDataRequestBody{},
+				UserId: "",
+				Body:   &shieldv1beta1.UpsertServiceDataRequestBody{},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
@@ -230,7 +230,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if request body data is empty",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: "",
+				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{},
 				},
@@ -239,9 +239,9 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			wantErr: grpcBadBodyError,
 		},
 		{
-			name: "should return bad body error if request body data is more than a pair",
+			name: "should return bad body error if request body data is more than max upsert (1)",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: "",
+				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						"test-key-1": "test-value-1",
@@ -255,7 +255,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if user id or email in param does not exist",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: testEntityID,
+				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -272,7 +272,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return unauthenticated error if email in header invalid",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: testEntityID,
+				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -291,7 +291,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if project id or slug is invalid",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: testEntityID,
+				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -310,7 +310,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return created service data urn",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				Id: testEntityID,
+				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -321,12 +321,15 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
 				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
 				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testUserServiceDataCreate).Return(servicedata.ServiceData{
-					Key: servicedata.Key{URN: testKey.URN},
+					Key:   servicedata.Key{Key: testKeyName},
+					Value: testValue,
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.UpsertUserServiceDataResponse{
-				Urn: testKey.URN,
+				Data: map[string]string{
+					testKeyName: testValue,
+				},
 			},
 			wantErr: nil,
 		},
@@ -339,7 +342,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockServiceDataService, mockUserService)
 			}
-			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService}
+			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService, serviceDataConfig: ServiceDataConfig{MaxUpsert: 1}}
 			resp, err := mockDep.UpsertUserServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
@@ -365,8 +368,8 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if no id in param",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id:   "",
-				Body: &shieldv1beta1.UpsertServiceDataRequestBody{},
+				GroupId: "",
+				Body:    &shieldv1beta1.UpsertServiceDataRequestBody{},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
@@ -374,7 +377,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if request body data is empty",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: "",
+				GroupId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{},
 				},
@@ -383,9 +386,9 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			wantErr: grpcBadBodyError,
 		},
 		{
-			name: "should return bad body error if request body data is more than a pair",
+			name: "should return bad body error if request body data is more than max upsert (1)",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: "",
+				GroupId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						"test-key-1": "test-value-1",
@@ -399,7 +402,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if group id or slug in param does not exist",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: testEntityID,
+				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -416,7 +419,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return unauthenticated error if email in header invalid",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: testEntityID,
+				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -435,7 +438,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if project id or slug is invalid",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: testEntityID,
+				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -454,7 +457,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 		{
 			name: "should return created service data urn",
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
-				Id: testEntityID,
+				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
 					Data: map[string]string{
@@ -465,12 +468,15 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(group.Group{ID: testEntityID}, nil)
 				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testGroupServiceDataCreate).Return(servicedata.ServiceData{
-					Key: servicedata.Key{URN: testKey.URN},
+					Key:   servicedata.Key{Key: testKeyName},
+					Value: testValue,
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.UpsertGroupServiceDataResponse{
-				Urn: testKey.URN,
+				Data: map[string]string{
+					testKeyName: testValue,
+				},
 			},
 			wantErr: nil,
 		},
@@ -483,7 +489,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			if tt.setup != nil {
 				ctx = tt.setup(ctx, mockServiceDataService, mockGroupService)
 			}
-			mockDep := Handler{serviceDataService: mockServiceDataService, groupService: mockGroupService}
+			mockDep := Handler{serviceDataService: mockServiceDataService, groupService: mockGroupService, serviceDataConfig: ServiceDataConfig{MaxUpsert: 1}}
 			resp, err := mockDep.UpsertGroupServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)

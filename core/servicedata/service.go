@@ -149,13 +149,13 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 
 	servicedata.Key.URN = servicedata.Key.CreateURN()
 
-	res, err := s.resourceService.GetByURN(ctx, servicedata.Key.URN)
+	key, err := s.repository.GetKeyByURN(ctx, servicedata.Key.URN)
 	if err != nil {
 		return ServiceData{}, err
 	}
 
 	permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
-		res.Idxa, action.Action{ID: editActionID})
+		key.ResourceID, action.Action{ID: editActionID})
 	if err != nil {
 		return ServiceData{}, err
 	}

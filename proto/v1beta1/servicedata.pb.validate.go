@@ -535,16 +535,7 @@ func (m *UpsertServiceDataRequestBody) validate(all bool) error {
 
 	// no validation rules for Project
 
-	if len(m.GetData()) != 1 {
-		err := UpsertServiceDataRequestBodyValidationError{
-			field:  "Data",
-			reason: "value must contain exactly 1 pair(s)",
-		}
-		if !all {
-			return err
-		}
-		errors = append(errors, err)
-	}
+	// no validation rules for Data
 
 	if len(errors) > 0 {
 		return UpsertServiceDataRequestBodyMultiError(errors)
@@ -649,7 +640,7 @@ func (m *UpsertUserServiceDataRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	// no validation rules for UserId
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -783,7 +774,7 @@ func (m *UpsertGroupServiceDataRequest) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Id
+	// no validation rules for GroupId
 
 	if all {
 		switch v := interface{}(m.GetBody()).(type) {
@@ -917,7 +908,7 @@ func (m *UpsertUserServiceDataResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Urn
+	// no validation rules for Data
 
 	if len(errors) > 0 {
 		return UpsertUserServiceDataResponseMultiError(errors)
@@ -1022,7 +1013,7 @@ func (m *UpsertGroupServiceDataResponse) validate(all bool) error {
 
 	var errors []error
 
-	// no validation rules for Urn
+	// no validation rules for Data
 
 	if len(errors) > 0 {
 		return UpsertGroupServiceDataResponseMultiError(errors)

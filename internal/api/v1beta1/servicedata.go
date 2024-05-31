@@ -13,7 +13,6 @@ import (
 	"github.com/goto/shield/core/user"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"golang.org/x/exp/maps"
 )
 
 var (
@@ -23,7 +22,7 @@ var (
 
 type ServiceDataService interface {
 	CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error)
-	Upsert(ctx context.Context, servicedata servicedata.ServiceData) (servicedata.ServiceData, error)
+	Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error)
 }
 
 func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta1.CreateServiceDataKeyRequest) (*shieldv1beta1.CreateServiceDataKeyResponse, error) {
@@ -74,19 +73,16 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
-	if request.GetId() == "" {
+	if request.GetUserId() == "" {
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) != 1 {
+	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
-
-	key := maps.Keys(requestBody.Data)[0]
-	value := requestBody.Data[key]
 
 	// get user by id or email
-	userEntity, err := h.userService.Get(ctx, request.GetId())
+	userEntity, err := h.userService.Get(ctx, request.GetUserId())
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -99,31 +95,35 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		}
 	}
 
-	serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
-		EntityID:    userEntity.ID,
-		NamespaceID: userNamespaceID,
-		Key: servicedata.Key{
-			Key:       key,
-			ProjectID: requestBody.Project,
-		},
-		Value: value,
-	})
-	if err != nil {
-		logger.Error(err.Error())
+	serviceDataMap := map[string]string{}
+	for k, v := range requestBody.Data {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    userEntity.ID,
+			NamespaceID: userNamespaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: requestBody.Project,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
 
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
-			errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, resource.ErrNotExist):
-			return nil, grpcBadBodyError
-		default:
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
 	}
 
 	return &shieldv1beta1.UpsertUserServiceDataResponse{
-		Urn: serviceDataResp.Key.URN,
+		Data: serviceDataMap,
 	}, nil
 }
 
@@ -135,19 +135,16 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyError
 	}
 
-	if request.GetId() == "" {
+	if request.GetGroupId() == "" {
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) != 1 {
+	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
-
-	key := maps.Keys(requestBody.Data)[0]
-	value := requestBody.Data[key]
 
 	// get group by id or slug
-	groupEntity, err := h.groupService.Get(ctx, request.GetId())
+	groupEntity, err := h.groupService.Get(ctx, request.GetGroupId())
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -160,31 +157,35 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		}
 	}
 
-	serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
-		EntityID:    groupEntity.ID,
-		NamespaceID: groupNamepaceID,
-		Key: servicedata.Key{
-			Key:       key,
-			ProjectID: requestBody.Project,
-		},
-		Value: value,
-	})
-	if err != nil {
-		logger.Error(err.Error())
+	serviceDataMap := map[string]string{}
+	for k, v := range requestBody.Data {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    groupEntity.ID,
+			NamespaceID: groupNamepaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: requestBody.Project,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
 
-		switch {
-		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
-			return nil, grpcUnauthenticated
-		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
-			errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, resource.ErrNotExist):
-			return nil, grpcBadBodyError
-		default:
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
 	}
 
 	return &shieldv1beta1.UpsertGroupServiceDataResponse{
-		Urn: serviceDataResp.Key.URN,
+		Data: serviceDataMap,
 	}, nil
 }
 

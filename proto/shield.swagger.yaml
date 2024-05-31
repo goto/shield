@@ -164,6 +164,31 @@ paths:
             $ref: '#/definitions/GroupRequestBody'
       tags:
         - Group
+  /v1beta1/groups/{group_id}/servicedata:
+    put:
+      summary: Upsert Group Service Data
+      operationId: ServiceDataService_UpsertGroupServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpsertGroupServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpsertServiceDataRequestBody'
+      tags:
+        - Service Data
   /v1beta1/groups/{id}:
     get:
       summary: Get Group by ID
@@ -236,31 +261,6 @@ paths:
           type: string
       tags:
         - Group
-  /v1beta1/groups/{id}/servicedata:
-    put:
-      summary: Upsert Group Service Data
-      operationId: ServiceDataService_UpsertGroupServiceData
-      responses:
-        "200":
-          description: A successful response.
-          schema:
-            $ref: '#/definitions/UpsertGroupServiceDataResponse'
-        default:
-          description: An unexpected error response.
-          schema:
-            $ref: '#/definitions/Status'
-      parameters:
-        - name: id
-          in: path
-          required: true
-          type: string
-        - name: body
-          in: body
-          required: true
-          schema:
-            $ref: '#/definitions/UpsertServiceDataRequestBody'
-      tags:
-        - Service Data
   /v1beta1/metadatakey:
     post:
       summary: Create Metadata Key
@@ -1025,7 +1025,7 @@ paths:
           type: string
       tags:
         - User
-  /v1beta1/users/{id}/servicedata:
+  /v1beta1/users/{user_id}/servicedata:
     put:
       summary: Upsert User Service Data
       operationId: ServiceDataService_UpsertUserServiceData
@@ -1039,7 +1039,7 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: id
+        - name: user_id
           in: path
           required: true
           type: string
@@ -1756,8 +1756,10 @@ definitions:
   UpsertGroupServiceDataResponse:
     type: object
     properties:
-      urn:
-        type: string
+      data:
+        type: object
+        additionalProperties:
+          type: string
   UpsertServiceDataRequestBody:
     type: object
     properties:
@@ -1770,8 +1772,10 @@ definitions:
   UpsertUserServiceDataResponse:
     type: object
     properties:
-      urn:
-        type: string
+      data:
+        type: object
+        additionalProperties:
+          type: string
   User:
     type: object
     properties:

@@ -69,7 +69,7 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 
 func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.ServiceData) (servicedata.ServiceData, error) {
 	query, params, err := dialect.From().
-		With("key", dialect.From(TABLE_SERVICE_DATA_KEYS).Select("id", "urn").Where(goqu.Ex{"urn": data.Key.URN})).
+		With("key", dialect.From(TABLE_SERVICE_DATA_KEYS).Select("id", "urn", "key").Where(goqu.Ex{"urn": data.Key.URN})).
 		With("data", dialect.Insert(TABLE_SERVICE_DATA).
 			Rows(
 				goqu.Record{
@@ -83,7 +83,9 @@ func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.Serv
 				"key_id": dialect.Select("id").From("key"),
 				"value":  data.Value,
 			},
-		))).Select(&UpsertServiceData{}).From("key").ToSQL()
+		)).Returning("value", "key_id")).
+		Select(&UpsertServiceData{}).From("key").Join(goqu.T("data"),
+		goqu.On(goqu.I("key.id").Eq(goqu.I("data.key_id")))).ToSQL()
 	if err != nil {
 		return servicedata.ServiceData{}, queryErr
 	}
@@ -111,6 +113,41 @@ func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.Serv
 	}
 
 	return serviceDataModel.transformToServiceData(), nil
+}
+
+func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (servicedata.Key, error) {
+	query, params, err := dialect.From(TABLE_SERVICE_DATA_KEYS).Select().Where(goqu.Ex{
+		"urn": URN,
+	}).ToSQL()
+	if err != nil {
+		return servicedata.Key{}, queryErr
+	}
+
+	var keyModel Key
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SERVICE_DATA_KEYS,
+				Operation:  "GetByURN",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&keyModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return servicedata.Key{}, servicedata.ErrNotExist
+		default:
+			return servicedata.Key{}, err
+		}
+	}
+
+	return keyModel.transformToServiceDataKey(), nil
 }
 
 func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {

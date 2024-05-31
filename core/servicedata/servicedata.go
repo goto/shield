@@ -9,6 +9,7 @@ type Repository interface {
 	Transactor
 	CreateKey(ctx context.Context, key Key) (Key, error)
 	Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error)
+	GetKeyByURN(ctx context.Context, URN string) (Key, error)
 }
 
 type Transactor interface {
