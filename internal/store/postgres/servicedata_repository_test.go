@@ -246,6 +246,44 @@ func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
 	}
 }
 
+func (s *ServiceDataRepositoryTestSuite) TestGetKeyByURN() {
+	type testCase struct {
+		Description string
+		URN         string
+		ExpectedKey servicedata.Key
+		ErrString   string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should create a key",
+			URN:         s.keys[0].URN,
+			ExpectedKey: s.keys[0],
+		},
+		{
+			Description: "should return not exist error if key not found",
+			URN:         "invalid-urn",
+			ErrString:   servicedata.ErrNotExist.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetKeyByURN(s.ctx, tc.URN)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedKey, cmpopts.IgnoreFields(servicedata.ServiceData{},
+				"ID",
+			)) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedKey)
+			}
+		})
+	}
+}
+
 func TestServiceDataRepository(t *testing.T) {
 	suite.Run(t, new(ServiceDataRepositoryTestSuite))
 }
