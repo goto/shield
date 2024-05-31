@@ -35,6 +35,11 @@ entropy:
           roles:
             - owner
             - database_editor
+
+guardian:
+  type: resource_group
+  resource_types:
+    - name: appeal
             
 shield/organization:
   type: system

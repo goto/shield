@@ -43,6 +43,10 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
+
+	rRes, err := s.client.ListResources(ctx, &shieldv1beta1.ListResourcesRequest{})
+	s.Require().NoError(err)
+	s.Require().Equal(2, len(rRes.GetResources()))
 }
 
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
@@ -395,6 +399,42 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 			},
 		})
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+}
+
+func (s *EndToEndAPIRegressionTestSuite) TestRelationAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	// get my res
+	res, err := s.client.ListResources(context.Background(), &shieldv1beta1.ListResourcesRequest{})
+	s.Require().NoError(err)
+	s.Require().Greater(len(res.GetResources()), 0)
+	resource := res.GetResources()[0]
+
+	s.Run("1. should return not found error when resource name is send as object id", func() {
+		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        "47c412cf-d223-40ba-b8b3-895062980221", //appeal name
+				ObjectNamespace: "guardian/appeal",
+				Subject:         "shield/user:member2-group1@gotocompany.com",
+				RoleName:        "owner",
+			},
+		})
+		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
+	})
+
+	s.Run("2. should return success when object id is resource id", func() {
+		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        resource.GetId(),
+				ObjectNamespace: resource.GetNamespace().GetId(),
+				Subject:         "shield/user:member2-group1@gotocompany.com",
+				RoleName:        "owner",
+			},
+		})
+		s.Assert().Equal(codes.OK, status.Convert(err).Code())
 	})
 }
 

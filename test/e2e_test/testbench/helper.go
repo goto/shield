@@ -247,6 +247,43 @@ func AssignGroupManager(ctx context.Context, cl shieldv1beta1.ShieldServiceClien
 	return nil
 }
 
+func BootstrapResource(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-resource.json")
+	if err != nil {
+		return err
+	}
+
+	var data []*shieldv1beta1.ResourceRequestBody
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return err
+	}
+
+	projResp, err := cl.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
+	if err != nil {
+		return err
+	}
+
+	if len(projResp.GetProjects()) < 1 {
+		return errors.New("no projects found")
+	}
+
+	data[0].ProjectId = projResp.GetProjects()[0].GetId()
+	data[1].ProjectId = projResp.GetProjects()[0].GetId()
+
+	for _, d := range data {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			IdentityHeader: creatorEmail,
+		}))
+		if _, err := cl.CreateResource(ctx, &shieldv1beta1.CreateResourceRequest{
+			Body: d,
+		}); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func SetupDB(cfg db.Config) (dbc *db.Client, err error) {
 	dbc, err = db.New(cfg)
 	if err != nil {
