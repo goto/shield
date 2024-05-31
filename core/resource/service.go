@@ -285,8 +285,8 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
 	fetchedResource := res
 
-	if !uuid.IsValid(res.Name) {
-		if isSystemNS {
+	if isSystemNS {
+		if !uuid.IsValid(res.Name) {
 			switch res.NamespaceID {
 			case namespace.DefinitionProject.ID:
 				project, err := s.projectService.Get(ctx, res.Name)
@@ -307,15 +307,16 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 				}
 				res.Name = group.ID
 			}
-			fetchedResource.Idxa = res.Name
-		} else {
-			fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
+		}
+		fetchedResource.Idxa = res.Name
+	} else {
+		fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
+		if err != nil {
+			fetchedResource, err = s.repository.GetByID(ctx, res.Name)
 			if err != nil {
 				return false, ErrNotExist
 			}
 		}
-	} else {
-		fetchedResource.Idxa = res.Name
 	}
 	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
 	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idxa, act)

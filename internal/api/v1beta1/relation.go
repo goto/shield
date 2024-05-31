@@ -65,6 +65,11 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
+	_, err := h.resourceService.Get(ctx, request.GetBody().GetObjectId())
+	if err != nil {
+		return nil, status.Errorf(codes.NotFound, err.Error())
+	}
+
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
