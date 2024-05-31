@@ -66,7 +66,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	if !namespace.IsSystemNamespaceID(request.GetBody().ObjectNamespace) {
+	if !namespace.IsSystemNamespaceID(request.GetBody().GetObjectNamespace()) {
 		_, err := h.resourceService.Get(ctx, request.GetBody().GetObjectId())
 		if err != nil {
 			return nil, status.Errorf(codes.NotFound, err.Error())
