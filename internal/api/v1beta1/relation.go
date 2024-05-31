@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
@@ -65,9 +66,11 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, grpcBadBodyError
 	}
 
-	_, err := h.resourceService.Get(ctx, request.GetBody().GetObjectId())
-	if err != nil {
-		return nil, status.Errorf(codes.NotFound, err.Error())
+	if !namespace.IsSystemNamespaceID(request.GetBody().ObjectNamespace) {
+		_, err := h.resourceService.Get(ctx, request.GetBody().GetObjectId())
+		if err != nil {
+			return nil, status.Errorf(codes.NotFound, err.Error())
+		}
 	}
 
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
