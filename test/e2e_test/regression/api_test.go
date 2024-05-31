@@ -411,9 +411,9 @@ func (s *EndToEndAPIRegressionTestSuite) TestRelationAPI() {
 	res, err := s.client.ListResources(context.Background(), &shieldv1beta1.ListResourcesRequest{})
 	s.Require().NoError(err)
 	s.Require().Greater(len(res.GetResources()), 0)
-	resource := res.GetResources()[0]
+	resource := res.GetResources()[1]
 
-	s.Run("1. should return not found error when resource name is send as object id", func() {
+	s.Run("1. should return not found error when resource name is send as object id, when name is uuid", func() {
 		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
 			Body: &shieldv1beta1.RelationRequestBody{
 				ObjectId:        "47c412cf-d223-40ba-b8b3-895062980221", //appeal name
@@ -425,7 +425,19 @@ func (s *EndToEndAPIRegressionTestSuite) TestRelationAPI() {
 		s.Assert().Equal(codes.NotFound, status.Convert(err).Code())
 	})
 
-	s.Run("2. should return success when object id is resource id", func() {
+	s.Run("2. should return not found error when resource name is send as object id, when name is not uuid", func() {
+		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        resource.GetName(),
+				ObjectNamespace: resource.GetNamespace().GetId(),
+				Subject:         "shield/user:member2-group1@gotocompany.com",
+				RoleName:        "owner",
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("3. should return success when object id is resource id", func() {
 		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
 			Body: &shieldv1beta1.RelationRequestBody{
 				ObjectId:        resource.GetId(),
