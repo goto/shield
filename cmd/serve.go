@@ -143,7 +143,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient)
 	if err != nil {
 		return err
 	}
@@ -185,7 +185,6 @@ func BuildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
-	cfg *config.Shield,
 ) (api.Deps, error) {
 	appConfig := activity.AppConfig{Version: config.Version}
 	activityService := activity.NewService(appConfig, activityRepository)
