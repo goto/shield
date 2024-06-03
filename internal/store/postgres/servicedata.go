@@ -19,9 +19,9 @@ type Key struct {
 	DeletedAt   sql.NullTime `db:"deleted_at"`
 }
 
-type UpsertServiceData struct {
-	Key   string `db:"key.key"`
-	Value string `db:"data.value"`
+type ServiceData struct {
+	Key   string `db:"key"`
+	Value string `db:"value"`
 }
 
 func (from Key) transformToServiceDataKey() servicedata.Key {
@@ -35,7 +35,7 @@ func (from Key) transformToServiceDataKey() servicedata.Key {
 	}
 }
 
-func (from UpsertServiceData) transformToServiceData() servicedata.ServiceData {
+func (from ServiceData) transformToServiceData() servicedata.ServiceData {
 	data := servicedata.ServiceData{
 		Key: servicedata.Key{
 			Key: from.Key,

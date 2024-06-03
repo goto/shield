@@ -68,29 +68,24 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 }
 
 func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.ServiceData) (servicedata.ServiceData, error) {
-	query, params, err := dialect.From().
-		With("key", dialect.From(TABLE_SERVICE_DATA_KEYS).Select("id", "urn", "key").Where(goqu.Ex{"urn": data.Key.URN})).
-		With("data", dialect.Insert(TABLE_SERVICE_DATA).
-			Rows(
-				goqu.Record{
-					"namespace_id": data.NamespaceID,
-					"entity_id":    data.EntityID,
-					"key_id":       dialect.Select("id").From("key"),
-					"value":        data.Value,
-				},
-			).OnConflict(goqu.DoUpdate(
-			"ON CONSTRAINT servicedata_namespace_id_entity_id_key_id_key", goqu.Record{
-				"key_id": dialect.Select("id").From("key"),
-				"value":  data.Value,
-			},
-		)).Returning("value", "key_id")).
-		Select(&UpsertServiceData{}).From("key").Join(goqu.T("data"),
-		goqu.On(goqu.I("key.id").Eq(goqu.I("data.key_id")))).ToSQL()
+	query, params, err := dialect.Insert(TABLE_SERVICE_DATA).Rows(
+		goqu.Record{
+			"namespace_id": data.NamespaceID,
+			"entity_id":    data.EntityID,
+			"key_id":       data.Key.ID,
+			"value":        data.Value,
+		},
+	).OnConflict(goqu.DoUpdate(
+		"ON CONSTRAINT servicedata_namespace_id_entity_id_key_id_key", goqu.Record{
+			"key_id": data.Key.ID,
+			"value":  data.Value,
+		},
+	)).Returning("value", goqu.L(`?`, data.Key.Key).As("key")).ToSQL()
 	if err != nil {
 		return servicedata.ServiceData{}, queryErr
 	}
 
-	var serviceDataModel UpsertServiceData
+	var serviceDataModel ServiceData
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {

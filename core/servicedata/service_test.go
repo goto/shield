@@ -330,9 +330,7 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{
-					ResourceID: testResourceID,
-				}, nil)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(testCreateKey, nil)
 				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
 					ID:    testUserID,
 					Email: "john.doe@gotocompany.com",
@@ -479,9 +477,7 @@ func TestService_Upsert(t *testing.T) {
 						ID:   testProjectID,
 						Slug: testProjectSlug,
 					}, nil)
-				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{
-					ResourceID: testResourceID,
-				}, nil)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(testCreateKey, nil)
 				relationService.EXPECT().CheckPermission(mock.Anything, user.User{
 					ID:    testUserID,
 					Email: "john.doe@gotocompany.com",

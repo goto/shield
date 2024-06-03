@@ -13,8 +13,8 @@ type GRPCConfig struct {
 }
 
 type ServiceDataConfig struct {
-	BootstrapServiceDataKey bool `yaml:"bootstrap_service_data_key" mapstructure:"bootstrap_service_data_key" default:"true"`
-	MaxUpsert               int  `yaml:"max_upsert" mapstructure:"max_upsert" default:"1"`
+	BootstrapEnabled bool `yaml:"bootstrap_enabled" mapstructure:"bootstrap_enabled" default:"true"`
+	MaxNumUpsertData int  `yaml:"max_num_upsert_data" mapstructure:"max_num_upsert_data" default:"1"`
 }
 
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }

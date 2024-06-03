@@ -130,8 +130,8 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	return createdServiceDataKey, nil
 }
 
-func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error) {
-	if servicedata.Key.Key == "" {
+func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error) {
+	if sd.Key.Key == "" {
 		return ServiceData{}, ErrInvalidDetail
 	}
 
@@ -140,22 +140,21 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 		return ServiceData{}, err
 	}
 
-	prj, err := s.projectService.Get(ctx, servicedata.Key.ProjectID)
+	prj, err := s.projectService.Get(ctx, sd.Key.ProjectID)
 	if err != nil {
 		return ServiceData{}, err
 	}
-	servicedata.Key.ProjectID = prj.ID
-	servicedata.Key.ProjectSlug = prj.Slug
+	sd.Key.ProjectSlug = prj.Slug
 
-	servicedata.Key.URN = servicedata.Key.CreateURN()
+	sd.Key.URN = sd.Key.CreateURN()
 
-	key, err := s.repository.GetKeyByURN(ctx, servicedata.Key.URN)
+	sd.Key, err = s.repository.GetKeyByURN(ctx, sd.Key.URN)
 	if err != nil {
 		return ServiceData{}, err
 	}
 
 	permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
-		key.ResourceID, action.Action{ID: editActionID})
+		sd.Key.ResourceID, action.Action{ID: editActionID})
 	if err != nil {
 		return ServiceData{}, err
 	}
@@ -163,7 +162,7 @@ func (s Service) Upsert(ctx context.Context, servicedata ServiceData) (ServiceDa
 		return ServiceData{}, user.ErrInvalidEmail
 	}
 
-	returnedServiceData, err := s.repository.Upsert(ctx, servicedata)
+	returnedServiceData, err := s.repository.Upsert(ctx, sd)
 	if err != nil {
 		return ServiceData{}, err
 	}

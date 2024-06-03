@@ -83,7 +83,7 @@ func Serve(
 	healthHandler := health.NewHandler()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
 
-	serviceDataConfig := v1beta1.ServiceDataConfig{MaxUpsert: cfg.ServiceData.MaxUpsert}
+	serviceDataConfig := v1beta1.ServiceDataConfig{MaxUpsert: cfg.ServiceData.MaxNumUpsertData}
 	err = v1beta1.Register(ctx, grpcServer, deps, cfg.CheckAPILimit, serviceDataConfig)
 	if err != nil {
 		return err

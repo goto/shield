@@ -204,8 +204,8 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
 			RulesPath:           fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
 			ServiceData: server.ServiceDataConfig{
-				BootstrapServiceDataKey: true,
-				MaxUpsert:               1,
+				BootstrapEnabled: true,
+				MaxNumUpsertData: 1,
 			},
 		},
 		Proxy: proxy.ServicesConfig{

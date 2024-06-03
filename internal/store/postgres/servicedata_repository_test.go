@@ -214,11 +214,8 @@ func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
 			ServiceDataToCreate: servicedata.ServiceData{
 				NamespaceID: testNamespaceID,
 				EntityID:    testEntityID,
-				Key: servicedata.Key{
-					Key: s.keys[0].Key,
-					URN: s.keys[0].URN,
-				},
-				Value: testValue,
+				Key:         s.keys[0],
+				Value:       testValue,
 			},
 			ExpectedServiceData: servicedata.ServiceData{
 				Key: servicedata.Key{
