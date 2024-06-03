@@ -79,6 +79,63 @@ func (_c *ServiceDataService_CreateKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// Upsert provides a mock function with given fields: ctx, serviceData
+func (_m *ServiceDataService) Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error) {
+	ret := _m.Called(ctx, serviceData)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Upsert")
+	}
+
+	var r0 servicedata.ServiceData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.ServiceData) (servicedata.ServiceData, error)); ok {
+		return rf(ctx, serviceData)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.ServiceData) servicedata.ServiceData); ok {
+		r0 = rf(ctx, serviceData)
+	} else {
+		r0 = ret.Get(0).(servicedata.ServiceData)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, servicedata.ServiceData) error); ok {
+		r1 = rf(ctx, serviceData)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceDataService_Upsert_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Upsert'
+type ServiceDataService_Upsert_Call struct {
+	*mock.Call
+}
+
+// Upsert is a helper method to define mock.On call
+//   - ctx context.Context
+//   - serviceData servicedata.ServiceData
+func (_e *ServiceDataService_Expecter) Upsert(ctx interface{}, serviceData interface{}) *ServiceDataService_Upsert_Call {
+	return &ServiceDataService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, serviceData)}
+}
+
+func (_c *ServiceDataService_Upsert_Call) Run(run func(ctx context.Context, serviceData servicedata.ServiceData)) *ServiceDataService_Upsert_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(servicedata.ServiceData))
+	})
+	return _c
+}
+
+func (_c *ServiceDataService_Upsert_Call) Return(_a0 servicedata.ServiceData, _a1 error) *ServiceDataService_Upsert_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceDataService_Upsert_Call) RunAndReturn(run func(context.Context, servicedata.ServiceData) (servicedata.ServiceData, error)) *ServiceDataService_Upsert_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewServiceDataService creates a new instance of ServiceDataService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewServiceDataService(t interface {

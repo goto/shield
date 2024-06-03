@@ -13,8 +13,13 @@ type RelationTransformer interface {
 	TransformRelation(ctx context.Context, rlt relation.RelationV2) (relation.RelationV2, error)
 }
 
+type ServiceDataConfig struct {
+	MaxUpsert int
+}
+
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
+	shieldv1beta1.UnimplementedServiceDataServiceServer
 	orgService         OrganizationService
 	projectService     ProjectService
 	groupService       GroupService
@@ -30,29 +35,29 @@ type Handler struct {
 	serviceDataService ServiceDataService
 	relationAdapter    RelationTransformer
 	checkAPILimit      int
+	serviceDataConfig  ServiceDataConfig
 }
 
-func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit int) error {
-	s.RegisterService(
-		&shieldv1beta1.ShieldService_ServiceDesc,
-		&Handler{
-			orgService:         deps.OrgService,
-			projectService:     deps.ProjectService,
-			groupService:       deps.GroupService,
-			roleService:        deps.RoleService,
-			policyService:      deps.PolicyService,
-			userService:        deps.UserService,
-			namespaceService:   deps.NamespaceService,
-			actionService:      deps.ActionService,
-			relationService:    deps.RelationService,
-			resourceService:    deps.ResourceService,
-			ruleService:        deps.RuleService,
-			activityService:    deps.ActivityService,
-			serviceDataService: deps.ServiceDataService,
-			relationAdapter:    deps.RelationAdapter,
-			checkAPILimit:      checkAPILimit,
-		},
-	)
-
+func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit int, serviceDataConfig ServiceDataConfig) error {
+	handler := &Handler{
+		orgService:         deps.OrgService,
+		projectService:     deps.ProjectService,
+		groupService:       deps.GroupService,
+		roleService:        deps.RoleService,
+		policyService:      deps.PolicyService,
+		userService:        deps.UserService,
+		namespaceService:   deps.NamespaceService,
+		actionService:      deps.ActionService,
+		relationService:    deps.RelationService,
+		resourceService:    deps.ResourceService,
+		ruleService:        deps.RuleService,
+		activityService:    deps.ActivityService,
+		serviceDataService: deps.ServiceDataService,
+		relationAdapter:    deps.RelationAdapter,
+		checkAPILimit:      checkAPILimit,
+		serviceDataConfig:  serviceDataConfig,
+	}
+	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
+	s.RegisterService(&shieldv1beta1.ServiceDataService_ServiceDesc, handler)
 	return nil
 }

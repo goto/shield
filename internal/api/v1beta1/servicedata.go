@@ -4,6 +4,8 @@ import (
 	"context"
 	"errors"
 
+	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
@@ -13,8 +15,14 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 )
 
+var (
+	userNamespaceID = namespace.DefinitionUser.ID
+	groupNamepaceID = namespace.DefinitionTeam.ID
+)
+
 type ServiceDataService interface {
 	CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error)
+	Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error)
 }
 
 func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta1.CreateServiceDataKeyRequest) (*shieldv1beta1.CreateServiceDataKeyResponse, error) {
@@ -34,7 +42,7 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 		logger.Error(err.Error())
 
 		switch {
-		case errors.Is(err, user.ErrInvalidEmail):
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
 		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 			errors.Is(err, relation.ErrInvalidDetail):
@@ -54,6 +62,130 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 
 	return &shieldv1beta1.CreateServiceDataKeyResponse{
 		ServiceDataKey: &serviceDataKey,
+	}, nil
+}
+
+func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1beta1.UpsertUserServiceDataRequest) (*shieldv1beta1.UpsertUserServiceDataResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	requestBody := request.GetBody()
+	if requestBody == nil {
+		return nil, grpcBadBodyError
+	}
+
+	if request.GetUserId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+		return nil, grpcBadBodyError
+	}
+
+	// get user by id or email
+	userEntity, err := h.userService.Get(ctx, request.GetUserId())
+	if err != nil {
+		logger.Error(err.Error())
+
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrInvalidID):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	serviceDataMap := map[string]string{}
+	for k, v := range requestBody.Data {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    userEntity.ID,
+			NamespaceID: userNamespaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: requestBody.Project,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+	}
+
+	return &shieldv1beta1.UpsertUserServiceDataResponse{
+		Data: serviceDataMap,
+	}, nil
+}
+
+func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1beta1.UpsertGroupServiceDataRequest) (*shieldv1beta1.UpsertGroupServiceDataResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	requestBody := request.GetBody()
+	if requestBody == nil {
+		return nil, grpcBadBodyError
+	}
+
+	if request.GetGroupId() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+		return nil, grpcBadBodyError
+	}
+
+	// get group by id or slug
+	groupEntity, err := h.groupService.Get(ctx, request.GetGroupId())
+	if err != nil {
+		logger.Error(err.Error())
+
+		switch {
+		case errors.Is(err, group.ErrNotExist), errors.Is(err, group.ErrInvalidDetail),
+			errors.Is(err, group.ErrInvalidID):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	serviceDataMap := map[string]string{}
+	for k, v := range requestBody.Data {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    groupEntity.ID,
+			NamespaceID: groupNamepaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: requestBody.Project,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+	}
+
+	return &shieldv1beta1.UpsertGroupServiceDataResponse{
+		Data: serviceDataMap,
 	}, nil
 }
 

@@ -66,13 +66,25 @@ func Serve(
 		return err
 	}
 
+	grpcServiceDataGateway := runtime.NewServeMux(
+		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
+		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
+	)
+
+	httpMux.Handle("/shield/", http.StripPrefix("/shield", grpcServiceDataGateway))
+
+	if err := shieldv1beta1.RegisterServiceDataServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
+		return err
+	}
+
 	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
 	reflection.Register(grpcServer)
 
 	healthHandler := health.NewHandler()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
 
-	err = v1beta1.Register(ctx, grpcServer, deps, cfg.CheckAPILimit)
+	serviceDataConfig := v1beta1.ServiceDataConfig{MaxUpsert: cfg.ServiceData.MaxNumUpsertData}
+	err = v1beta1.Register(ctx, grpcServer, deps, cfg.CheckAPILimit, serviceDataConfig)
 	if err != nil {
 		return err
 	}

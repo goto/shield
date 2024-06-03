@@ -19,6 +19,11 @@ type Key struct {
 	DeletedAt   sql.NullTime `db:"deleted_at"`
 }
 
+type ServiceData struct {
+	Key   string `db:"key"`
+	Value string `db:"value"`
+}
+
 func (from Key) transformToServiceDataKey() servicedata.Key {
 	return servicedata.Key{
 		ID:          from.ID,
@@ -28,4 +33,14 @@ func (from Key) transformToServiceDataKey() servicedata.Key {
 		Description: from.Description,
 		ResourceID:  from.ResourceID,
 	}
+}
+
+func (from ServiceData) transformToServiceData() servicedata.ServiceData {
+	data := servicedata.ServiceData{
+		Key: servicedata.Key{
+			Key: from.Key,
+		},
+		Value: from.Value,
+	}
+	return data
 }

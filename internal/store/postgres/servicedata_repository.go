@@ -36,7 +36,7 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 			"resource_id": key.ResourceID,
 		}).Returning(&Key{}).ToSQL()
 	if err != nil {
-		return servicedata.Key{}, err
+		return servicedata.Key{}, queryErr
 	}
 
 	var serviceDataKeyModel Key
@@ -65,6 +65,84 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 		}
 	}
 	return serviceDataKeyModel.transformToServiceDataKey(), nil
+}
+
+func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.ServiceData) (servicedata.ServiceData, error) {
+	query, params, err := dialect.Insert(TABLE_SERVICE_DATA).Rows(
+		goqu.Record{
+			"namespace_id": data.NamespaceID,
+			"entity_id":    data.EntityID,
+			"key_id":       data.Key.ID,
+			"value":        data.Value,
+		},
+	).OnConflict(goqu.DoUpdate(
+		"ON CONSTRAINT servicedata_namespace_id_entity_id_key_id_key", goqu.Record{
+			"key_id": data.Key.ID,
+			"value":  data.Value,
+		},
+	)).Returning("value", goqu.L(`?`, data.Key.Key).As("key")).ToSQL()
+	if err != nil {
+		return servicedata.ServiceData{}, queryErr
+	}
+
+	var serviceDataModel ServiceData
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SERVICE_DATA,
+				Operation:  "Upsert",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&serviceDataModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		default:
+			return servicedata.ServiceData{}, err
+		}
+	}
+
+	return serviceDataModel.transformToServiceData(), nil
+}
+
+func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (servicedata.Key, error) {
+	query, params, err := dialect.From(TABLE_SERVICE_DATA_KEYS).Select().Where(goqu.Ex{
+		"urn": URN,
+	}).ToSQL()
+	if err != nil {
+		return servicedata.Key{}, queryErr
+	}
+
+	var keyModel Key
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SERVICE_DATA_KEYS,
+				Operation:  "GetKeyByURN",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&keyModel)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return servicedata.Key{}, servicedata.ErrNotExist
+		default:
+			return servicedata.Key{}, err
+		}
+	}
+
+	return keyModel.transformToServiceDataKey(), nil
 }
 
 func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {

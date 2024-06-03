@@ -12,6 +12,11 @@ type GRPCConfig struct {
 	MaxSendMsgSize int `mapstructure:"max_send_msg_size" default:"33554432"`
 }
 
+type ServiceDataConfig struct {
+	BootstrapEnabled bool `yaml:"bootstrap_enabled" mapstructure:"bootstrap_enabled" default:"true"`
+	MaxNumUpsertData int  `yaml:"max_num_upsert_data" mapstructure:"max_num_upsert_data" default:"1"`
+}
+
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
 
 type Config struct {
@@ -59,5 +64,5 @@ type Config struct {
 
 	DefaultSystemEmail string `yaml:"default_system_email" mapstructure:"default_system_email"  default:"shield-service@gotocompany.com"`
 
-	BootstrapServiceDataKey bool `yaml:"bootstrap_service_data_key" mapstructure:"bootstrap_service_data_key" default:"true"`
+	ServiceData ServiceDataConfig `yaml:"service_data" mapstructure:"service_data"`
 }

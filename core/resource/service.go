@@ -77,6 +77,10 @@ func NewService(logger log.Logger, repository Repository, configRepository Confi
 	}
 }
 
+func (s Service) GetByURN(ctx context.Context, id string) (Resource, error) {
+	return s.repository.GetByURN(ctx, id)
+}
+
 func (s Service) Get(ctx context.Context, id string) (Resource, error) {
 	return s.repository.GetByID(ctx, id)
 }

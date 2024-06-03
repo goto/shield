@@ -79,6 +79,63 @@ func (_c *ResourceService_Create_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
+// GetByURN provides a mock function with given fields: ctx, urn
+func (_m *ResourceService) GetByURN(ctx context.Context, urn string) (resource.Resource, error) {
+	ret := _m.Called(ctx, urn)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetByURN")
+	}
+
+	var r0 resource.Resource
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string) (resource.Resource, error)); ok {
+		return rf(ctx, urn)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string) resource.Resource); ok {
+		r0 = rf(ctx, urn)
+	} else {
+		r0 = ret.Get(0).(resource.Resource)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
+		r1 = rf(ctx, urn)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_GetByURN_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetByURN'
+type ResourceService_GetByURN_Call struct {
+	*mock.Call
+}
+
+// GetByURN is a helper method to define mock.On call
+//   - ctx context.Context
+//   - urn string
+func (_e *ResourceService_Expecter) GetByURN(ctx interface{}, urn interface{}) *ResourceService_GetByURN_Call {
+	return &ResourceService_GetByURN_Call{Call: _e.mock.On("GetByURN", ctx, urn)}
+}
+
+func (_c *ResourceService_GetByURN_Call) Run(run func(ctx context.Context, urn string)) *ResourceService_GetByURN_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string))
+	})
+	return _c
+}
+
+func (_c *ResourceService_GetByURN_Call) Return(_a0 resource.Resource, _a1 error) *ResourceService_GetByURN_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_GetByURN_Call) RunAndReturn(run func(context.Context, string) (resource.Resource, error)) *ResourceService_GetByURN_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewResourceService creates a new instance of ResourceService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewResourceService(t interface {

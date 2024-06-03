@@ -24,7 +24,7 @@ type EndToEndAPISmokeTestSuite struct {
 
 func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T())
+	s.client, _, s.appConfig, s.cancelClient, _, _ = testbench.SetupTests(s.T())
 
 	// validate
 	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup

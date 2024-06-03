@@ -93,7 +93,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail, cfg.App.BootstrapServiceDataKey)
+	schemaMigrationConfig := schema.NewSchemaMigrationConfig(cfg.App.DefaultSystemEmail, cfg.App.ServiceData.BootstrapEnabled)
 
 	appConfig := activity.AppConfig{Version: config.Version}
 	var activityRepository activity.Repository

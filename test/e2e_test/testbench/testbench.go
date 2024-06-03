@@ -141,7 +141,7 @@ func (te *TestBench) CleanUp() error {
 	return nil
 }
 
-func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield, func(), func()) {
+func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.ServiceDataServiceClient, *config.Shield, func(), func(), func()) {
 	t.Helper()
 
 	wd, err := os.Getwd()
@@ -203,6 +203,10 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 			UserIDHeader:        userIDHeaderKey,
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
 			RulesPath:           fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
+			ServiceData: server.ServiceDataConfig{
+				BootstrapEnabled: true,
+				MaxNumUpsertData: 1,
+			},
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
@@ -224,6 +228,11 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 
 	shieldHost := fmt.Sprintf("localhost:%d", appConfig.App.GRPC.Port)
 	client, cancelClient, err := CreateClient(ctx, shieldHost)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	serviceDataClient, canceserviceDataClient, err := CreateServiceDataClient(ctx, shieldHost)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -256,11 +265,14 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, *config.Shield
 	if err := BootstrapGroup(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
+	if err := BootstrapResource(ctx, client, OrgAdminEmail, testDataPath); err != nil {
+		t.Fatal(err)
+	}
 	time.Sleep(10 * time.Second)
 	if err := AssignGroupManager(ctx, client, OrgAdminEmail); err != nil {
 		t.Fatal(err)
 	}
-	return client, appConfig, cancelClient, cancelContextFunc
+	return client, serviceDataClient, appConfig, cancelClient, canceserviceDataClient, cancelContextFunc
 }
 func migrateShield(appConfig *config.Shield) error {
 	return db.RunMigrations(db.Config{

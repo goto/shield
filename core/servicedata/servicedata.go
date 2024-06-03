@@ -8,6 +8,8 @@ import (
 type Repository interface {
 	Transactor
 	CreateKey(ctx context.Context, key Key) (Key, error)
+	Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error)
+	GetKeyByURN(ctx context.Context, URN string) (Key, error)
 }
 
 type Transactor interface {
@@ -24,6 +26,14 @@ type Key struct {
 	Key         string
 	Description string
 	ResourceID  string
+}
+
+type ServiceData struct {
+	ID          string
+	NamespaceID string
+	EntityID    string
+	Key         Key
+	Value       string
 }
 
 func (key Key) CreateURN() string {

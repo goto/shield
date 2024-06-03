@@ -16,15 +16,17 @@ import (
 
 type EndToEndAPIRegressionTestSuite struct {
 	suite.Suite
-	client       shieldv1beta1.ShieldServiceClient
-	cancelClient func()
-	testBench    *testbench.TestBench
-	appConfig    *config.Shield
+	client                  shieldv1beta1.ShieldServiceClient
+	serviceDataClient       shieldv1beta1.ServiceDataServiceClient
+	cancelClient            func()
+	cancelServiceDataClient func()
+	testBench               *testbench.TestBench
+	appConfig               *config.Shield
 }
 
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	ctx := context.Background()
-	s.client, s.appConfig, s.cancelClient, _ = testbench.SetupTests(s.T())
+	s.client, s.serviceDataClient, s.appConfig, s.cancelClient, s.cancelServiceDataClient, _ = testbench.SetupTests(s.T())
 
 	// validate
 	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup
@@ -51,6 +53,7 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
 	s.cancelClient()
+	s.cancelServiceDataClient()
 	// Clean tests
 	err := s.testBench.CleanUp()
 	s.Require().NoError(err)
@@ -447,6 +450,158 @@ func (s *EndToEndAPIRegressionTestSuite) TestRelationAPI() {
 			},
 		})
 		s.Assert().Equal(codes.OK, status.Convert(err).Code())
+	})
+}
+
+func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	res, err := s.client.ListProjects(context.Background(), &shieldv1beta1.ListProjectsRequest{})
+	s.Require().NoError(err)
+	s.Require().Greater(len(res.GetProjects()), 0)
+	myProject := res.GetProjects()[0]
+
+	usr, err := s.client.ListUsers(context.Background(), &shieldv1beta1.ListUsersRequest{})
+	s.Require().NoError(err)
+	s.Require().Greater(len(usr.GetUsers()), 0)
+	myUser := usr.GetUsers()[0]
+
+	s.Run("1. org admin create a new service data key with empty auth email should return unauthenticated error", func() {
+		_, err := s.serviceDataClient.CreateServiceDataKey(context.Background(), &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     myProject.Id,
+				Key:         "new-key-01",
+				Description: "description for key 01",
+			},
+		})
+		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
+	})
+
+	s.Run("2. org admin create a new service data key with blank key should return invalid argument error", func() {
+		_, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     myProject.Id,
+				Key:         "",
+				Description: "description for key 01",
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("3. org admin create a new service data key with invalid project id should return invalid argument error", func() {
+		_, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     "invalid-project-id",
+				Key:         "new-key-01",
+				Description: "description for key 01",
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("4. org admin create a new service data key in same project with same name should conflict", func() {
+		res, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     myProject.Id,
+				Key:         "new-key-01",
+				Description: "description for key 01",
+			},
+		})
+		s.Assert().NoError(err)
+		newServiceDataKey := res.GetServiceDataKey()
+		s.Assert().NotNil(newServiceDataKey)
+
+		_, err = s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     myProject.Id,
+				Key:         "new-key-01",
+				Description: "description for key 01",
+			},
+		})
+		s.Assert().Equal(codes.AlreadyExists, status.Convert(err).Code())
+	})
+
+	s.Run("5. org admin update a user service data with invalid user id should return invalid argument error", func() {
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+			UserId: "invalid-user-id",
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: myProject.Id,
+				Data: map[string]string{
+					"update-key": "update value",
+				},
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("6. org admin update a user service data with invalid project id should return invalid argument error", func() {
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+			UserId: testbench.OrgAdminEmail,
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: "invalid-project-id",
+				Data: map[string]string{
+					"update-key": "update value",
+				},
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("7. org admin update multiple service data return invalid argument error", func() {
+		_, err := s.serviceDataClient.UpsertUserServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertUserServiceDataRequest{
+			UserId: testbench.OrgAdminEmail,
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: myProject.Id,
+				Data: map[string]string{
+					"update-key-1": "update value-1",
+					"update-key-2": "update value-2",
+				},
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
+	})
+
+	s.Run("8. update service data org admin created without edit permission should return unauthenticated error", func() {
+		res, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     myProject.Id,
+				Key:         "new-key",
+				Description: "description for key",
+			},
+		})
+		s.Assert().NoError(err)
+		newServiceDataKey := res.GetServiceDataKey()
+		s.Assert().NotNil(newServiceDataKey)
+
+		ctxTestUser := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+			testbench.IdentityHeader: myUser.Email,
+		}))
+
+		_, err = s.serviceDataClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{
+			UserId: testbench.OrgAdminEmail,
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: myProject.Id,
+				Data: map[string]string{
+					"new-key": "new-value",
+				},
+			},
+		})
+		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
+	})
+
+	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
+		_, err := s.serviceDataClient.UpsertGroupServiceData(ctxOrgAdminAuth, &shieldv1beta1.UpsertGroupServiceDataRequest{
+			GroupId: "invalid-group-id",
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: myProject.Id,
+				Data: map[string]string{
+					"update-key": "update value",
+				},
+			},
+		})
+		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 }
 

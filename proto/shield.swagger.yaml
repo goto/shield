@@ -1,8 +1,9 @@
 swagger: "2.0"
 info:
-  title: Shield
+  title: Service Data
   version: 0.1.0
 tags:
+  - name: ServiceDataService
   - name: ShieldService
 schemes:
   - http
@@ -163,6 +164,31 @@ paths:
             $ref: '#/definitions/GroupRequestBody'
       tags:
         - Group
+  /v1beta1/groups/{group_id}/servicedata:
+    put:
+      summary: Upsert Group Service Data
+      operationId: ServiceDataService_UpsertGroupServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpsertGroupServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpsertServiceDataRequestBody'
+      tags:
+        - Service Data
   /v1beta1/groups/{id}:
     get:
       summary: Get Group by ID
@@ -795,7 +821,7 @@ paths:
   /v1beta1/servicedata:
     post:
       summary: Create Service Data Key
-      operationId: ShieldService_CreateServiceDataKey
+      operationId: ServiceDataService_CreateServiceDataKey
       responses:
         "200":
           description: A successful response.
@@ -838,6 +864,14 @@ paths:
           type: integer
           format: int32
         - name: keyword
+          in: query
+          required: false
+          type: string
+        - name: sort
+          in: query
+          required: false
+          type: string
+        - name: direction
           in: query
           required: false
           type: string
@@ -991,6 +1025,31 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{user_id}/servicedata:
+    put:
+      summary: Upsert User Service Data
+      operationId: ServiceDataService_UpsertUserServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/UpsertUserServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          type: string
+        - name: body
+          in: body
+          required: true
+          schema:
+            $ref: '#/definitions/UpsertServiceDataRequestBody'
+      tags:
+        - Service Data
 definitions:
   Action:
     type: object
@@ -1694,6 +1753,29 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/User'
+  UpsertGroupServiceDataResponse:
+    type: object
+    properties:
+      data:
+        type: object
+        additionalProperties:
+          type: string
+  UpsertServiceDataRequestBody:
+    type: object
+    properties:
+      project:
+        type: string
+      data:
+        type: object
+        additionalProperties:
+          type: string
+  UpsertUserServiceDataResponse:
+    type: object
+    properties:
+      data:
+        type: object
+        additionalProperties:
+          type: string
   User:
     type: object
     properties:

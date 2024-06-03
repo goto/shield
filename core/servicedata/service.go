@@ -3,6 +3,8 @@ package servicedata
 import (
 	"context"
 
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
@@ -10,14 +12,19 @@ import (
 	"github.com/goto/shield/internal/schema"
 )
 
-const keyNamespace = "shield/servicedata_key"
+const (
+	keyNamespace = schema.ServiceDataKeyNamespace
+	editActionID = schema.EditPermission
+)
 
 type ResourceService interface {
 	Create(ctx context.Context, res resource.Resource) (resource.Resource, error)
+	GetByURN(ctx context.Context, urn string) (resource.Resource, error)
 }
 
 type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
 
 type ProjectService interface {
@@ -59,12 +66,12 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	}
 
 	// Get Project
-	project, err := s.projectService.Get(ctx, key.ProjectID)
+	prj, err := s.projectService.Get(ctx, key.ProjectID)
 	if err != nil {
 		return Key{}, err
 	}
-	key.ProjectID = project.ID
-	key.ProjectSlug = project.Slug
+	key.ProjectID = prj.ID
+	key.ProjectSlug = prj.Slug
 
 	// create URN
 	key.URN = key.CreateURN()
@@ -74,7 +81,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	ctx = s.repository.WithTransaction(ctx)
 
 	// insert the service data key
-	resource, err := s.resourceService.Create(ctx, resource.Resource{
+	res, err := s.resourceService.Create(ctx, resource.Resource{
 		Name:        key.URN,
 		NamespaceID: keyNamespace,
 		ProjectID:   key.ProjectID,
@@ -86,7 +93,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 		}
 		return Key{}, err
 	}
-	key.ResourceID = resource.Idxa
+	key.ResourceID = res.Idxa
 
 	// insert service data key to the servicedata_keys table
 	createdServiceDataKey, err := s.repository.CreateKey(ctx, key)
@@ -100,7 +107,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// create relation
 	_, err = s.relationService.Create(ctx, relation.RelationV2{
 		Object: relation.Object{
-			ID:          resource.Idxa,
+			ID:          res.Idxa,
 			NamespaceID: schema.ServiceDataKeyNamespace,
 		},
 		Subject: relation.Subject{
@@ -121,4 +128,44 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	}
 
 	return createdServiceDataKey, nil
+}
+
+func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error) {
+	if sd.Key.Key == "" {
+		return ServiceData{}, ErrInvalidDetail
+	}
+
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	prj, err := s.projectService.Get(ctx, sd.Key.ProjectID)
+	if err != nil {
+		return ServiceData{}, err
+	}
+	sd.Key.ProjectSlug = prj.Slug
+
+	sd.Key.URN = sd.Key.CreateURN()
+
+	sd.Key, err = s.repository.GetKeyByURN(ctx, sd.Key.URN)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+		sd.Key.ResourceID, action.Action{ID: editActionID})
+	if err != nil {
+		return ServiceData{}, err
+	}
+	if !permission {
+		return ServiceData{}, user.ErrInvalidEmail
+	}
+
+	returnedServiceData, err := s.repository.Upsert(ctx, sd)
+	if err != nil {
+		return ServiceData{}, err
+	}
+
+	return returnedServiceData, nil
 }
