@@ -265,6 +265,9 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 	if err := BootstrapGroup(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
+	if err := BootstrapResource(ctx, client, OrgAdminEmail, testDataPath); err != nil {
+		t.Fatal(err)
+	}
 	time.Sleep(10 * time.Second)
 	if err := AssignGroupManager(ctx, client, OrgAdminEmail); err != nil {
 		t.Fatal(err)

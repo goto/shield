@@ -125,7 +125,7 @@ func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (ser
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_SERVICE_DATA_KEYS,
-				Operation:  "GetByURN",
+				Operation:  "GetKeyByURN",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
