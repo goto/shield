@@ -13,6 +13,8 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
@@ -106,8 +108,26 @@ func TestHandler_CreateRelation(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "should return resource does not exist error when object id does not belong to a resource",
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, errors.New("resource does not exist"))
+			},
+			request: &shieldv1beta1.CreateRelationRequest{
+				Body: &shieldv1beta1.RelationRequestBody{
+					ObjectId:        testRelationV2.Object.ID,
+					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					RoleName:        testRelationV2.Subject.RoleID,
+				},
+			},
+			want:    nil,
+			wantErr: status.Errorf(codes.NotFound, "resource does not exist"),
+		},
+		{
 			name: "should return internal server error if resource service's CheckAuthz function returns some error",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
@@ -141,6 +161,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return permision denied error if resource service's CheckAuthz function returns false",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
@@ -160,6 +182,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return internal error if relation service return some error",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
@@ -191,6 +215,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,
@@ -222,6 +248,8 @@ func TestHandler_CreateRelation(t *testing.T) {
 		{
 			name: "should return success if relation service return nil",
 			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
 				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
 					Name:        testRelationV2.Object.ID,
 					NamespaceID: testRelationV2.Object.NamespaceID,

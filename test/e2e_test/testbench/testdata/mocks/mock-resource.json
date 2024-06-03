@@ -1,0 +1,10 @@
+[
+    {
+        "name": "47c412cf-d223-40ba-b8b3-895062980221",
+        "namespace_id": "guardian/appeal"
+    },
+    {
+        "name": "test-firehose",
+        "namespace_id": "entropy/firehose"
+    }
+]
