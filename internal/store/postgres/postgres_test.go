@@ -10,6 +10,9 @@ import (
 
 	"github.com/goto/salt/audit"
 	"github.com/goto/salt/log"
+	"github.com/ory/dockertest"
+	"github.com/ory/dockertest/docker"
+
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/group"
@@ -25,8 +28,6 @@ import (
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/internal/store/postgres/migrations"
 	"github.com/goto/shield/pkg/db"
-	"github.com/ory/dockertest"
-	"github.com/ory/dockertest/docker"
 )
 
 const (
@@ -38,17 +39,26 @@ const (
 
 func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
 	opts := &dockertest.RunOptions{
-		Repository: "postgres",
-		Tag:        "12",
+		Repository: "ishanarya0/pg-custom",
+		Tag:        "0.5.0",
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pg_passwd,
 			"POSTGRES_USER=" + pg_uname,
 			"POSTGRES_DB=" + pg_dbname,
 		},
+		Cmd: []string{"postgres",
+			"-c",
+			"log_statement=all",
+			"-c",
+			"log_destination=stderr",
+			"-c",
+			"shared_preload_libraries=pg_cron",
+			"-c",
+			"cron.database_name=" + pg_dbname},
 	}
 
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
-	pool, err := dockertest.NewPool("")
+	pool, err := dockertest.NewPool("unix:///Users/ishanarya/.rd/docker.sock")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create dockertest pool: %w", err)
 	}
