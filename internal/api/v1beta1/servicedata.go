@@ -169,7 +169,7 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 	for k, v := range requestBody.Data {
 		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
 			EntityID:    groupEntity.ID,
-			NamespaceID: groupNamepaceID,
+			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
 				Key:       k,
 				ProjectID: requestBody.Project,

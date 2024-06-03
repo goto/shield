@@ -46,7 +46,7 @@ var (
 	}
 	testGroupServiceDataCreate = servicedata.ServiceData{
 		EntityID:    testEntityID,
-		NamespaceID: groupNamepaceID,
+		NamespaceID: groupNamespaceID,
 		Key: servicedata.Key{
 			Key:       testKeyName,
 			ProjectID: testKeyProjectID,
@@ -255,7 +255,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		{
 			name: "should return bad body error if user id or email in param does not exist",
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
-				UserId: testEntityID,
+				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Data: map[string]string{
 						testKeyName: testValue,
@@ -263,7 +263,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				},
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
-				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testEntityID).Return(user.User{}, user.ErrInvalidEmail)
+				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(user.User{}, user.ErrInvalidEmail)
 				return ctx
 			},
 			want:    nil,
@@ -338,6 +338,10 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockServiceDataService := new(mocks.ServiceDataService)
 			mockUserService := new(mocks.UserService)
+			ctx := context.TODO()
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockServiceDataService, mockUserService)
+			}
 			mockDep := Handler{serviceDataService: mockServiceDataService, userService: mockUserService, serviceDataConfig: ServiceDataConfig{MaxUpsert: 1}}
 			resp, err := mockDep.UpsertUserServiceData(ctx, tt.request)
 			assert.EqualValues(t, tt.want, resp)
