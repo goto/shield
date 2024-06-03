@@ -298,13 +298,25 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 		ErrString    string
 	}
 
+	expected := servicedata.ServiceData{
+		NamespaceID: schema.UserPrincipal,
+		EntityID:    s.users[0].ID,
+		Key: servicedata.Key{
+			URN:        s.keys[0].URN,
+			ProjectID:  s.keys[0].ProjectID,
+			Key:        s.keys[0].Key,
+			ResourceID: s.keys[0].ResourceID,
+		},
+		Value: s.data[0].Value,
+	}
+
 	var testCases = []testCase{
 		{
 			Description: "should get a service data",
 			filter: servicedata.Filter{
 				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
 			},
-			ExpectedData: []servicedata.ServiceData{s.data[0]},
+			ExpectedData: []servicedata.ServiceData{expected},
 		},
 		{
 			Description: "should get none service data",
@@ -312,15 +324,15 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
 				Project:   s.projects[1].ID,
 			},
-			ExpectedData: []servicedata.ServiceData{},
 		},
 		{
 			Description: "should get err invalid detail",
 			filter: servicedata.Filter{
-				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
-				Project:   "invalid-project-id",
+				EntityIDs: [][]string{{schema.UserPrincipal, "invalid-entity-id"}},
+				Project:   "invalid-project-uuid",
 			},
-			ErrString: servicedata.ErrInvalidDetail.Error(),
+			ErrString:    servicedata.ErrInvalidDetail.Error(),
+			ExpectedData: []servicedata.ServiceData{},
 		},
 	}
 
