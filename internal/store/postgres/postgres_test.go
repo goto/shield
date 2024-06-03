@@ -22,6 +22,7 @@ import (
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/internal/store/postgres/migrations"
 	"github.com/goto/shield/pkg/db"
@@ -522,6 +523,36 @@ func bootstrapServiceDataKey(client *db.Client, resources []resource.Resource, p
 		}
 
 		insertedData = append(insertedData, insertedKey)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapServiceData(client *db.Client, users []user.User, keys []servicedata.Key) ([]servicedata.ServiceData, error) {
+	serviceDataRepository := postgres.NewServiceDataRepository(client)
+
+	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-servicedata.json")
+	if err != nil {
+		return nil, err
+	}
+
+	var data []servicedata.ServiceData
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []servicedata.ServiceData
+	for i, d := range data {
+		d.Key = keys[i]
+		d.EntityID = users[i].ID
+		d.NamespaceID = schema.UserPrincipal
+
+		data, err := serviceDataRepository.Upsert(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, data)
 	}
 
 	return insertedData, nil

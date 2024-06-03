@@ -11,6 +11,8 @@ import (
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/servicedata"
+	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
@@ -28,6 +30,8 @@ type ServiceDataRepositoryTestSuite struct {
 	keys       []servicedata.Key
 	projects   []project.Project
 	resources  []resource.Resource
+	data       []servicedata.ServiceData
+	users      []user.User
 }
 
 func (s *ServiceDataRepositoryTestSuite) SetupSuite() {
@@ -56,7 +60,7 @@ func (s *ServiceDataRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	users, err := bootstrapUser(s.client)
+	s.users, err = bootstrapUser(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -71,12 +75,17 @@ func (s *ServiceDataRepositoryTestSuite) SetupTest() {
 		s.T().Fatal(err)
 	}
 
-	s.resources, err = bootstrapResource(s.client, s.projects, organizations, namespaces, users)
+	s.resources, err = bootstrapResource(s.client, s.projects, organizations, namespaces, s.users)
 	if err != nil {
 		s.T().Fatal(err)
 	}
 
 	s.keys, err = bootstrapServiceDataKey(s.client, s.resources, s.projects)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.data, err = bootstrapServiceData(s.client, s.users, s.keys)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -276,6 +285,57 @@ func (s *ServiceDataRepositoryTestSuite) TestGetKeyByURN() {
 				"ID",
 			)) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedKey)
+			}
+		})
+	}
+}
+
+func (s *ServiceDataRepositoryTestSuite) TestGet() {
+	type testCase struct {
+		Description  string
+		filter       servicedata.Filter
+		ExpectedData []servicedata.ServiceData
+		ErrString    string
+	}
+
+	var testCases = []testCase{
+		{
+			Description: "should get a service data",
+			filter: servicedata.Filter{
+				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
+			},
+			ExpectedData: []servicedata.ServiceData{s.data[0]},
+		},
+		{
+			Description: "should get none service data",
+			filter: servicedata.Filter{
+				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
+				Project:   s.projects[1].ID,
+			},
+			ExpectedData: []servicedata.ServiceData{},
+		},
+		{
+			Description: "should get err invalid detail",
+			filter: servicedata.Filter{
+				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
+				Project:   "invalid-project-id",
+			},
+			ErrString: servicedata.ErrInvalidDetail.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.Get(s.ctx, tc.filter)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.ExpectedData, cmpopts.IgnoreFields(servicedata.Key{},
+				"ID",
+			)) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedData)
 			}
 		})
 	}
