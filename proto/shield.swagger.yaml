@@ -1297,7 +1297,7 @@ definitions:
   GetGroupServiceDataResponse:
     type: object
     properties:
-      servicedata:
+      data:
         type: object
   GetNamespaceResponse:
     type: object
@@ -1332,7 +1332,7 @@ definitions:
   GetUserServiceDataResponse:
     type: object
     properties:
-      servicedata:
+      data:
         type: object
   Group:
     type: object

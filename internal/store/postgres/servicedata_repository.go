@@ -170,7 +170,7 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 		return []servicedata.ServiceData{}, err
 	}
 
-	var serviceDataModel []GetServiceData
+	var serviceDataModel []ServiceData
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {

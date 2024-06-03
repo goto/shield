@@ -229,7 +229,7 @@ func (h Handler) GetUserServiceData(ctx context.Context, request *shieldv1beta1.
 	filter := servicedata.Filter{
 		ID:        usr.ID,
 		Namespace: userNamespaceID,
-		Entity:    entities,
+		Entities:  entities,
 		Project:   request.GetProject(),
 	}
 
@@ -254,7 +254,7 @@ func (h Handler) GetUserServiceData(ctx context.Context, request *shieldv1beta1.
 	}
 
 	return &shieldv1beta1.GetUserServiceDataResponse{
-		Servicedata: serviceDataPB,
+		Data: serviceDataPB,
 	}, nil
 }
 
@@ -301,7 +301,7 @@ func (h Handler) GetGroupServiceData(ctx context.Context, request *shieldv1beta1
 	}
 
 	return &shieldv1beta1.GetGroupServiceDataResponse{
-		Servicedata: serviceDataPB,
+		Data: serviceDataPB,
 	}, nil
 }
 

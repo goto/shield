@@ -534,7 +534,7 @@ func TestService_Get(t *testing.T) {
 			filter: servicedata.Filter{
 				ID:        testEntityID,
 				Namespace: schema.UserPrincipal,
-				Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+				Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 				Project:   testProjectSlug,
 			},
 			setup: func(t *testing.T) *servicedata.Service {
@@ -561,7 +561,7 @@ func TestService_Get(t *testing.T) {
 				repository.EXPECT().Get(mock.Anything, servicedata.Filter{
 					ID:        testEntityID,
 					Namespace: schema.UserPrincipal,
-					Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+					Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 					EntityIDs: [][]string{
 						{schema.UserPrincipal, testEntityID},
 						{schema.GroupPrincipal, testGroupID},
@@ -630,7 +630,7 @@ func TestService_Get(t *testing.T) {
 			name: "GetErrLookupResourceGroup",
 			filter: servicedata.Filter{
 				Namespace: schema.UserPrincipal,
-				Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+				Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 				ID:        testEntityID,
 			},
 			email: "jane.doe@gotocompany.com",
@@ -653,7 +653,7 @@ func TestService_Get(t *testing.T) {
 			name: "GetErrLookupResourceKey",
 			filter: servicedata.Filter{
 				Namespace: schema.UserPrincipal,
-				Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+				Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 				ID:        testEntityID,
 			},
 			email: "jane.doe@gotocompany.com",
@@ -680,7 +680,7 @@ func TestService_Get(t *testing.T) {
 			filter: servicedata.Filter{
 				ID:        testEntityID,
 				Namespace: schema.UserPrincipal,
-				Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+				Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 				Project:   testProjectSlug,
 			},
 			setup: func(t *testing.T) *servicedata.Service {
@@ -707,7 +707,7 @@ func TestService_Get(t *testing.T) {
 				repository.EXPECT().Get(mock.Anything, servicedata.Filter{
 					ID:        testEntityID,
 					Namespace: schema.UserPrincipal,
-					Entity:    []string{schema.UserPrincipal, schema.GroupPrincipal},
+					Entities:  []string{schema.UserPrincipal, schema.GroupPrincipal},
 					EntityIDs: [][]string{
 						{schema.UserPrincipal, testEntityID},
 						{schema.GroupPrincipal, testGroupID},

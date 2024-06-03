@@ -197,10 +197,10 @@ func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) 
 	if filter.Namespace == groupNamespace {
 		filter.EntityIDs = append(filter.EntityIDs, []string{groupNamespace, filter.ID})
 	}
-	if filter.Namespace == userNamespace && slices.Contains(filter.Entity, userNamespace) {
+	if filter.Namespace == userNamespace && slices.Contains(filter.Entities, userNamespace) {
 		filter.EntityIDs = append(filter.EntityIDs, []string{userNamespace, filter.ID})
 	}
-	if filter.Namespace == userNamespace && slices.Contains(filter.Entity, groupNamespace) {
+	if filter.Namespace == userNamespace && slices.Contains(filter.Entities, groupNamespace) {
 		entityGroup, err := s.relationService.LookupResources(ctx, groupNamespace, membershipPermission, userNamespace, filter.ID)
 		if err != nil {
 			return []ServiceData{}, err

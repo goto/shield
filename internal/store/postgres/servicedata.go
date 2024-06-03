@@ -20,21 +20,16 @@ type Key struct {
 }
 
 type ServiceData struct {
-	Key   string `db:"key"`
-	Value string `db:"value"`
-}
-
-type GetServiceData struct {
 	URN         string `db:"urn"`
-	ProjectID   string `db:"project_id"`
-	ResourceID  string `db:"resource_id"`
 	NamespaceID string `db:"namespace_id"`
 	EntityID    string `db:"entity_id"`
-	Key         string `db:"key"`
 	Value       string `db:"value"`
+	Key         string `db:"key"`
+	ProjectID   string `db:"project_id"`
+	ResourceID  string `db:"resource_id"`
 }
 
-func (from GetServiceData) transformToServiceData() servicedata.ServiceData {
+func (from ServiceData) transformToServiceData() servicedata.ServiceData {
 	return servicedata.ServiceData{
 		NamespaceID: from.NamespaceID,
 		EntityID:    from.EntityID,
@@ -57,14 +52,4 @@ func (from Key) transformToServiceDataKey() servicedata.Key {
 		Description: from.Description,
 		ResourceID:  from.ResourceID,
 	}
-}
-
-func (from ServiceData) transformToServiceData() servicedata.ServiceData {
-	data := servicedata.ServiceData{
-		Key: servicedata.Key{
-			Key: from.Key,
-		},
-		Value: from.Value,
-	}
-	return data
 }

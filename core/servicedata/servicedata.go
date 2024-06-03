@@ -40,7 +40,7 @@ type ServiceData struct {
 type Filter struct {
 	ID        string
 	Namespace string
-	Entity    []string
+	Entities  []string
 	EntityIDs [][]string
 	Project   string
 }
