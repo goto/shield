@@ -319,11 +319,19 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 			ExpectedData: []servicedata.ServiceData{expected},
 		},
 		{
-			Description: "should get none service data",
+			Description: "should get none service data if no data queried",
 			filter: servicedata.Filter{
 				EntityIDs: [][]string{{schema.UserPrincipal, s.users[0].ID}},
 				Project:   s.projects[1].ID,
 			},
+		},
+		{
+			Description: "should return none service data if filter entity ids is empty",
+			filter: servicedata.Filter{
+				EntityIDs: [][]string{},
+				Project:   s.projects[1].ID,
+			},
+			ExpectedData: []servicedata.ServiceData{},
 		},
 		{
 			Description: "should get err invalid detail",

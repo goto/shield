@@ -146,6 +146,10 @@ func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (ser
 }
 
 func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error) {
+	if len(filter.EntityIDs) == 0 {
+		return []servicedata.ServiceData{}, nil
+	}
+
 	sqlStatement := dialect.Select(
 		goqu.I("sk.urn"),
 		goqu.I("sk.project_id"),

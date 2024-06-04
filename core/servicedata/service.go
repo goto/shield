@@ -210,6 +210,10 @@ func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) 
 		}
 	}
 
+	if len(filter.EntityIDs) == 0 {
+		return []ServiceData{}, nil
+	}
+
 	// get all service data key resources that visible by current user
 	viewSD, err := s.relationService.LookupResources(ctx, keyNamespace, viewActionID, userNamespace, currentUser.ID)
 	if err != nil {
