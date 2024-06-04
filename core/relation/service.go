@@ -170,3 +170,7 @@ func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optio
 
 	return nil
 }
+
+func (s Service) LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error) {
+	return s.authzRepository.LookupResources(ctx, resourceType, permission, subjectType, subjectID)
+}

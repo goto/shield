@@ -79,6 +79,65 @@ func (_c *ServiceDataService_CreateKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// Get provides a mock function with given fields: ctx, filter
+func (_m *ServiceDataService) Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error) {
+	ret := _m.Called(ctx, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Get")
+	}
+
+	var r0 []servicedata.ServiceData
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.Filter) ([]servicedata.ServiceData, error)); ok {
+		return rf(ctx, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.Filter) []servicedata.ServiceData); ok {
+		r0 = rf(ctx, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]servicedata.ServiceData)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, servicedata.Filter) error); ok {
+		r1 = rf(ctx, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceDataService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
+type ServiceDataService_Get_Call struct {
+	*mock.Call
+}
+
+// Get is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter servicedata.Filter
+func (_e *ServiceDataService_Expecter) Get(ctx interface{}, filter interface{}) *ServiceDataService_Get_Call {
+	return &ServiceDataService_Get_Call{Call: _e.mock.On("Get", ctx, filter)}
+}
+
+func (_c *ServiceDataService_Get_Call) Run(run func(ctx context.Context, filter servicedata.Filter)) *ServiceDataService_Get_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(servicedata.Filter))
+	})
+	return _c
+}
+
+func (_c *ServiceDataService_Get_Call) Return(_a0 []servicedata.ServiceData, _a1 error) *ServiceDataService_Get_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceDataService_Get_Call) RunAndReturn(run func(context.Context, servicedata.Filter) ([]servicedata.ServiceData, error)) *ServiceDataService_Get_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Upsert provides a mock function with given fields: ctx, serviceData
 func (_m *ServiceDataService) Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error) {
 	ret := _m.Called(ctx, serviceData)

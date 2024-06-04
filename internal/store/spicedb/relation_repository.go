@@ -3,6 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
+	"io"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/relation"
@@ -221,4 +222,49 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 	}
 
 	return nil
+}
+
+func (r RelationRepository) LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error) {
+	request := &authzedpb.LookupResourcesRequest{
+		ResourceObjectType: resourceType,
+		Permission:         permission,
+		Subject: &authzedpb.SubjectReference{
+			Object: &authzedpb.ObjectReference{
+				ObjectType: subjectType,
+				ObjectId:   subjectID,
+			},
+		},
+	}
+
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s::subject:%s", resourceType, subjectType),
+			Operation:  "Lookup_Resources",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
+
+	response, err := r.spiceDB.client.LookupResources(ctx, request)
+	if err != nil {
+		return []string{}, err
+	}
+
+	var res []string
+	for {
+		resp, err := response.Recv()
+
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return []string{}, err
+		}
+
+		res = append(res, resp.ResourceObjectId)
+	}
+
+	return res, nil
 }

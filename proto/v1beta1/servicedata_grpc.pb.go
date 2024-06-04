@@ -22,6 +22,8 @@ const (
 	ServiceDataService_CreateServiceDataKey_FullMethodName   = "/gotocompany.shield.v1beta1.ServiceDataService/CreateServiceDataKey"
 	ServiceDataService_UpsertUserServiceData_FullMethodName  = "/gotocompany.shield.v1beta1.ServiceDataService/UpsertUserServiceData"
 	ServiceDataService_UpsertGroupServiceData_FullMethodName = "/gotocompany.shield.v1beta1.ServiceDataService/UpsertGroupServiceData"
+	ServiceDataService_GetUserServiceData_FullMethodName     = "/gotocompany.shield.v1beta1.ServiceDataService/GetUserServiceData"
+	ServiceDataService_GetGroupServiceData_FullMethodName    = "/gotocompany.shield.v1beta1.ServiceDataService/GetGroupServiceData"
 )
 
 // ServiceDataServiceClient is the client API for ServiceDataService service.
@@ -32,6 +34,8 @@ type ServiceDataServiceClient interface {
 	CreateServiceDataKey(ctx context.Context, in *CreateServiceDataKeyRequest, opts ...grpc.CallOption) (*CreateServiceDataKeyResponse, error)
 	UpsertUserServiceData(ctx context.Context, in *UpsertUserServiceDataRequest, opts ...grpc.CallOption) (*UpsertUserServiceDataResponse, error)
 	UpsertGroupServiceData(ctx context.Context, in *UpsertGroupServiceDataRequest, opts ...grpc.CallOption) (*UpsertGroupServiceDataResponse, error)
+	GetUserServiceData(ctx context.Context, in *GetUserServiceDataRequest, opts ...grpc.CallOption) (*GetUserServiceDataResponse, error)
+	GetGroupServiceData(ctx context.Context, in *GetGroupServiceDataRequest, opts ...grpc.CallOption) (*GetGroupServiceDataResponse, error)
 }
 
 type serviceDataServiceClient struct {
@@ -69,6 +73,24 @@ func (c *serviceDataServiceClient) UpsertGroupServiceData(ctx context.Context, i
 	return out, nil
 }
 
+func (c *serviceDataServiceClient) GetUserServiceData(ctx context.Context, in *GetUserServiceDataRequest, opts ...grpc.CallOption) (*GetUserServiceDataResponse, error) {
+	out := new(GetUserServiceDataResponse)
+	err := c.cc.Invoke(ctx, ServiceDataService_GetUserServiceData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *serviceDataServiceClient) GetGroupServiceData(ctx context.Context, in *GetGroupServiceDataRequest, opts ...grpc.CallOption) (*GetGroupServiceDataResponse, error) {
+	out := new(GetGroupServiceDataResponse)
+	err := c.cc.Invoke(ctx, ServiceDataService_GetGroupServiceData_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ServiceDataServiceServer is the server API for ServiceDataService service.
 // All implementations must embed UnimplementedServiceDataServiceServer
 // for forward compatibility
@@ -77,6 +99,8 @@ type ServiceDataServiceServer interface {
 	CreateServiceDataKey(context.Context, *CreateServiceDataKeyRequest) (*CreateServiceDataKeyResponse, error)
 	UpsertUserServiceData(context.Context, *UpsertUserServiceDataRequest) (*UpsertUserServiceDataResponse, error)
 	UpsertGroupServiceData(context.Context, *UpsertGroupServiceDataRequest) (*UpsertGroupServiceDataResponse, error)
+	GetUserServiceData(context.Context, *GetUserServiceDataRequest) (*GetUserServiceDataResponse, error)
+	GetGroupServiceData(context.Context, *GetGroupServiceDataRequest) (*GetGroupServiceDataResponse, error)
 	mustEmbedUnimplementedServiceDataServiceServer()
 }
 
@@ -92,6 +116,12 @@ func (UnimplementedServiceDataServiceServer) UpsertUserServiceData(context.Conte
 }
 func (UnimplementedServiceDataServiceServer) UpsertGroupServiceData(context.Context, *UpsertGroupServiceDataRequest) (*UpsertGroupServiceDataResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpsertGroupServiceData not implemented")
+}
+func (UnimplementedServiceDataServiceServer) GetUserServiceData(context.Context, *GetUserServiceDataRequest) (*GetUserServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetUserServiceData not implemented")
+}
+func (UnimplementedServiceDataServiceServer) GetGroupServiceData(context.Context, *GetGroupServiceDataRequest) (*GetGroupServiceDataResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetGroupServiceData not implemented")
 }
 func (UnimplementedServiceDataServiceServer) mustEmbedUnimplementedServiceDataServiceServer() {}
 
@@ -160,6 +190,42 @@ func _ServiceDataService_UpsertGroupServiceData_Handler(srv interface{}, ctx con
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ServiceDataService_GetUserServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetUserServiceDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceDataServiceServer).GetUserServiceData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceDataService_GetUserServiceData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceDataServiceServer).GetUserServiceData(ctx, req.(*GetUserServiceDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ServiceDataService_GetGroupServiceData_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetGroupServiceDataRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ServiceDataServiceServer).GetGroupServiceData(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ServiceDataService_GetGroupServiceData_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ServiceDataServiceServer).GetGroupServiceData(ctx, req.(*GetGroupServiceDataRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ServiceDataService_ServiceDesc is the grpc.ServiceDesc for ServiceDataService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -178,6 +244,14 @@ var ServiceDataService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpsertGroupServiceData",
 			Handler:    _ServiceDataService_UpsertGroupServiceData_Handler,
+		},
+		{
+			MethodName: "GetUserServiceData",
+			Handler:    _ServiceDataService_GetUserServiceData_Handler,
+		},
+		{
+			MethodName: "GetGroupServiceData",
+			Handler:    _ServiceDataService_GetGroupServiceData_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

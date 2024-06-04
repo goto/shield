@@ -165,6 +165,29 @@ paths:
       tags:
         - Group
   /v1beta1/groups/{group_id}/servicedata:
+    get:
+      summary: Get Group Service Data Key
+      operationId: ServiceDataService_GetGroupServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetGroupServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: group_id
+          in: path
+          required: true
+          type: string
+        - name: project
+          in: query
+          required: false
+          type: string
+      tags:
+        - Service Data
     put:
       summary: Upsert Group Service Data
       operationId: ServiceDataService_UpsertGroupServiceData
@@ -1026,6 +1049,36 @@ paths:
       tags:
         - User
   /v1beta1/users/{user_id}/servicedata:
+    get:
+      summary: Get User Service Data Key
+      operationId: ServiceDataService_GetUserServiceData
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetUserServiceDataResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: user_id
+          in: path
+          required: true
+          type: string
+        - name: entity
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: project
+          in: query
+          required: false
+          type: string
+      tags:
+        - Service Data
     put:
       summary: Upsert User Service Data
       operationId: ServiceDataService_UpsertUserServiceData
@@ -1241,6 +1294,11 @@ definitions:
     properties:
       group:
         $ref: '#/definitions/Group'
+  GetGroupServiceDataResponse:
+    type: object
+    properties:
+      data:
+        type: object
   GetNamespaceResponse:
     type: object
     properties:
@@ -1271,6 +1329,11 @@ definitions:
     properties:
       user:
         $ref: '#/definitions/User'
+  GetUserServiceDataResponse:
+    type: object
+    properties:
+      data:
+        type: object
   Group:
     type: object
     properties:

@@ -1095,3 +1095,499 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = UpsertGroupServiceDataResponseValidationError{}
+
+// Validate checks the field values on GetUserServiceDataRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUserServiceDataRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUserServiceDataRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUserServiceDataRequestMultiError, or nil if none found.
+func (m *GetUserServiceDataRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUserServiceDataRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	for idx, item := range m.GetEntity() {
+		_, _ = idx, item
+
+		if _, ok := _GetUserServiceDataRequest_Entity_InLookup[item]; !ok {
+			err := GetUserServiceDataRequestValidationError{
+				field:  fmt.Sprintf("Entity[%v]", idx),
+				reason: "value must be in list [user group]",
+			}
+			if !all {
+				return err
+			}
+			errors = append(errors, err)
+		}
+
+	}
+
+	// no validation rules for Project
+
+	if len(errors) > 0 {
+		return GetUserServiceDataRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUserServiceDataRequestMultiError is an error wrapping multiple validation
+// errors returned by GetUserServiceDataRequest.ValidateAll() if the
+// designated constraints aren't met.
+type GetUserServiceDataRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUserServiceDataRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUserServiceDataRequestMultiError) AllErrors() []error { return m }
+
+// GetUserServiceDataRequestValidationError is the validation error returned by
+// GetUserServiceDataRequest.Validate if the designated constraints aren't met.
+type GetUserServiceDataRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUserServiceDataRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUserServiceDataRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUserServiceDataRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUserServiceDataRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUserServiceDataRequestValidationError) ErrorName() string {
+	return "GetUserServiceDataRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUserServiceDataRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUserServiceDataRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUserServiceDataRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUserServiceDataRequestValidationError{}
+
+var _GetUserServiceDataRequest_Entity_InLookup = map[string]struct{}{
+	"user":  {},
+	"group": {},
+}
+
+// Validate checks the field values on GetGroupServiceDataRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetGroupServiceDataRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetGroupServiceDataRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetGroupServiceDataRequestMultiError, or nil if none found.
+func (m *GetGroupServiceDataRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetGroupServiceDataRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for GroupId
+
+	// no validation rules for Project
+
+	if len(errors) > 0 {
+		return GetGroupServiceDataRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetGroupServiceDataRequestMultiError is an error wrapping multiple
+// validation errors returned by GetGroupServiceDataRequest.ValidateAll() if
+// the designated constraints aren't met.
+type GetGroupServiceDataRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetGroupServiceDataRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetGroupServiceDataRequestMultiError) AllErrors() []error { return m }
+
+// GetGroupServiceDataRequestValidationError is the validation error returned
+// by GetGroupServiceDataRequest.Validate if the designated constraints aren't met.
+type GetGroupServiceDataRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetGroupServiceDataRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetGroupServiceDataRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetGroupServiceDataRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetGroupServiceDataRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetGroupServiceDataRequestValidationError) ErrorName() string {
+	return "GetGroupServiceDataRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetGroupServiceDataRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetGroupServiceDataRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetGroupServiceDataRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetGroupServiceDataRequestValidationError{}
+
+// Validate checks the field values on GetUserServiceDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetUserServiceDataResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetUserServiceDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetUserServiceDataResponseMultiError, or nil if none found.
+func (m *GetUserServiceDataResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetUserServiceDataResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetData()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetUserServiceDataResponseValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetUserServiceDataResponseValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetData()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetUserServiceDataResponseValidationError{
+				field:  "Data",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetUserServiceDataResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetUserServiceDataResponseMultiError is an error wrapping multiple
+// validation errors returned by GetUserServiceDataResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetUserServiceDataResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetUserServiceDataResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetUserServiceDataResponseMultiError) AllErrors() []error { return m }
+
+// GetUserServiceDataResponseValidationError is the validation error returned
+// by GetUserServiceDataResponse.Validate if the designated constraints aren't met.
+type GetUserServiceDataResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetUserServiceDataResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetUserServiceDataResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetUserServiceDataResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetUserServiceDataResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetUserServiceDataResponseValidationError) ErrorName() string {
+	return "GetUserServiceDataResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetUserServiceDataResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetUserServiceDataResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetUserServiceDataResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetUserServiceDataResponseValidationError{}
+
+// Validate checks the field values on GetGroupServiceDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *GetGroupServiceDataResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on GetGroupServiceDataResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// GetGroupServiceDataResponseMultiError, or nil if none found.
+func (m *GetGroupServiceDataResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetGroupServiceDataResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetData()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, GetGroupServiceDataResponseValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, GetGroupServiceDataResponseValidationError{
+					field:  "Data",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetData()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return GetGroupServiceDataResponseValidationError{
+				field:  "Data",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return GetGroupServiceDataResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetGroupServiceDataResponseMultiError is an error wrapping multiple
+// validation errors returned by GetGroupServiceDataResponse.ValidateAll() if
+// the designated constraints aren't met.
+type GetGroupServiceDataResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetGroupServiceDataResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetGroupServiceDataResponseMultiError) AllErrors() []error { return m }
+
+// GetGroupServiceDataResponseValidationError is the validation error returned
+// by GetGroupServiceDataResponse.Validate if the designated constraints
+// aren't met.
+type GetGroupServiceDataResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetGroupServiceDataResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetGroupServiceDataResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetGroupServiceDataResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetGroupServiceDataResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetGroupServiceDataResponseValidationError) ErrorName() string {
+	return "GetGroupServiceDataResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetGroupServiceDataResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetGroupServiceDataResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetGroupServiceDataResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetGroupServiceDataResponseValidationError{}
