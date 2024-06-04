@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/goto/salt/log"
@@ -72,7 +71,7 @@ func Serve(
 		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
 	)
 
-	httpMux.Handle(cfg.PublicAPIPrefix, http.StripPrefix(strings.TrimSuffix(cfg.PublicAPIPrefix, "/"), grpcServiceDataGateway))
+	httpMux.Handle(fmt.Sprintf("%s/", cfg.PublicAPIPrefix), http.StripPrefix(cfg.PublicAPIPrefix, grpcServiceDataGateway))
 
 	if err := shieldv1beta1.RegisterServiceDataServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
 		return err

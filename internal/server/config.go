@@ -66,5 +66,5 @@ type Config struct {
 
 	ServiceData ServiceDataConfig `yaml:"service_data" mapstructure:"service_data"`
 
-	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/api/"`
+	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/api"`
 }
