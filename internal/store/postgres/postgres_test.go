@@ -40,7 +40,7 @@ const (
 func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest.Resource, error) {
 	opts := &dockertest.RunOptions{
 		Repository: "ishanarya0/pg-custom",
-		Tag:        "0.5.0",
+		Tag:        "0.6.0",
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pg_passwd,
 			"POSTGRES_USER=" + pg_uname,

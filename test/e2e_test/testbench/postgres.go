@@ -22,7 +22,7 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Name:       name,
 		Repository: "ishanarya0/pg-custom",
-		Tag:        "0.5.0",
+		Tag:        "0.6.0",
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pgPasswd,
 			"POSTGRES_USER=" + pgUname,
