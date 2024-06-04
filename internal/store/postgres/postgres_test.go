@@ -58,7 +58,7 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 	}
 
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
-	pool, err := dockertest.NewPool("unix:///Users/ishanarya/.rd/docker.sock")
+	pool, err := dockertest.NewPool("")
 	if err != nil {
 		return nil, nil, nil, fmt.Errorf("could not create dockertest pool: %w", err)
 	}
