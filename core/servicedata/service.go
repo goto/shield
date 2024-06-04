@@ -210,7 +210,7 @@ func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) 
 		}
 	}
 
-	if len(filter.EntityIDs) <= 0 {
+	if len(filter.EntityIDs) == 0 {
 		return []ServiceData{}, nil
 	}
 

@@ -146,7 +146,7 @@ func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (ser
 }
 
 func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error) {
-	if len(filter.EntityIDs) <= 0 {
+	if len(filter.EntityIDs) == 0 {
 		return []servicedata.ServiceData{}, nil
 	}
 
