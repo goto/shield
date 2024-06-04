@@ -9,18 +9,6 @@ on:
 jobs:
   unit:
     runs-on: ubuntu-latest
-    services:
-      postgres:
-        image: postgres:12
-        ports:
-          - 5432:5432
-        env:
-          POSTGRES_PASSWORD: postgres
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -43,19 +31,6 @@ jobs:
   e2e-smoke-test:
     runs-on: ubuntu-latest
     services:
-      pg1:
-        image: postgres:12
-        env:
-          POSTGRES_DB: "shield"
-          POSTGRES_USER: "shield"
-          POSTGRES_HOST_AUTH_METHOD: "trust"
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd pg_isready
-          --health-interval 30s
-          --health-timeout 30s
-          --health-retries 3
       echo-server:
         image: ealen/echo-server
         ports:
