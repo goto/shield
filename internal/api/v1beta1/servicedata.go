@@ -7,12 +7,12 @@ import (
 	"fmt"
 
 	"github.com/goto/shield/core/group"
-	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"golang.org/x/exp/maps"
@@ -20,9 +20,9 @@ import (
 )
 
 var (
-	userNamespaceID      = namespace.DefinitionUser.ID
-	groupNamespaceID     = namespace.DefinitionTeam.ID
-	projectNamespaceID   = namespace.DefinitionProject.ID
+	userNamespaceID      = schema.UserPrincipal
+	groupNamespaceID     = schema.GroupPrincipal
+	projectNamespaceID   = schema.ProjectNamespace
 	entitiesNamespaceMap = map[string]string{
 		"user":  userNamespaceID,
 		"group": groupNamespaceID,
