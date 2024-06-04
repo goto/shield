@@ -207,7 +207,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 				BootstrapEnabled: true,
 				MaxNumUpsertData: 1,
 			},
-			PublicAPIPrefix: "/api",
+			PublicAPIPrefix: "/shield",
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{
