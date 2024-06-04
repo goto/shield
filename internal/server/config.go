@@ -65,4 +65,6 @@ type Config struct {
 	DefaultSystemEmail string `yaml:"default_system_email" mapstructure:"default_system_email"  default:"shield-service@gotocompany.com"`
 
 	ServiceData ServiceDataConfig `yaml:"service_data" mapstructure:"service_data"`
+
+	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/api"`
 }

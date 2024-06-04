@@ -71,7 +71,7 @@ func Serve(
 		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),
 	)
 
-	httpMux.Handle("/shield/", http.StripPrefix("/shield", grpcServiceDataGateway))
+	httpMux.Handle(fmt.Sprintf("%s/", cfg.PublicAPIPrefix), http.StripPrefix(cfg.PublicAPIPrefix, grpcServiceDataGateway))
 
 	if err := shieldv1beta1.RegisterServiceDataServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
 		return err
