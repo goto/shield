@@ -331,6 +331,7 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 				EntityIDs: [][]string{},
 				Project:   s.projects[1].ID,
 			},
+			ExpectedData: []servicedata.ServiceData{},
 		},
 		{
 			Description: "should get err invalid detail",
