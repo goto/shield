@@ -1,5 +1,7 @@
 package proxy
 
+import "github.com/goto/shield/pkg/telemetry"
+
 type ServicesConfig struct {
 	Services []Config `yaml:"services" mapstructure:"services"`
 }
@@ -18,4 +20,6 @@ type Config struct {
 	// RulesPathSecret could be a env name, file path or actual value required
 	// to access RulesPath files
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
+
+	Telemetry telemetry.Config `yaml:"telemetry" mapstructure:"telemetry"`
 }

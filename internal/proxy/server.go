@@ -6,6 +6,8 @@ import (
 	"net/http"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/salt/telemetry"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"golang.org/x/net/http2"
 	"golang.org/x/net/http2/h2c"
 )
@@ -16,6 +18,12 @@ func Serve(
 	cfg Config,
 	handler http.Handler,
 ) func(ctx context.Context) error {
+	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.Telemetry, logger)
+	if err != nil {
+		return err
+	}
+	defer cleanUpTelemetry()
+
 	proxyURL := fmt.Sprintf("%s:%d", cfg.Host, cfg.Port)
 	logger.Info("starting h2c proxy", "url", proxyURL)
 
@@ -25,7 +33,7 @@ func Serve(
 
 	proxySrv := http.Server{
 		Addr:    proxyURL,
-		Handler: h2c.NewHandler(mux, &http2.Server{}),
+		Handler: otelhttp.NewHandler(h2c.NewHandler(mux, &http2.Server{})),
 	}
 
 	go func(logger log.Logger, cfg Config) {
