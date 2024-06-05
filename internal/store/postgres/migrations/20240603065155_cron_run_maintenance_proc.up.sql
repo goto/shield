@@ -1,1 +1,1 @@
-SELECT cron.schedule('call-run_maintenance_proc', '0 2 * * *', 'CALL partman.run_maintenance_proc()');
+SELECT cron.schedule('call-run_maintenance_proc', '0 21 * * *', 'CALL partman.run_maintenance_proc()');

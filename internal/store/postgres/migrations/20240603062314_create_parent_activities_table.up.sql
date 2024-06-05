@@ -1,1 +1,1 @@
-SELECT partman.create_parent('public.activities','timestamp','native','1 month');
+SELECT partman.create_parent('public.activities','timestamp','native','monthly');
