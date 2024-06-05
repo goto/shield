@@ -21,8 +21,8 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 	name := fmt.Sprintf("postgres-%s", uuid.New().String())
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Name:       name,
-		Repository: "postgres",
-		Tag:        "12",
+		Repository: "gotocompany/postgres-partman",
+		Tag:        "1.0.0",
 		Env: []string{
 			"POSTGRES_PASSWORD=" + pgPasswd,
 			"POSTGRES_USER=" + pgUname,
@@ -30,6 +30,15 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 		},
 		ExposedPorts: []string{"5432/tcp"},
 		NetworkID:    network.ID,
+		Cmd: []string{"postgres",
+			"-c",
+			"log_statement=all",
+			"-c",
+			"log_destination=stderr",
+			"-c",
+			"shared_preload_libraries=pg_cron",
+			"-c",
+			"cron.database_name=" + dbName},
 	}, func(config *docker.HostConfig) {
 		config.RestartPolicy = docker.RestartPolicy{
 			Name: "no",
