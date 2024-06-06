@@ -1,1 +1,1 @@
-SELECT cron.schedule('call-partition_data_proc', '0 21 * * *', 'CALL partman.partition_data_proc("public.activities")');
+SELECT cron.schedule('call-partition_data_proc', '30 * * * *', 'CALL partman.partition_data_proc("public.activities")');
