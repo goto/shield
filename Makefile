@@ -52,6 +52,10 @@ proto: ## Generate the protobuf files
 help:
 	@grep -E '^[a-zA-Z0-9_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
+clean-doc:
+	@echo "> cleaning up auto-generated docs"
+	@rm -rf ./docs/docs/reference/cli.md
+
 doc: clean-doc ## Generate api and cli documentation
 	@echo "> generate cli docs"
 	@go run . reference --plain | sed '1 s,.*,# CLI,' > ./docs/docs/reference/cli.md

@@ -1,0 +1,49 @@
+---
+id: shield-service-delete-relation
+title: "Remove a subject having a role from an object"
+description: "Remove a subject having a role from an object"
+sidebar_label: "Remove a subject having a role from an object"
+hide_title: true
+hide_table_of_contents: true
+api: eJy9VMFu2zAM/RWBpw0Q6rS7+bQCzWHADkO7nYKgYCwmVidLrkQbDQz/+0Dbddyl2LBhqw62LFHke0+P7iDUFJFt8J8M5HBXWnLmjmJrC7q/IUdMt+SGANAQKdXBJ0qQd3C1WsnLUCqirYeIHK5VaoqCUto3Tj2HX4CGIngmz3IC69rZYsiZPSQ51kEqSqpQZnysCXIIuwcqGDTUUSCyHYtWlBIeaBGYOFp/gH4YGgztsXH8CjKvGk9PNRVMRlGMIf4PgEUwS3TWMx0ogoZ9iBXyuPThCnr9Cy5Cg9G6tNjDGPEIGixTlX6P4+O4fS6TBjTGCjd0X5ZH+uehocaIFTHFBPmmA4/VqdK9NYJCJK2Ry8EVj42NZCDn2JA+l+pUe86Vmn+YLAZHf51mq4HxIERhdvpW/2SeW6pCSwrVhFuV2Fp/UKikttrHUCn0ar6LirgM0lBmaCG5HcGVQ9Ze7ojxMhtDs24Wtc+m3Fl3EqfPJH/WybMfKO7DQMKyo7lfQUNLMY1QVxeXFyuxUB0SVziYd9LpT1m80GBWjumJs9qh9VKliU72RnobmOiBPvkyX/pmqizLLywwXWE+vLcaypBY8nXdDhN9i67vZfmxoXiEfLPV0GK0uBMVNh0Ym2RuIN+jS3QGfW5ueHc7OeO9Av06peeG89JuLbpGvkDDdzq+6AJx4BsWXuj1xpWHS+m3vYaS0FAcJB+3rouCal4cOvt3SoPN7XCz/rz+uoa+/wHn/Tdl
+sidebar_class_name: "delete api-method"
+info_path: apis/shield
+custom_edit_url: null
+---
+
+import ApiTabs from "@theme/ApiTabs";
+import DiscriminatorTabs from "@theme/DiscriminatorTabs";
+import MethodEndpoint from "@theme/ApiExplorer/MethodEndpoint";
+import SecuritySchemes from "@theme/ApiExplorer/SecuritySchemes";
+import MimeTabs from "@theme/MimeTabs";
+import ParamsItem from "@theme/ParamsItem";
+import ResponseSamples from "@theme/ResponseSamples";
+import SchemaItem from "@theme/SchemaItem";
+import SchemaTabs from "@theme/SchemaTabs";
+import Markdown from "@theme/Markdown";
+import OperationTabs from "@theme/OperationTabs";
+import TabItem from "@theme/TabItem";
+
+<h1 className={"openapi__heading"}>
+  Remove a subject having a role from an object
+</h1>
+
+<MethodEndpoint
+  method={"delete"}
+  path={"/v1beta1/object/{object_id}/subject/{subject_id}/role/{role}"}
+></MethodEndpoint>
+
+Remove a subject having a role from an object
+
+## Request
+
+<details style={{"marginBottom":"1rem"}} className={"openapi-markdown__details"} data-collapsed={false} open={true}><summary style={{}}><h3 className={"openapi-markdown__details-summary-header-params"}>Path Parameters</h3></summary><div><ul><ParamsItem className={"paramsItem"} param={{"name":"object_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"subject_id","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem><ParamsItem className={"paramsItem"} param={{"name":"role","in":"path","required":true,"schema":{"type":"string"}}}></ParamsItem></ul></div></details><div><div><ApiTabs label={undefined} id={undefined}><TabItem label={"200"} value={"200"}><div>
+
+A successful response.
+
+</div><div><MimeTabs className={"openapi-tabs__mime"} schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs className={"openapi-tabs__schema"}><TabItem label={"Schema"} value={"Schema"}><details style={{}} className={"openapi-markdown__details response"} data-collapsed={false} open={true}><summary style={{}} className={"openapi-markdown__details-summary-response"}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"message"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"message\": \"string\"\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem><TabItem label={"default"} value={"default"}><div>
+
+An unexpected error response.
+
+</div><div><MimeTabs className={"openapi-tabs__mime"} schemaType={"response"}><TabItem label={"application/json"} value={"application/json"}><SchemaTabs className={"openapi-tabs__schema"}><TabItem label={"Schema"} value={"Schema"}><details style={{}} className={"openapi-markdown__details response"} data-collapsed={false} open={true}><summary style={{}} className={"openapi-markdown__details-summary-response"}><strong>Schema</strong></summary><div style={{"textAlign":"left","marginLeft":"1rem"}}></div><ul style={{"marginLeft":"1rem"}}><SchemaItem collapsible={false} name={"code"} required={false} schemaName={"int32"} qualifierMessage={undefined} schema={{"type":"integer","format":"int32"}}></SchemaItem><SchemaItem collapsible={false} name={"message"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><SchemaItem collapsible={true} className={"schemaItem"}><details style={{}} className={"openapi-markdown__details"}><summary style={{}}><span className={"openapi-schema__container"}><strong className={"openapi-schema__property"}>details</strong><span className={"openapi-schema__name"}> object[]</span></span></summary><div style={{"marginLeft":"1rem"}}><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem","paddingBottom":".5rem"}}>Array [</div></li><SchemaItem collapsible={false} name={"@type"} required={false} schemaName={"string"} qualifierMessage={undefined} schema={{"type":"string"}}></SchemaItem><li><div style={{"fontSize":"var(--ifm-code-font-size)","opacity":"0.6","marginLeft":"-.5rem"}}>]</div></li></div></details></SchemaItem></ul></details></TabItem><TabItem label={"Example (from schema)"} value={"Example (from schema)"}><ResponseSamples responseExample={"{\n  \"code\": 0,\n  \"message\": \"string\",\n  \"details\": [\n    {\n      \"@type\": \"string\"\n    }\n  ]\n}"} language={"json"}></ResponseSamples></TabItem></SchemaTabs></TabItem></MimeTabs></div></TabItem></ApiTabs></div></div>
+
