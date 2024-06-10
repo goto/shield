@@ -174,7 +174,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 		}
 	}
 
-	var isAllowed = false
+	isAllowed := false
 	compiledAction, err := CompileString(conf.Scope.Action, templateMap)
 	if err != nil {
 		w.log.Error("middleware: action parsing failed", "err", err)

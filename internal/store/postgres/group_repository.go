@@ -15,7 +15,10 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type GroupRepository struct {
@@ -40,6 +43,14 @@ func (r GroupRepository) GetByID(ctx context.Context, id string) (group.Group, e
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_GROUPS),
+		}...,
+	)
 
 	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -83,10 +94,17 @@ func (r GroupRepository) GetBySlug(ctx context.Context, slug string) (group.Grou
 	query, params, err := dialect.From(TABLE_GROUPS).Where(goqu.Ex{
 		"slug": slug,
 	}).ToSQL()
-
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetBySlug"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_GROUPS),
+		}...,
+	)
 
 	var groupModel Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -137,6 +155,14 @@ func (r GroupRepository) GetByIDs(ctx context.Context, groupIDs []string) ([]gro
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByIDs"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_GROUPS),
+		}...,
+	)
+
 	// this query will return empty array of groups if no UUID is not matched
 	// TODO: check and fox what to do in this scenerio
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -186,6 +212,14 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_GROUPS),
+		}...,
+	)
 
 	query, params, err := dialect.Insert(TABLE_GROUPS).Rows(
 		goqu.Record{
@@ -243,6 +277,14 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 	if err != nil {
 		return []group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_GROUPS),
+		}...,
+	)
 
 	var fetchedGroups []Group
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {

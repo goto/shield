@@ -61,7 +61,8 @@ func New(
 	userIDHeaderKey string,
 	resourceService ResourceService,
 	userService UserService,
-	groupService GroupService) *Authz {
+	groupService GroupService,
+) *Authz {
 	return &Authz{
 		log:             log,
 		userIDHeaderKey: userIDHeaderKey,

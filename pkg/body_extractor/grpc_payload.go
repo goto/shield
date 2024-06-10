@@ -53,9 +53,7 @@ func (p *payloadProtoCacheMutex) Set(key string, msgDescriptor *desc.MessageDesc
 	p.payloadProtoCache[key] = msgDescriptor
 }
 
-var (
-	payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
-)
+var payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
 
 type Query struct {
 	Field    int    `json:"field"`

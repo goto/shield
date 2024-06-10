@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	auditKeyPolicyCreate = "policy.create"
+	auditKeyPolicyUpsert = "policy.upsert"
 	auditKeyPolicyUpdate = "policy.update"
 )
 
@@ -47,13 +47,13 @@ func (s Service) List(ctx context.Context) ([]Policy, error) {
 	return s.repository.List(ctx)
 }
 
-func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
+func (s Service) Upsert(ctx context.Context, policy Policy) ([]Policy, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return []Policy{}, err
 	}
 
-	policyId, err := s.repository.Create(ctx, policy)
+	policyId, err := s.repository.Upsert(ctx, policy)
 	if err != nil {
 		return []Policy{}, err
 	}
@@ -66,7 +66,7 @@ func (s Service) Create(ctx context.Context, policy Policy) ([]Policy, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		policyLogData := policy.ToPolicyLogData(policyId)
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
-		if err := s.activityService.Log(ctx, auditKeyPolicyCreate, actor, policyLogData); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyPolicyUpsert, actor, policyLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

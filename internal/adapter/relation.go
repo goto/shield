@@ -34,7 +34,7 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 
 	// If Principal is a user, then we will get ID for that user as Subject.ID
 	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
-		var userID = rel.Subject.ID
+		userID := rel.Subject.ID
 
 		if !uuid.IsValid(userID) {
 			fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
@@ -48,7 +48,7 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 		rel.Subject.ID = userID
 	} else if rel.Subject.Namespace == schema.GroupPrincipal || rel.Subject.Namespace == "group" {
 		// If Principal is a group, then we will get ID for that group as Subject.ID
-		var groupID = rel.Subject.ID
+		groupID := rel.Subject.ID
 
 		if !uuid.IsValid(groupID) {
 			fetchedGroup, err := a.groupService.GetBySlug(ctx, rel.Subject.ID)

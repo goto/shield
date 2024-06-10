@@ -142,7 +142,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 		}
 
 		// parse all urls at this time only to avoid doing it usage
-		var rxParsingSuccess = true
+		rxParsingSuccess := true
 		for ruleIdx, rule := range targetRuleSet.Rules {
 			// TODO: only compile between delimiter, maybe angular brackets
 			targetRuleSet.Rules[ruleIdx].Frontend.URLRx, err = regexp.Compile(rule.Frontend.URL)

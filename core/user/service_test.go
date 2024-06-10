@@ -49,10 +49,12 @@ func TestService_Create(t *testing.T) {
 				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com"}).
+						Email: "john.doe@gotocompany.com",
+					}).
 					Return(user.User{
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com"}, nil).Once()
+						Email: "john.doe@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
@@ -85,10 +87,12 @@ func TestService_Create(t *testing.T) {
 				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "Jane Doe",
-						Email: "jane.doe@gotocompany.com"}).
+						Email: "jane.doe@gotocompany.com",
+					}).
 					Return(user.User{
 						Name:  "Jane Doe",
-						Email: "jane.doe@gotocompany.com"}, nil).Once()
+						Email: "jane.doe@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
@@ -191,10 +195,12 @@ func TestService_CreateMetadataKey(t *testing.T) {
 				repository.EXPECT().
 					CreateMetadataKey(mock.Anything, user.UserMetadataKey{
 						Key:         "test-key",
-						Description: "description for test-key"}).
+						Description: "description for test-key",
+					}).
 					Return(user.UserMetadataKey{
 						Key:         "test-key",
-						Description: "description for test-key"}, nil).Once()
+						Description: "description for test-key",
+					}, nil).Once()
 				activityService.EXPECT().
 					Log(mock.Anything, "user_metadata_key.create", activity.Actor{}, user.UserMetadataKeyLogData{
 						Entity:      "user_metadata_key",
@@ -377,11 +383,13 @@ func TestService_UpdateByID(t *testing.T) {
 					UpdateByID(mock.Anything, user.User{
 						ID:    "1",
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com"}).
+						Email: "john.doe2@gotocompany.com",
+					}).
 					Return(user.User{
 						ID:    "1",
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com"}, nil).Once()
+						Email: "john.doe2@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
@@ -445,10 +453,12 @@ func TestService_UpdateByEmail(t *testing.T) {
 				repository.EXPECT().
 					UpdateByEmail(mock.Anything, user.User{
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com"}).
+						Email: "john.doe2@gotocompany.com",
+					}).
 					Return(user.User{
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com"}, nil).Once()
+						Email: "john.doe2@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
@@ -507,7 +517,8 @@ func TestService_GetByEmail(t *testing.T) {
 					Return(user.User{
 						ID:    "1",
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com"}, nil).Once()
+						Email: "john.doe@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
@@ -566,7 +577,8 @@ func TestService_GetByID(t *testing.T) {
 					Return(user.User{
 						ID:    "qwer-1234-tyui-5678-opas-90",
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com"}, nil).Once()
+						Email: "john.doe@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
@@ -625,7 +637,8 @@ func TestService_FetchCurrentUser(t *testing.T) {
 					Return(user.User{
 						ID:    "qwer-1234-tyui-5678-opas-90",
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com"}, nil).Once()
+						Email: "john.doe@gotocompany.com",
+					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()

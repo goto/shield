@@ -32,9 +32,7 @@ type GroupService interface {
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
 }
 
-var (
-	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
-)
+var grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)

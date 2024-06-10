@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/pkg/httputil"
 )
@@ -45,6 +46,10 @@ func ExtractMiddleware(r *http.Request, name string) (rule.MiddlewareSpec, bool)
 		return rule.MiddlewareSpec{}, false
 	}
 	return rl.Middlewares.Get(name)
+}
+
+func EnrichRequestWithMuxRouteAndVars(r *http.Request, route *mux.Route, vars map[string]string) {
+	*r = *r.WithContext(httputil.SetContextWithMuxRouteAndVars(r.Context(), route, vars))
 }
 
 func EnrichPathParams(r *http.Request, params map[string]string) {

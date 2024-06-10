@@ -499,7 +499,6 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		want    *shieldv1beta1.UpdateGroupResponse
 		wantErr error
 	}{
-
 		{
 			name: "should return internal error if group service return some error",
 			setup: func(gs *mocks.GroupService) {

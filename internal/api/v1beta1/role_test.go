@@ -104,7 +104,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return internal error if role service return some error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -131,7 +131,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if namespace id not exist",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
@@ -158,7 +158,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if name empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
@@ -183,7 +183,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return bad request error if id empty",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), role.Role{
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,
 					NamespaceID: testRoleMap[testRoleID].NamespaceID,
@@ -207,7 +207,7 @@ func TestHandler_CreateRole(t *testing.T) {
 		{
 			name: "should return success if role service return nil error",
 			setup: func(rs *mocks.RoleService) {
-				rs.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), role.Role{
+				rs.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), role.Role{
 					ID:          testRoleMap[testRoleID].ID,
 					Name:        testRoleMap[testRoleID].Name,
 					Types:       testRoleMap[testRoleID].Types,

@@ -123,7 +123,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), policy.Policy{
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
@@ -140,7 +140,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return bad request error if foreign reference not exist",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), policy.Policy{
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
@@ -157,7 +157,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return success if policy service return nil error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), policy.Policy{
 					NamespaceID: "policy-1",
 					RoleID:      "reader",
 					ActionID:    "read",

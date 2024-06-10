@@ -58,7 +58,8 @@ func TestNewQuery(t *testing.T) {
 			},
 			{
 				Field:    2,
-				DataType: String},
+				DataType: String,
+			},
 		}, parsedQuery)
 	})
 

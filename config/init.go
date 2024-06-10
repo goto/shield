@@ -61,11 +61,11 @@ func Init(resourcesURL, rulesURL, configFile string) error {
 
 	if _, err := os.Stat(configFile); os.IsNotExist(err) {
 		if !file.DirExists(configFile) {
-			_ = os.MkdirAll(filepath.Dir(configFile), 0755)
+			_ = os.MkdirAll(filepath.Dir(configFile), 0o755)
 		}
 	}
 
-	if err := ioutil.WriteFile(configFile, data, 0655); err != nil {
+	if err := ioutil.WriteFile(configFile, data, 0o655); err != nil {
 		return err
 	}
 
@@ -85,7 +85,7 @@ func initResourcesPath(resURL string) error {
 
 	resourcesPath := resourceURL.Path
 	if !file.DirExists(resourcesPath) {
-		_ = os.MkdirAll(resourcesPath, 0755)
+		_ = os.MkdirAll(resourcesPath, 0o755)
 	}
 
 	files, err := ioutil.ReadDir(resourcesPath)
@@ -105,7 +105,7 @@ func initResourcesPath(resURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(resourcesPath, "resources.yaml"), resourceYaml, 0655); err != nil {
+	if err := ioutil.WriteFile(path.Join(resourcesPath, "resources.yaml"), resourceYaml, 0o655); err != nil {
 		return err
 	}
 
@@ -126,7 +126,7 @@ func initRulesPath(rURL string) error {
 	rulesPath := rulesURL.Path
 
 	if !file.DirExists(rulesPath) {
-		_ = os.MkdirAll(rulesPath, 0755)
+		_ = os.MkdirAll(rulesPath, 0o755)
 	}
 
 	files, err := ioutil.ReadDir(rulesPath)
@@ -146,7 +146,7 @@ func initRulesPath(rURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.rest.yaml"), ruleRestYaml, 0655); err != nil {
+	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.rest.yaml"), ruleRestYaml, 0o655); err != nil {
 		return err
 	}
 
@@ -155,7 +155,7 @@ func initRulesPath(rURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.grpc.yaml"), ruleRestGrpc, 0655); err != nil {
+	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.grpc.yaml"), ruleRestGrpc, 0o655); err != nil {
 		return err
 	}
 

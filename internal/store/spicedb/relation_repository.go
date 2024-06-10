@@ -11,7 +11,7 @@ import (
 	"github.com/goto/shield/internal/store/spicedb/schema_generator"
 
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 )
 
 type RelationRepository struct {
@@ -255,7 +255,6 @@ func (r RelationRepository) LookupResources(ctx context.Context, resourceType, p
 	var res []string
 	for {
 		resp, err := response.Recv()
-
 		if err != nil {
 			if err == io.EOF {
 				break

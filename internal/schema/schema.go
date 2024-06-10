@@ -39,19 +39,19 @@ type NamespaceConfig struct {
 type NamespaceConfigMapType map[string]NamespaceConfig
 
 type NamespaceService interface {
-	Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
+	Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error)
 }
 
 type RoleService interface {
-	Create(ctx context.Context, toCreate role.Role) (role.Role, error)
+	Upsert(ctx context.Context, toCreate role.Role) (role.Role, error)
 }
 
 type PolicyService interface {
-	Create(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
+	Upsert(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
 }
 
 type ActionService interface {
-	Create(ctx context.Context, action action.Action) (action.Action, error)
+	Upsert(ctx context.Context, action action.Action) (action.Action, error)
 }
 
 type FileService interface {
@@ -91,7 +91,8 @@ func NewSchemaMigrationService(
 	policyService PolicyService,
 	authzEngine AuthzEngine,
 	userRepository UserRepository,
-	schemaMigrationConfig SchemaMigrationConfig) *SchemaService {
+	schemaMigrationConfig SchemaMigrationConfig,
+) *SchemaService {
 	return &SchemaService{
 		schemaConfig:          schemaConfig,
 		namespaceService:      namespaceService,
@@ -147,7 +148,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		}
 	}
 
-	//spiceDBSchema := GenerateSchema(namespaceConfigMap)
+	// spiceDBSchema := GenerateSchema(namespaceConfigMap)
 
 	// iterate over namespace
 	for namespaceId, v := range namespaceConfigMap {
@@ -159,7 +160,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			backend = st[0]
 			resourceType = st[1]
 		}
-		_, err := s.namespaceService.Create(ctx, namespace.Namespace{
+		_, err := s.namespaceService.Upsert(ctx, namespace.Namespace{
 			ID:           namespaceId,
 			Name:         namespaceId,
 			Backend:      backend,
@@ -171,7 +172,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 
 		// create roles
 		for roleId, principals := range v.Roles {
-			_, err := s.roleService.Create(ctx, role.Role{
+			_, err := s.roleService.Upsert(ctx, role.Role{
 				ID:          fmt.Sprintf("%s:%s", namespaceId, roleId),
 				Name:        roleId,
 				Types:       principals,
@@ -184,7 +185,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 
 		// create role for inherited namespaces
 		for _, ins := range v.InheritedNamespaces {
-			_, err := s.roleService.Create(ctx, role.Role{
+			_, err := s.roleService.Upsert(ctx, role.Role{
 				ID:          fmt.Sprintf("%s:%s", namespaceId, ins.Name),
 				Name:        ins.Name,
 				Types:       []string{ins.NamespaceId},
@@ -198,7 +199,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		// create actions
 		// IMP: we should depreciate actions with principals
 		for actionId := range v.Permissions {
-			_, err := s.actionService.Create(ctx, action.Action{
+			_, err := s.actionService.Upsert(ctx, action.Action{
 				ID:          fmt.Sprintf("%s.%s", actionId, namespaceId),
 				Name:        actionId,
 				NamespaceID: namespaceId,
@@ -222,7 +223,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					return fmt.Errorf("role %s not associated with namespace: %s", transformedRole.ID, transformedRole.NamespaceID)
 				}
 
-				_, err = s.policyService.Create(ctx, policy.Policy{
+				_, err = s.policyService.Upsert(ctx, policy.Policy{
 					RoleID:      GetRoleID(GetNamespace(transformedRole.NamespaceID), transformedRole.ID),
 					NamespaceID: namespaceId,
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),

@@ -7,6 +7,7 @@ import (
 	authzedpb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 
 	"github.com/goto/salt/log"
 	"google.golang.org/grpc"
@@ -32,6 +33,7 @@ func New(config Config, logger log.Logger) (*SpiceDB, error) {
 	endpoint := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	client, err := authzed.NewClient(
 		endpoint,
+		grpc.WithStatsHandler(otelgrpc.NewClientHandler()),
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 		grpcutil.WithInsecureBearerToken(config.PreSharedKey),
 	)

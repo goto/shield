@@ -11,7 +11,10 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type ActionRepository struct {
@@ -39,6 +42,14 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 		return action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIONS),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -62,11 +73,18 @@ func (r ActionRepository) Get(ctx context.Context, id string) (action.Action, er
 	return fetchedAction.transformToAction(), nil
 }
 
-// TODO this is actually an upsert
-func (r ActionRepository) Create(ctx context.Context, act action.Action) (action.Action, error) {
+func (r ActionRepository) Upsert(ctx context.Context, act action.Action) (action.Action, error) {
 	if strings.TrimSpace(act.ID) == "" {
 		return action.Action{}, action.ErrInvalidID
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIONS),
+		}...,
+	)
 
 	nsID := act.NamespaceID
 	query, params, err := dialect.Insert(TABLE_ACTIONS).Rows(
@@ -89,7 +107,7 @@ func (r ActionRepository) Create(ctx context.Context, act action.Action) (action
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ACTIONS,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -115,6 +133,14 @@ func (r ActionRepository) List(ctx context.Context) ([]action.Action, error) {
 	if err != nil {
 		return []action.Action{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIONS),
+		}...,
+	)
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -152,6 +178,14 @@ func (r ActionRepository) Update(ctx context.Context, act action.Action) (action
 	if strings.TrimSpace(act.Name) == "" {
 		return action.Action{}, action.ErrInvalidDetail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIONS),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_ACTIONS).Set(
 		goqu.Record{

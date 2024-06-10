@@ -6,9 +6,7 @@ import (
 	"regexp"
 )
 
-var (
-	ErrUnknown = errors.New("undefined proxy rule")
-)
+var ErrUnknown = errors.New("undefined proxy rule")
 
 type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]Ruleset, error)

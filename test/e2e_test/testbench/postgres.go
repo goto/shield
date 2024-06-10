@@ -30,7 +30,8 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 		},
 		ExposedPorts: []string{"5432/tcp"},
 		NetworkID:    network.ID,
-		Cmd: []string{"postgres",
+		Cmd: []string{
+			"postgres",
 			"-c",
 			"log_statement=all",
 			"-c",
@@ -38,7 +39,8 @@ func initPG(logger log.Logger, network *docker.Network, pool *dockertest.Pool, d
 			"-c",
 			"shared_preload_libraries=pg_cron",
 			"-c",
-			"cron.database_name=" + dbName},
+			"cron.database_name=" + dbName,
+		},
 	}, func(config *docker.HostConfig) {
 		config.RestartPolicy = docker.RestartPolicy{
 			Name: "no",

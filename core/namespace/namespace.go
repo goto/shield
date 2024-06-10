@@ -10,7 +10,7 @@ const auditEntity = "namespace"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
-	Create(ctx context.Context, ns Namespace) (Namespace, error)
+	Upsert(ctx context.Context, ns Namespace) (Namespace, error)
 	List(ctx context.Context) ([]Namespace, error)
 	Update(ctx context.Context, ns Namespace) (Namespace, error)
 }

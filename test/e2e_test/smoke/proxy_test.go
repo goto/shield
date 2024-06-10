@@ -130,7 +130,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var resourceName = ""
+		resourceName := ""
 		for resources.Next() {
 			if err := resources.Scan(&resourceName); err != nil {
 				s.Require().NoError(err)
@@ -302,7 +302,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var resourceName = ""
+		resourceName := ""
 		for resources.Next() {
 			if err := resources.Scan(&resourceName); err != nil {
 				s.Require().NoError(err)
@@ -315,7 +315,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var subjectID = ""
+		subjectID := ""
 		for relations.Next() {
 			if err := relations.Scan(&subjectID); err != nil {
 				s.Require().NoError(err)
@@ -351,7 +351,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var resourceName = ""
+		resourceName := ""
 		for resources.Next() {
 			if err := resources.Scan(&resourceName); err != nil {
 				s.Require().NoError(err)
@@ -364,7 +364,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var subjectID = ""
+		subjectID := ""
 		for relations.Next() {
 			if err := relations.Scan(&subjectID); err != nil {
 				s.Require().NoError(err)
@@ -403,7 +403,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var resourceName = ""
+		resourceName := ""
 		for resources.Next() {
 			if err := resources.Scan(&resourceName); err != nil {
 				s.Require().NoError(err)
@@ -416,7 +416,7 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Require().NoError(err)
 		defer resources.Close()
 
-		var subjectID = ""
+		subjectID := ""
 		for relations.Next() {
 			if err := relations.Scan(&subjectID); err != nil {
 				s.Require().NoError(err)

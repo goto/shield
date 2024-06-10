@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	auditKeyRoleCreate = "role.create"
+	auditKeyRoleUpsert = "role.upsert"
 	auditKeyRoleUpdate = "role.update"
 )
 
@@ -39,13 +39,13 @@ func NewService(logger log.Logger, repository Repository, userService UserServic
 	}
 }
 
-func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
+func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Role{}, err
 	}
 
-	roleID, err := s.repository.Create(ctx, toCreate)
+	roleID, err := s.repository.Upsert(ctx, toCreate)
 	if err != nil {
 		return Role{}, err
 	}
@@ -59,7 +59,7 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 		ctx := pkgctx.WithoutCancel(ctx)
 		roleLogData := newRole.ToRoleLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
-		if err := s.activityService.Log(ctx, auditKeyRoleCreate, actor, roleLogData); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRoleUpsert, actor, roleLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()

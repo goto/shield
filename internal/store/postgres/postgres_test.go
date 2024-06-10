@@ -47,7 +47,8 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 			"POSTGRES_USER=" + pg_uname,
 			"POSTGRES_DB=" + pg_dbname,
 		},
-		Cmd: []string{"postgres",
+		Cmd: []string{
+			"postgres",
 			"-c",
 			"log_statement=all",
 			"-c",
@@ -55,7 +56,8 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 			"-c",
 			"shared_preload_libraries=pg_cron",
 			"-c",
-			"cron.database_name=" + pg_dbname},
+			"cron.database_name=" + pg_dbname,
+		},
 	}
 
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
@@ -148,7 +150,7 @@ func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
 }
 
 func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Config) (err error) {
-	var queries = []string{
+	queries := []string{
 		"DROP SCHEMA public CASCADE",
 		"CREATE SCHEMA public",
 	}
@@ -186,7 +188,7 @@ func bootstrapAction(client *db.Client) ([]action.Action, error) {
 
 	var insertedData []action.Action
 	for _, d := range data {
-		act, err := actionRepository.Create(context.Background(), d)
+		act, err := actionRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -211,7 +213,7 @@ func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 
 	var insertedData []namespace.Namespace
 	for _, d := range data {
-		domain, err := namespaceRepository.Create(context.Background(), d)
+		domain, err := namespaceRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -286,7 +288,7 @@ func bootstrapRole(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := roleRepository.Create(context.Background(), d)
+		domain, err := roleRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -311,7 +313,7 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := policyRepository.Create(context.Background(), d)
+		domain, err := policyRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -435,7 +437,8 @@ func bootstrapResource(
 	projects []project.Project,
 	orgs []organization.Organization,
 	namespaces []namespace.Namespace,
-	users []user.User) ([]resource.Resource, error) {
+	users []user.User,
+) ([]resource.Resource, error) {
 	resRepository := postgres.NewResourceRepository(client)
 	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
 	if err != nil {

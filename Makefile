@@ -18,11 +18,15 @@ generate: ## run all go generate in the code base (including generating mock fil
 	@mockery
 
 lint: ## Run linters
-	golangci-lint run
+	@golangci-lint run
+
+format:
+	@echo "Running gofumpt..."
+	@gofumpt -l -w .
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/) -coverprofile=coverage.out
+	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/ | grep -v /proto/) -coverprofile=coverage.out
 
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -coverprofile=coverage.out

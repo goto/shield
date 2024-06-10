@@ -126,7 +126,7 @@ func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
 	if err != nil {
 		return PagedUsers{}, err
 	}
-	//TODO might better to do this in handler level
+	// TODO might better to do this in handler level
 	return PagedUsers{
 		Count: int32(len(users)),
 		Users: users,

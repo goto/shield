@@ -2,17 +2,19 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
-
-	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type RelationRepository struct {
@@ -40,6 +42,14 @@ func (r RelationRepository) Create(ctx context.Context, relationToCreate relatio
 	if err != nil {
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RELATIONS),
+		}...,
+	)
 
 	var relationModel Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -73,6 +83,14 @@ func (r RelationRepository) List(ctx context.Context) ([]relation.RelationV2, er
 	if err != nil {
 		return []relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RELATIONS),
+		}...,
+	)
 
 	var fetchedRelations []Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -117,6 +135,14 @@ func (r RelationRepository) Get(ctx context.Context, id string) (relation.Relati
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RELATIONS),
+		}...,
+	)
+
 	var relationModel Relation
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -156,6 +182,14 @@ func (r RelationRepository) DeleteByID(ctx context.Context, id string) error {
 	if err != nil {
 		return fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "DeleteByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RELATIONS),
+		}...,
+	)
 
 	return r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -211,6 +245,15 @@ func (r RelationRepository) GetByFields(ctx context.Context, rel relation.Relati
 	if err != nil {
 		return relation.RelationV2{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByFields"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RELATIONS),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {

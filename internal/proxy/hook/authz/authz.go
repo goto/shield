@@ -7,8 +7,10 @@ import (
 	"strings"
 
 	"github.com/mitchellh/mapstructure"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
+	"go.opentelemetry.io/otel"
+	"go.opentelemetry.io/otel/attribute"
+	"go.opentelemetry.io/otel/metric"
+	semconv "go.opentelemetry.io/otel/semconv/v1.25.0"
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/namespace"
@@ -19,7 +21,6 @@ import (
 	"github.com/goto/shield/internal/proxy/hook"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
-	"github.com/goto/shield/pkg/telemetry"
 )
 
 type ResourceService interface {
@@ -50,6 +51,9 @@ type Authz struct {
 	relationService RelationService
 
 	relationAdapter RelationTransformer
+
+	metricCounterResourceCreationFailed metric.Int64Counter
+	metricCounterRelationCreationFailed metric.Int64Counter
 }
 
 type ProjectService interface {
@@ -57,14 +61,27 @@ type ProjectService interface {
 }
 
 func New(log log.Logger, next, escape hook.Service, resourceService ResourceService, relationService RelationService, relationAdapter RelationTransformer, identityProxyHeaderKey string) Authz {
+	metricCounterResourceCreation, err := otel.Meter("github.com/goto/shield/proxy/hook/authz").
+		Int64Counter("shield.proxy.hook.authz.create_resource")
+	if err != nil {
+		otel.Handle(err)
+	}
+	metricCounterRelationCreation, err := otel.Meter("github.com/goto/shield/proxy/hook/authz").
+		Int64Counter("shield.proxy.hook.authz.create_relation")
+	if err != nil {
+		otel.Handle(err)
+	}
+
 	return Authz{
-		log:                    log,
-		next:                   next,
-		escape:                 escape,
-		resourceService:        resourceService,
-		relationService:        relationService,
-		relationAdapter:        relationAdapter,
-		identityProxyHeaderKey: identityProxyHeaderKey,
+		log:                                 log,
+		next:                                next,
+		escape:                              escape,
+		resourceService:                     resourceService,
+		relationService:                     relationService,
+		relationAdapter:                     relationAdapter,
+		metricCounterResourceCreationFailed: metricCounterResourceCreation,
+		metricCounterRelationCreationFailed: metricCounterRelationCreation,
+		identityProxyHeaderKey:              identityProxyHeaderKey,
 	}
 }
 
@@ -97,12 +114,12 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 
 	defer func(isResourceCreated bool, ctx context.Context, attributes map[string]interface{}) {
 		if !isResourceCreated {
-			requestDetail := fmt.Sprintf("[status: %d, request: %s, attributes: %s ]", res.StatusCode, res.Request.Method+"@"+res.Request.URL.Host, attributes)
-			ctx, err := tag.New(ctx, tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRequestDetails, requestDetail))
-			if err != nil {
-				a.log.Debug("failed to add metrics tags: ", err.Error())
-			}
-			stats.Record(ctx, telemetry.MResourceFailedToCreate.M(1))
+			a.metricCounterResourceCreationFailed.Add(ctx, 1,
+				metric.WithAttributes(
+					semconv.HTTPResponseStatusCode(res.StatusCode),
+					attribute.String(string(semconv.HTTPRequestMethodKey), res.Request.Method),
+					semconv.ServerAddress(res.Request.Host),
+				))
 		}
 	}(isResourceCreated, res.Request.Context(), attributes)
 
@@ -240,12 +257,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			if err != nil {
 				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectIDAttribute))
 
-				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
-				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
-				if err != nil {
-					a.log.Debug("failed to add metrics tags: ", err.Error())
-				}
-				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+				a.metricCounterRelationCreationFailed.Add(res.Request.Context(), 1,
+					metric.WithAttributes(
+						attribute.String("role", rel.Role),
+						attribute.String("subject_principal", rel.SubjectPrincipal),
+					))
 
 				continue
 			}
@@ -264,12 +280,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			if err != nil {
 				a.log.Error(err.Error())
 
-				relationDetail := fmt.Sprintf("%s to %s %s on %s", rel.Role, rel.SubjectPrincipal, rel.SubjectIDAttribute, newResource.Name)
-				ctx, err := tag.New(res.Request.Context(), tag.Insert(telemetry.KeyMethod, "ServeHook"), tag.Insert(telemetry.KeyRelationDetails, relationDetail))
-				if err != nil {
-					a.log.Debug("failed to add metrics tags: ", err.Error())
-				}
-				stats.Record(ctx, telemetry.MRelationFailedToCreate.M(1))
+				a.metricCounterRelationCreationFailed.Add(res.Request.Context(), 1,
+					metric.WithAttributes(
+						attribute.String("role", rel.Role),
+						attribute.String("subject_principal", rel.SubjectPrincipal),
+					))
 
 				return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 			}

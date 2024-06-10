@@ -8,7 +8,7 @@ import (
 )
 
 func New(cliConfig *Config) *cli.Command {
-	var cmd = &cli.Command{
+	cmd := &cli.Command{
 		Use:   "shield <command> <subcommand> [flags]",
 		Short: "A cloud native role-based authorization aware reverse-proxy service",
 		Long: heredoc.Doc(`

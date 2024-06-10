@@ -505,7 +505,8 @@ func TestUpdateUser(t *testing.T) {
 							"foo": structpb.NewStringValue("bar"),
 						},
 					},
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
@@ -529,7 +530,8 @@ func TestUpdateUser(t *testing.T) {
 							"foo": structpb.NewStringValue("bar"),
 						},
 					},
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcUserNotFoundError,
 		},
@@ -555,7 +557,8 @@ func TestUpdateUser(t *testing.T) {
 							"foo": structpb.NewStringValue("bar"),
 						},
 					},
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcConflictError,
 		},
@@ -641,7 +644,8 @@ func TestUpdateUser(t *testing.T) {
 							"foo": structpb.NewStringValue("bar"),
 						},
 					},
-				}},
+				},
+			},
 			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
 				Id:    someID,
 				Name:  "abc user",
@@ -685,7 +689,8 @@ func TestUpdateUser(t *testing.T) {
 							"foo": structpb.NewStringValue("bar"),
 						},
 					},
-				}},
+				},
+			},
 			want: &shieldv1beta1.UpdateUserResponse{User: &shieldv1beta1.User{
 				Id:    someID,
 				Email: "user@gotocompany.com",
@@ -906,7 +911,6 @@ func TestHandler_ListUserGroups(t *testing.T) {
 		},
 		// if user id empty, it would not go to this handler
 		{
-
 			name: "should return groups if group service return not nil",
 			setup: func(gs *mocks.GroupService) {
 				var testGroupList []group.Group

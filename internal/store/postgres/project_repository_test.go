@@ -135,7 +135,7 @@ func (s *ProjectRepositoryTestSuite) TestGetByID() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a project",
 			SelectedID:  s.projects[0].ID,
@@ -191,7 +191,7 @@ func (s *ProjectRepositoryTestSuite) TestGetBySlug() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:  "should get a project",
 			SelectedSlug: "project-1",
@@ -234,7 +234,7 @@ func (s *ProjectRepositoryTestSuite) TestCreate() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a project",
 			ProjectToCreate: project.Project{
@@ -317,7 +317,7 @@ func (s *ProjectRepositoryTestSuite) TestList() {
 		ErrString        string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all projects",
 			ExpectedProjects: []project.Project{
@@ -360,7 +360,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateByID() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a project",
 			ProjectToUpdate: project.Project{
@@ -501,7 +501,7 @@ func (s *ProjectRepositoryTestSuite) TestUpdateBySlug() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a project",
 			ProjectToUpdate: project.Project{
