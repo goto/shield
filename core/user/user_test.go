@@ -74,7 +74,7 @@ func TestUserMetadataKey_ToMetadataKeyLogData(t *testing.T) {
 				Description: "description",
 			},
 			want: user.MetadataKeyLogData{
-				Entity:      user.AuditEntity,
+				Entity:      user.AuditEntityMetadata,
 				Key:         "key",
 				Description: "description",
 			},

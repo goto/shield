@@ -89,7 +89,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 	type testCase struct {
 		Description    string
 		SelectedID     string
-		ExpectedPolicy *policy.Policy
+		ExpectedPolicy policy.Policy
 		ErrString      string
 	}
 
@@ -97,7 +97,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 		{
 			Description: "should get a policy",
 			SelectedID:  s.policyIDs[0],
-			ExpectedPolicy: &policy.Policy{
+			ExpectedPolicy: policy.Policy{
 				RoleID:      "ns1:role1",
 				NamespaceID: "ns1",
 				ActionID:    "action1",
@@ -286,7 +286,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 		},
 		{
 			Description:      "should return error if policy id is empty",
-			ErrString:        policy.ErrInvalidID.Error(),
+			ErrString:        policy.ErrInvalidDetail.Error(),
 			ExpectedPolicyID: "",
 		},
 	}

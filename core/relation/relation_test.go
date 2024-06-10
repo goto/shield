@@ -37,7 +37,7 @@ func TestRelationV2_ToLogData(t *testing.T) {
 			},
 			want: relation.LogData{
 				Entity:           relation.AuditEntity,
-				ID:               "id",
+				ID:               "1",
 				ObjectID:         "objID",
 				ObjectNamespace:  "objNS",
 				SubjectID:        "subID",
