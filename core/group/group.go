@@ -22,6 +22,10 @@ type Repository interface {
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]relation.RelationV2, error)
 }
 
+type CachedRepository interface {
+	GetBySlug(ctx context.Context, slug string) (Group, error)
+}
+
 type Group struct {
 	ID             string
 	Name           string

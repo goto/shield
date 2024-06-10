@@ -34,6 +34,7 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/server"
 	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/internal/store/inmemory"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/goto/shield/pkg/db"
@@ -149,7 +150,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
 	if err != nil {
 		return err
 	}
@@ -191,7 +192,13 @@ func BuildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	cfg *config.Shield,
 ) (api.Deps, error) {
+	cache, err := inmemory.NewCache(cfg.App.CacheConfig)
+	if err != nil {
+		return api.Deps{}, err
+	}
+
 	appConfig := activity.AppConfig{Version: config.Version}
 	activityService := activity.NewService(appConfig, activityRepository)
 
@@ -212,7 +219,8 @@ func BuildAPIDependencies(
 	relationService := relation.NewService(logger, relationPGRepository, relationSpiceRepository, userService, activityService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(logger, groupRepository, relationService, userService, activityService)
+	cachedGroupRepository := inmemory.NewCachedGroupRepository(cache, groupRepository)
+	groupService := group.NewService(logger, groupRepository, cachedGroupRepository, relationService, userService, activityService)
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(logger, organizationRepository, relationService, userService, activityService)

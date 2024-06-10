@@ -2,6 +2,8 @@ package server
 
 import (
 	"fmt"
+
+	"github.com/goto/shield/internal/store/inmemory"
 )
 
 type GRPCConfig struct {
@@ -63,4 +65,6 @@ type Config struct {
 	ServiceData ServiceDataConfig `yaml:"service_data" mapstructure:"service_data"`
 
 	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/shield"`
+
+	CacheConfig inmemory.Config `yaml:"cache" mapstructure:"cache"`
 }

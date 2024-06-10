@@ -144,3 +144,12 @@ packages:
       Repository:
         config:
           filename: "servicedata_repository.go"
+  github.com/goto/shield/internal/store/cache:
+    config:
+      dir: "internal/store/cache/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces:
+      GroupRepository:
+        config:
+          filename: "group_repository.go"
