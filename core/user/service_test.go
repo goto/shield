@@ -10,10 +10,9 @@ import (
 
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/core/user/mocks"
 	"github.com/goto/shield/pkg/logger"
 	shieldlogger "github.com/goto/shield/pkg/logger"
-
-	"github.com/goto/shield/core/mocks"
 )
 
 func TestService_Create(t *testing.T) {
@@ -60,7 +59,7 @@ func TestService_Create(t *testing.T) {
 					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
 						ID:    "test-id",
 						Email: "jane.doe@gotocompany.com",
-					}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -97,7 +96,7 @@ func TestService_Create(t *testing.T) {
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
 						Email: "jane.doe@gotocompany.com",
-					}, user.UserLogData{Entity: "user", Name: "Jane Doe", Email: "jane.doe@gotocompany.com"}).Return(nil).Once()
+					}, user.LogData{Entity: "user", Name: "Jane Doe", Email: "jane.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -202,7 +201,7 @@ func TestService_CreateMetadataKey(t *testing.T) {
 						Description: "description for test-key",
 					}, nil).Once()
 				activityService.EXPECT().
-					Log(mock.Anything, "user_metadata_key.create", activity.Actor{}, user.UserMetadataKeyLogData{
+					Log(mock.Anything, "user_metadata_key.create", activity.Actor{}, user.MetadataKeyLogData{
 						Entity:      "user_metadata_key",
 						Key:         "test-key",
 						Description: "description for test-key",
@@ -294,7 +293,7 @@ func TestService_List(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.PagedUsers{
@@ -324,7 +323,7 @@ func TestService_List(t *testing.T) {
 					Return([]user.User{}, user.ErrInvalidID).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			// Any error is directly returned by the function
@@ -392,7 +391,7 @@ func TestService_UpdateByID(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -461,7 +460,7 @@ func TestService_UpdateByEmail(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -521,7 +520,7 @@ func TestService_GetByEmail(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -581,7 +580,7 @@ func TestService_GetByID(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{
@@ -641,7 +640,7 @@ func TestService_FetchCurrentUser(t *testing.T) {
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.UserLogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, "", user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, repository, activityService)
 			},
 			want: user.User{

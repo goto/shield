@@ -89,7 +89,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 	type testCase struct {
 		Description    string
 		SelectedID     string
-		ExpectedPolicy policy.Policy
+		ExpectedPolicy *policy.Policy
 		ErrString      string
 	}
 
@@ -97,7 +97,7 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 		{
 			Description: "should get a policy",
 			SelectedID:  s.policyIDs[0],
-			ExpectedPolicy: policy.Policy{
+			ExpectedPolicy: &policy.Policy{
 				RoleID:      "ns1:role1",
 				NamespaceID: "ns1",
 				ActionID:    "action1",
@@ -138,14 +138,14 @@ func (s *PolicyRepositoryTestSuite) TestGet() {
 func (s *PolicyRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description string
-		Policy      policy.Policy
+		Policy      *policy.Policy
 		Err         error
 	}
 
 	testCases := []testCase{
 		{
 			Description: "should create a policy",
-			Policy: policy.Policy{
+			Policy: &policy.Policy{
 				RoleID:      "ns1:role2",
 				ActionID:    "action4",
 				NamespaceID: "ns1",
@@ -153,7 +153,7 @@ func (s *PolicyRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should return error if role id does not exist",
-			Policy: policy.Policy{
+			Policy: &policy.Policy{
 				RoleID:      "role2-random",
 				ActionID:    "action4",
 				NamespaceID: "ns1",
@@ -162,7 +162,7 @@ func (s *PolicyRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should return error if policy id does not exist",
-			Policy: policy.Policy{
+			Policy: &policy.Policy{
 				RoleID:      "role2",
 				ActionID:    "action4-random",
 				NamespaceID: "ns1",
@@ -171,7 +171,7 @@ func (s *PolicyRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should return error if namespace id does not exist",
-			Policy: policy.Policy{
+			Policy: &policy.Policy{
 				RoleID:      "role2",
 				ActionID:    "action4",
 				NamespaceID: "ns1-random",
@@ -246,7 +246,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 func (s *PolicyRepositoryTestSuite) TestUpdate() {
 	type testCase struct {
 		Description      string
-		PolicyToUpdate   policy.Policy
+		Policy           *policy.Policy
 		ExpectedPolicyID string
 		ErrString        string
 	}
@@ -254,7 +254,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 	testCases := []testCase{
 		{
 			Description: "should update an policy",
-			PolicyToUpdate: policy.Policy{
+			Policy: &policy.Policy{
 				ID:          s.policyIDs[0],
 				RoleID:      "ns1:role1",
 				ActionID:    "action4",
@@ -264,7 +264,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 		},
 		{
 			Description: "should return error if namespace id does not exist",
-			PolicyToUpdate: policy.Policy{
+			Policy: &policy.Policy{
 				ID:          s.policyIDs[1],
 				RoleID:      "ns2:role2",
 				ActionID:    "action2",
@@ -275,7 +275,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 		},
 		{
 			Description: "should return error if policy not found",
-			PolicyToUpdate: policy.Policy{
+			Policy: &policy.Policy{
 				ID:          uuid.NewString(),
 				RoleID:      "ns1:role2",
 				NamespaceID: "ns1",
@@ -293,7 +293,7 @@ func (s *PolicyRepositoryTestSuite) TestUpdate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Update(s.ctx, tc.PolicyToUpdate)
+			got, err := s.repository.Update(s.ctx, tc.Policy)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)

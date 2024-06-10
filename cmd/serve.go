@@ -1,3 +1,4 @@
+//coverage:ignore
 package cmd
 
 import (

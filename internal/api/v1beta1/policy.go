@@ -17,8 +17,8 @@ import (
 type PolicyService interface {
 	Get(ctx context.Context, id string) (policy.Policy, error)
 	List(ctx context.Context) ([]policy.Policy, error)
-	Upsert(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
-	Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error)
+	Upsert(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error)
+	Update(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error)
 }
 
 var grpcPolicyNotFoundErr = status.Errorf(codes.NotFound, "policy doesn't exist")
@@ -50,7 +50,7 @@ func (h Handler) CreatePolicy(ctx context.Context, request *shieldv1beta1.Create
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	newPolicies, err := h.policyService.Upsert(ctx, policy.Policy{
+	newPolicies, err := h.policyService.Upsert(ctx, &policy.Policy{
 		RoleID:      request.GetBody().GetRoleId(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
 		ActionID:    request.GetBody().GetActionId(),
@@ -115,7 +115,7 @@ func (h Handler) UpdatePolicy(ctx context.Context, request *shieldv1beta1.Update
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	updatedPolices, err := h.policyService.Update(ctx, policy.Policy{
+	updatedPolices, err := h.policyService.Update(ctx, &policy.Policy{
 		ID:          request.GetId(),
 		RoleID:      request.GetBody().GetRoleId(),
 		NamespaceID: request.GetBody().GetNamespaceId(),

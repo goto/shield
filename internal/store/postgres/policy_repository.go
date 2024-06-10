@@ -142,7 +142,10 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	return transformedPolicies, nil
 }
 
-func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (string, error) {
+func (r PolicyRepository) Upsert(ctx context.Context, pol *policy.Policy) (string, error) {
+	if pol == nil {
+		return "", policy.ErrInvalidDetail
+	}
 	// TODO(krtkvrm) | IMP: need to find a way to deprecate this
 	// This is required by bootstrap, which will be changed in this PR
 	roleID := pol.RoleID
@@ -199,7 +202,11 @@ func (r PolicyRepository) Upsert(ctx context.Context, pol policy.Policy) (string
 	return policyID, nil
 }
 
-func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {
+func (r PolicyRepository) Update(ctx context.Context, toUpdate *policy.Policy) (string, error) {
+	if toUpdate == nil {
+		return "", policy.ErrInvalidDetail
+	}
+
 	if strings.TrimSpace(toUpdate.ID) == "" {
 		return "", policy.ErrInvalidID
 	}

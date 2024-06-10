@@ -47,7 +47,7 @@ type RoleService interface {
 }
 
 type PolicyService interface {
-	Upsert(ctx context.Context, policy policy.Policy) ([]policy.Policy, error)
+	Upsert(ctx context.Context, policy *policy.Policy) ([]policy.Policy, error)
 }
 
 type ActionService interface {
@@ -223,7 +223,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					return fmt.Errorf("role %s not associated with namespace: %s", transformedRole.ID, transformedRole.NamespaceID)
 				}
 
-				_, err = s.policyService.Upsert(ctx, policy.Policy{
+				_, err = s.policyService.Upsert(ctx, &policy.Policy{
 					RoleID:      GetRoleID(GetNamespace(transformedRole.NamespaceID), transformedRole.ID),
 					NamespaceID: namespaceId,
 					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),

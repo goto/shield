@@ -7,7 +7,6 @@ import (
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
-	pkgctx "github.com/goto/shield/pkg/context"
 )
 
 const (
@@ -56,8 +55,8 @@ func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		roleLogData := newRole.ToRoleLogData()
+		ctx := context.WithoutCancel(ctx)
+		roleLogData := newRole.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyRoleUpsert, actor, roleLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -92,8 +91,8 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		roleLogData := updatedRole.ToRoleLogData()
+		ctx := context.WithoutCancel(ctx)
+		roleLogData := updatedRole.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyRoleUpdate, actor, roleLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

@@ -9,7 +9,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const auditEntity = "project"
+const AuditEntity = "project"
 
 type Repository interface {
 	GetByID(ctx context.Context, id string) (Project, error)
@@ -31,20 +31,20 @@ type Project struct {
 	UpdatedAt    time.Time
 }
 
-type ProjectLogData struct {
-	Entity string `mapstructure:"entity"`
-	ID     string `mapstructure:"id"`
-	Name   string `mapstructure:"name"`
-	Slug   string `mapstructure:"slug"`
-	OrgID  string `mapstructure:"organization_id"`
+type LogData struct {
+	Entity         string `mapstructure:"entity"`
+	ID             string `mapstructure:"id"`
+	Name           string `mapstructure:"name"`
+	Slug           string `mapstructure:"slug"`
+	OrganizationID string `mapstructure:"organization_id"`
 }
 
-func (project Project) ToProjectLogData() ProjectLogData {
-	return ProjectLogData{
-		Entity: auditEntity,
-		ID:     project.ID,
-		Name:   project.Name,
-		Slug:   project.Slug,
-		OrgID:  project.Organization.ID,
+func (project Project) ToLogData() LogData {
+	return LogData{
+		Entity:         AuditEntity,
+		ID:             project.ID,
+		Name:           project.Name,
+		Slug:           project.Slug,
+		OrganizationID: project.Organization.ID,
 	}
 }

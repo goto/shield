@@ -1,9 +1,9 @@
+//coverage:ignore
 package config
 
 import (
 	"embed"
 	"errors"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"path"
@@ -65,7 +65,7 @@ func Init(resourcesURL, rulesURL, configFile string) error {
 		}
 	}
 
-	if err := ioutil.WriteFile(configFile, data, 0o655); err != nil {
+	if err := os.WriteFile(configFile, data, 0o655); err != nil {
 		return err
 	}
 
@@ -88,7 +88,7 @@ func initResourcesPath(resURL string) error {
 		_ = os.MkdirAll(resourcesPath, 0o755)
 	}
 
-	files, err := ioutil.ReadDir(resourcesPath)
+	files, err := os.ReadDir(resourcesPath)
 	if err != nil {
 		return err
 	}
@@ -105,7 +105,7 @@ func initResourcesPath(resURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(resourcesPath, "resources.yaml"), resourceYaml, 0o655); err != nil {
+	if err := os.WriteFile(path.Join(resourcesPath, "resources.yaml"), resourceYaml, 0o655); err != nil {
 		return err
 	}
 
@@ -129,7 +129,7 @@ func initRulesPath(rURL string) error {
 		_ = os.MkdirAll(rulesPath, 0o755)
 	}
 
-	files, err := ioutil.ReadDir(rulesPath)
+	files, err := os.ReadDir(rulesPath)
 	if err != nil {
 		return err
 	}
@@ -146,7 +146,7 @@ func initRulesPath(rURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.rest.yaml"), ruleRestYaml, 0o655); err != nil {
+	if err := os.WriteFile(path.Join(rulesPath, "sample.rest.yaml"), ruleRestYaml, 0o655); err != nil {
 		return err
 	}
 
@@ -155,7 +155,7 @@ func initRulesPath(rURL string) error {
 		return err
 	}
 
-	if err := ioutil.WriteFile(path.Join(rulesPath, "sample.grpc.yaml"), ruleRestGrpc, 0o655); err != nil {
+	if err := os.WriteFile(path.Join(rulesPath, "sample.grpc.yaml"), ruleRestGrpc, 0o655); err != nil {
 		return err
 	}
 

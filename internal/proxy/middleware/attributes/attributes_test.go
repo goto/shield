@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -147,7 +147,7 @@ func TestExtractMiddleware(t *testing.T) {
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
-				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
+				Body: io.NopCloser(bytes.NewBuffer(postBody)),
 			},
 			a: Attributes{
 				log:                    log.NewNoop(),
@@ -173,7 +173,7 @@ func TestExtractMiddleware(t *testing.T) {
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
 				},
-				Body: ioutil.NopCloser(bytes.NewBuffer(postBody)),
+				Body: io.NopCloser(bytes.NewBuffer(postBody)),
 			},
 			a: Attributes{
 				log:                    log.NewNoop(),

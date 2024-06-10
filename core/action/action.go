@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-const auditEntity = "action"
+const AuditEntity = "action"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Action, error)
@@ -22,16 +22,16 @@ type Action struct {
 	UpdatedAt   time.Time
 }
 
-type ActionLogData struct {
+type LogData struct {
 	Entity      string `mapstructure:"entity"`
 	ID          string `mapstructure:"id"`
 	Name        string `mapstructure:"name"`
 	NamespaceID string `mapstructure:"namespace_id"`
 }
 
-func (action Action) ToActionLogData() ActionLogData {
-	return ActionLogData{
-		Entity:      auditEntity,
+func (action Action) ToLogData() LogData {
+	return LogData{
+		Entity:      AuditEntity,
 		ID:          action.ID,
 		Name:        action.Name,
 		NamespaceID: action.NamespaceID,

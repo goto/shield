@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strconv"
 	"sync"
 
@@ -65,13 +64,13 @@ type GRPCPayloadHandler struct {
 }
 
 func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (interface{}, error) {
-	reqBody, err := ioutil.ReadAll(*body)
+	reqBody, err := io.ReadAll(*body)
 	if err != nil {
 		return "", err
 	}
 	defer (*body).Close()
 	// repopulate body
-	*body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	*body = io.NopCloser(bytes.NewBuffer(reqBody))
 
 	return b.extractFromRequest(reqBody, protoIndex)
 }

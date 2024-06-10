@@ -4,13 +4,13 @@ import (
 	"context"
 )
 
-const auditEntity = "policy"
+const AuditEntity = "policy"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
 	List(ctx context.Context) ([]Policy, error)
-	Upsert(ctx context.Context, pol Policy) (string, error)
-	Update(ctx context.Context, pol Policy) (string, error)
+	Upsert(ctx context.Context, pol *Policy) (string, error)
+	Update(ctx context.Context, pol *Policy) (string, error)
 }
 
 type AuthzRepository interface {
@@ -28,7 +28,7 @@ type Filters struct {
 	NamespaceID string
 }
 
-type PolicyLogData struct {
+type LogData struct {
 	Entity      string `mapstructure:"entity"`
 	ID          string `mapstructure:"id"`
 	RoleID      string `mapstructure:"role_id"`
@@ -36,10 +36,10 @@ type PolicyLogData struct {
 	ActionID    string `mapstructure:"action_id"`
 }
 
-func (policy Policy) ToPolicyLogData(policyId string) PolicyLogData {
-	return PolicyLogData{
-		Entity:      auditEntity,
-		ID:          policyId,
+func (policy Policy) ToLogData() LogData {
+	return LogData{
+		Entity:      AuditEntity,
+		ID:          policy.ID,
 		RoleID:      policy.RoleID,
 		NamespaceID: policy.NamespaceID,
 		ActionID:    policy.ActionID,

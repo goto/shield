@@ -138,7 +138,7 @@ func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context) ([]pol
 }
 
 // Update provides a mock function with given fields: ctx, pol
-func (_m *PolicyService) Update(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+func (_m *PolicyService) Update(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error) {
 	ret := _m.Called(ctx, pol)
 
 	if len(ret) == 0 {
@@ -147,10 +147,10 @@ func (_m *PolicyService) Update(ctx context.Context, pol policy.Policy) ([]polic
 
 	var r0 []policy.Policy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) ([]policy.Policy, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *policy.Policy) ([]policy.Policy, error)); ok {
 		return rf(ctx, pol)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) []policy.Policy); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *policy.Policy) []policy.Policy); ok {
 		r0 = rf(ctx, pol)
 	} else {
 		if ret.Get(0) != nil {
@@ -158,7 +158,7 @@ func (_m *PolicyService) Update(ctx context.Context, pol policy.Policy) ([]polic
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, policy.Policy) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *policy.Policy) error); ok {
 		r1 = rf(ctx, pol)
 	} else {
 		r1 = ret.Error(1)
@@ -174,14 +174,14 @@ type PolicyService_Update_Call struct {
 
 // Update is a helper method to define mock.On call
 //   - ctx context.Context
-//   - pol policy.Policy
+//   - pol *policy.Policy
 func (_e *PolicyService_Expecter) Update(ctx interface{}, pol interface{}) *PolicyService_Update_Call {
 	return &PolicyService_Update_Call{Call: _e.mock.On("Update", ctx, pol)}
 }
 
-func (_c *PolicyService_Update_Call) Run(run func(ctx context.Context, pol policy.Policy)) *PolicyService_Update_Call {
+func (_c *PolicyService_Update_Call) Run(run func(ctx context.Context, pol *policy.Policy)) *PolicyService_Update_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(policy.Policy))
+		run(args[0].(context.Context), args[1].(*policy.Policy))
 	})
 	return _c
 }
@@ -191,13 +191,13 @@ func (_c *PolicyService_Update_Call) Return(_a0 []policy.Policy, _a1 error) *Pol
 	return _c
 }
 
-func (_c *PolicyService_Update_Call) RunAndReturn(run func(context.Context, policy.Policy) ([]policy.Policy, error)) *PolicyService_Update_Call {
+func (_c *PolicyService_Update_Call) RunAndReturn(run func(context.Context, *policy.Policy) ([]policy.Policy, error)) *PolicyService_Update_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // Upsert provides a mock function with given fields: ctx, pol
-func (_m *PolicyService) Upsert(ctx context.Context, pol policy.Policy) ([]policy.Policy, error) {
+func (_m *PolicyService) Upsert(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error) {
 	ret := _m.Called(ctx, pol)
 
 	if len(ret) == 0 {
@@ -206,10 +206,10 @@ func (_m *PolicyService) Upsert(ctx context.Context, pol policy.Policy) ([]polic
 
 	var r0 []policy.Policy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) ([]policy.Policy, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *policy.Policy) ([]policy.Policy, error)); ok {
 		return rf(ctx, pol)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, policy.Policy) []policy.Policy); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, *policy.Policy) []policy.Policy); ok {
 		r0 = rf(ctx, pol)
 	} else {
 		if ret.Get(0) != nil {
@@ -217,7 +217,7 @@ func (_m *PolicyService) Upsert(ctx context.Context, pol policy.Policy) ([]polic
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, policy.Policy) error); ok {
+	if rf, ok := ret.Get(1).(func(context.Context, *policy.Policy) error); ok {
 		r1 = rf(ctx, pol)
 	} else {
 		r1 = ret.Error(1)
@@ -233,14 +233,14 @@ type PolicyService_Upsert_Call struct {
 
 // Upsert is a helper method to define mock.On call
 //   - ctx context.Context
-//   - pol policy.Policy
+//   - pol *policy.Policy
 func (_e *PolicyService_Expecter) Upsert(ctx interface{}, pol interface{}) *PolicyService_Upsert_Call {
 	return &PolicyService_Upsert_Call{Call: _e.mock.On("Upsert", ctx, pol)}
 }
 
-func (_c *PolicyService_Upsert_Call) Run(run func(ctx context.Context, pol policy.Policy)) *PolicyService_Upsert_Call {
+func (_c *PolicyService_Upsert_Call) Run(run func(ctx context.Context, pol *policy.Policy)) *PolicyService_Upsert_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(policy.Policy))
+		run(args[0].(context.Context), args[1].(*policy.Policy))
 	})
 	return _c
 }
@@ -250,7 +250,7 @@ func (_c *PolicyService_Upsert_Call) Return(_a0 []policy.Policy, _a1 error) *Pol
 	return _c
 }
 
-func (_c *PolicyService_Upsert_Call) RunAndReturn(run func(context.Context, policy.Policy) ([]policy.Policy, error)) *PolicyService_Upsert_Call {
+func (_c *PolicyService_Upsert_Call) RunAndReturn(run func(context.Context, *policy.Policy) ([]policy.Policy, error)) *PolicyService_Upsert_Call {
 	_c.Call.Return(run)
 	return _c
 }

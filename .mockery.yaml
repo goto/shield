@@ -65,7 +65,7 @@ packages:
           filename: "relation_transformer.go"
   github.com/goto/shield/core/user:
     config:
-      dir: "core/mocks"
+      dir: "core/user/mocks"
       outpkg: "mocks"
       mockname: "{{.InterfaceName}}"
     interfaces: 

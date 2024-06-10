@@ -24,7 +24,3 @@ func (c Context) Err() error {
 func (c Context) Value(key interface{}) interface{} {
 	return c.ctx.Value(key)
 }
-
-func WithoutCancel(ctx context.Context) context.Context {
-	return Context{ctx: ctx}
-}

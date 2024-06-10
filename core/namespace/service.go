@@ -7,7 +7,6 @@ import (
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
-	pkgctx "github.com/goto/shield/pkg/context"
 )
 
 const (
@@ -55,8 +54,8 @@ func (s Service) Upsert(ctx context.Context, ns Namespace) (Namespace, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		namespaceLogData := newNamespace.ToNameSpaceLogData()
+		ctx := context.WithoutCancel(ctx)
+		namespaceLogData := newNamespace.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyNamespaceUpsert, actor, namespaceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -82,8 +81,8 @@ func (s Service) Update(ctx context.Context, ns Namespace) (Namespace, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		namespaceLogData := updatedNamespace.ToNameSpaceLogData()
+		ctx := context.WithoutCancel(ctx)
+		namespaceLogData := updatedNamespace.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyNamespaceUpdate, actor, namespaceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

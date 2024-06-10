@@ -8,7 +8,6 @@ import (
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/activity"
-	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -84,8 +83,8 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		userLogData := newUser.ToUserLogData()
+		ctx := context.WithoutCancel(ctx)
+		userLogData := newUser.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, AuditKeyUserCreate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -110,8 +109,8 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		userMetadataKeyLogData := newUserMetadataKey.ToUserMetadataKeyLogData()
+		ctx := context.WithoutCancel(ctx)
+		userMetadataKeyLogData := newUserMetadataKey.ToMetadataKeyLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyUserMetadataKeyCreate, actor, userMetadataKeyLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -150,8 +149,8 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		userLogData := updatedUser.ToUserLogData()
+		ctx := context.WithoutCancel(ctx)
+		userLogData := updatedUser.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -177,8 +176,8 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		userLogData := updatedUser.ToUserLogData()
+		ctx := context.WithoutCancel(ctx)
+		userLogData := updatedUser.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, AuditKeyUserUpdate, actor, userLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
