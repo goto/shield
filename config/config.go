@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 
 	"github.com/goto/salt/config"
+	"github.com/goto/salt/telemetry"
 	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/server"
 	"github.com/goto/shield/internal/store/spicedb"
@@ -29,13 +30,14 @@ type ActivityLogConfig struct {
 
 type Shield struct {
 	// configuration version
-	Version  int                  `yaml:"version"`
-	Proxy    proxy.ServicesConfig `yaml:"proxy"`
-	Log      Log                  `yaml:"log"`
-	NewRelic NewRelic             `yaml:"new_relic"`
-	App      server.Config        `yaml:"app"`
-	DB       db.Config            `yaml:"db"`
-	SpiceDB  spicedb.Config       `yaml:"spicedb"`
+	Version   int                  `yaml:"version"`
+	Proxy     proxy.ServicesConfig `yaml:"proxy"`
+	Log       Log                  `yaml:"log"`
+	NewRelic  NewRelic             `yaml:"new_relic"`
+	App       server.Config        `yaml:"app"`
+	DB        db.Config            `yaml:"db"`
+	SpiceDB   spicedb.Config       `yaml:"spicedb"`
+	Telemetry telemetry.Config     `yaml:"telemetry" mapstructure:"telemetry"`
 }
 
 type NewRelic struct {
