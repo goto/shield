@@ -32,7 +32,7 @@ func startMockServer(ctx context.Context, logger *log.Zap, port int) {
 				return
 			}
 
-			var orgName = ""
+			orgName := ""
 			if hOrg, ok := r.Header["X-Shield-Org"]; ok {
 				orgName = hOrg[0]
 			}

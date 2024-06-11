@@ -11,7 +11,10 @@ import (
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type PolicyRepository struct {
@@ -47,6 +50,14 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 	if err != nil {
 		return policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_POLICIES),
+		}...,
+	)
 
 	var policyModel Policy
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -89,6 +100,14 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_POLICIES),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -123,8 +142,10 @@ func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
 	return transformedPolicies, nil
 }
 
-// TODO this is actually upsert
-func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string, error) {
+func (r PolicyRepository) Upsert(ctx context.Context, pol *policy.Policy) (string, error) {
+	if pol == nil {
+		return "", policy.ErrInvalidDetail
+	}
 	// TODO(krtkvrm) | IMP: need to find a way to deprecate this
 	// This is required by bootstrap, which will be changed in this PR
 	roleID := pol.RoleID
@@ -134,6 +155,14 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 	if strings.TrimSpace(actionID) == "" {
 		return "", policy.ErrInvalidDetail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_POLICIES),
+		}...,
+	)
 
 	query, params, err := dialect.Insert(TABLE_POLICIES).Rows(
 		goqu.Record{
@@ -154,7 +183,7 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_POLICIES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -173,7 +202,11 @@ func (r PolicyRepository) Create(ctx context.Context, pol policy.Policy) (string
 	return policyID, nil
 }
 
-func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (string, error) {
+func (r PolicyRepository) Update(ctx context.Context, toUpdate *policy.Policy) (string, error) {
+	if toUpdate == nil {
+		return "", policy.ErrInvalidDetail
+	}
+
 	if strings.TrimSpace(toUpdate.ID) == "" {
 		return "", policy.ErrInvalidID
 	}
@@ -181,6 +214,14 @@ func (r PolicyRepository) Update(ctx context.Context, toUpdate policy.Policy) (s
 	if strings.TrimSpace(toUpdate.ActionID) == "" {
 		return "", policy.ErrInvalidDetail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_POLICIES),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_POLICIES).Set(
 		goqu.Record{

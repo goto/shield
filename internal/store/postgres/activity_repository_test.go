@@ -73,7 +73,7 @@ func (s *ActivityRepositoryTestSuite) TestInsert() {
 		ErrString   string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should insert a log",
 			LogToCreate: &audit.Log{
@@ -137,7 +137,7 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 		ErrString          string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:        "should get all activity",
 			ExpectedActivities: s.activities,

@@ -12,7 +12,6 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -83,8 +82,8 @@ func (s Service) Create(ctx context.Context, prj Project) (Project, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		projectLogData := newProject.ToProjectLogData()
+		ctx := context.WithoutCancel(ctx)
+		projectLogData := newProject.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyProjectCreate, actor, projectLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -114,8 +113,8 @@ func (s Service) Update(ctx context.Context, prj Project) (Project, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		projectLogData := updatedProject.ToProjectLogData()
+		ctx := context.WithoutCancel(ctx)
+		projectLogData := updatedProject.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyProjectUpdate, actor, projectLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

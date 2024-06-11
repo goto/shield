@@ -7,11 +7,10 @@ import (
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
-	pkgctx "github.com/goto/shield/pkg/context"
 )
 
 const (
-	auditKeyActionCreate = "action.create"
+	auditKeyActionUpsert = "action.upsert"
 	auditKeyActionUpdate = "action.update"
 )
 
@@ -43,22 +42,22 @@ func (s Service) Get(ctx context.Context, id string) (Action, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s Service) Create(ctx context.Context, action Action) (Action, error) {
+func (s Service) Upsert(ctx context.Context, action Action) (Action, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Action{}, err
 	}
 
-	newAction, err := s.repository.Create(ctx, action)
+	newAction, err := s.repository.Upsert(ctx, action)
 	if err != nil {
 		return Action{}, err
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		actionLogData := newAction.ToActionLogData()
+		ctx := context.WithoutCancel(ctx)
+		actionLogData := newAction.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
-		if err := s.activityService.Log(ctx, auditKeyActionCreate, actor, actionLogData); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyActionUpsert, actor, actionLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -86,8 +85,8 @@ func (s Service) Update(ctx context.Context, id string, action Action) (Action, 
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		actionLogData := updatedAction.ToActionLogData()
+		ctx := context.WithoutCancel(ctx)
+		actionLogData := updatedAction.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyActionUpdate, actor, actionLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

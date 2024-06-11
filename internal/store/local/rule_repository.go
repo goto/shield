@@ -9,9 +9,7 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-var (
-	ErrResourceNotFound = errors.New("resource not found")
-)
+var ErrResourceNotFound = errors.New("resource not found")
 
 // TODO: might delete this
 type RuleRepository struct {

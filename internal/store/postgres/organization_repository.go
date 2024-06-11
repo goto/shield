@@ -13,7 +13,10 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type OrganizationRepository struct {
@@ -37,6 +40,14 @@ func (r OrganizationRepository) GetByID(ctx context.Context, id string) (organiz
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
 
 	var orgModel Organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -84,6 +95,14 @@ func (r OrganizationRepository) GetBySlug(ctx context.Context, slug string) (org
 		return organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetBySlug"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
+
 	var orgModel Organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -126,6 +145,14 @@ func (r OrganizationRepository) Create(ctx context.Context, org organization.Org
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
 
 	query, params, err := dialect.Insert(TABLE_ORGANIZATIONS).Rows(
 		goqu.Record{
@@ -174,6 +201,14 @@ func (r OrganizationRepository) List(ctx context.Context) ([]organization.Organi
 		return []organization.Organization{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
+
 	var orgModels []Organization
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -219,6 +254,14 @@ func (r OrganizationRepository) UpdateByID(ctx context.Context, org organization
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
@@ -281,6 +324,14 @@ func (r OrganizationRepository) UpdateBySlug(ctx context.Context, org organizati
 	if err != nil {
 		return organization.Organization{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateBySlug"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_ORGANIZATIONS).Set(
 		goqu.Record{
@@ -353,6 +404,14 @@ func (r OrganizationRepository) ListAdminsByOrgID(ctx context.Context, orgID str
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "ListAdminsByOrgID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ORGANIZATIONS),
+		}...,
+	)
 
 	var userModels []User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {

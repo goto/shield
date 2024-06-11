@@ -70,7 +70,7 @@ func TestREST(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		t.Fatal(err)
@@ -201,7 +201,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		b.Fatal(err)
@@ -300,7 +300,7 @@ func BenchmarkProxyOverHttp(b *testing.B) {
 func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Service, projectService *project.Service) http.Handler {
 	// Note: execution order is bottom up
 	prefixWare := prefix.New(logger, proxy)
-	//casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
+	// casbinAuthz := authz.New(logger, "", server.Deps{}, prefixWare)
 	basicAuthn := basic_auth.New(logger, prefixWare)
 	attributeExtractor := attributes.New(logger, basicAuthn, "X-Auth-Email", projectService)
 	matchWare := rulematch.New(logger.(*log.Zap), attributeExtractor, rulematch.NewRouteMatcher(ruleService))

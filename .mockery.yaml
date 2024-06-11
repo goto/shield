@@ -63,9 +63,54 @@ packages:
       RelationTransformer:
         config:
           filename: "relation_transformer.go"
+  github.com/goto/shield/core/action:
+    config:
+      dir: "core/action/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      Repository:
+        config:
+          filename: "action_repository.go"
+      UserService:
+        config:
+          filename: "user_service.go"
+      ActivityService:
+        config:
+          filename: "activity_service.go"
+  github.com/goto/shield/core/policy:
+    config:
+      dir: "core/policy/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      Repository:
+        config:
+          filename: "policy_repository.go"
+      UserService:
+        config:
+          filename: "user_service.go"
+      ActivityService:
+        config:
+          filename: "activity_service.go"
+  github.com/goto/shield/core/role:
+    config:
+      dir: "core/role/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      Repository:
+        config:
+          filename: "role_repository.go"
+      UserService:
+        config:
+          filename: "user_service.go"
+      ActivityService:
+        config:
+          filename: "activity_service.go"
   github.com/goto/shield/core/user:
     config:
-      dir: "core/mocks"
+      dir: "core/user/mocks"
       outpkg: "mocks"
       mockname: "{{.InterfaceName}}"
     interfaces: 

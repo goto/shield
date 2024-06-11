@@ -10,7 +10,10 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type NamespaceRepository struct {
@@ -35,6 +38,14 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 		return namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_NAMESPACES),
+		}...,
+	)
+
 	var fetchedNamespace Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		return r.dbc.GetContext(ctx, &fetchedNamespace, query, params...)
@@ -48,8 +59,7 @@ func (r NamespaceRepository) Get(ctx context.Context, id string) (namespace.Name
 	return fetchedNamespace.transformToNamespace(), nil
 }
 
-// TODO this is actually an upsert
-func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
+func (r NamespaceRepository) Upsert(ctx context.Context, ns namespace.Namespace) (namespace.Namespace, error) {
 	if strings.TrimSpace(ns.ID) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidID
 	}
@@ -57,6 +67,14 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 	if strings.TrimSpace(ns.Name) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidDetail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_NAMESPACES),
+		}...,
+	)
 
 	query, params, err := dialect.Insert(TABLE_NAMESPACES).Rows(
 		goqu.Record{
@@ -82,7 +100,7 @@ func (r NamespaceRepository) Create(ctx context.Context, ns namespace.Namespace)
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_NAMESPACES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -107,6 +125,14 @@ func (r NamespaceRepository) List(ctx context.Context) ([]namespace.Namespace, e
 	if err != nil {
 		return []namespace.Namespace{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_NAMESPACES),
+		}...,
+	)
 
 	var fetchedNamespaces []Namespace
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -145,6 +171,14 @@ func (r NamespaceRepository) Update(ctx context.Context, ns namespace.Namespace)
 	if strings.TrimSpace(ns.Name) == "" {
 		return namespace.Namespace{}, namespace.ErrInvalidDetail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_NAMESPACES),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_NAMESPACES).Set(
 		goqu.Record{

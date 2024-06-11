@@ -9,7 +9,10 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type ServiceDataRepository struct {
@@ -38,6 +41,14 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 	if err != nil {
 		return servicedata.Key{}, queryErr
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "CreateKey"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_SERVICE_DATA_KEYS),
+		}...,
+	)
 
 	var serviceDataKeyModel Key
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -85,6 +96,14 @@ func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.Serv
 		return servicedata.ServiceData{}, queryErr
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_SERVICE_DATA),
+		}...,
+	)
+
 	var serviceDataModel ServiceData
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -117,6 +136,14 @@ func (r ServiceDataRepository) GetKeyByURN(ctx context.Context, URN string) (ser
 	if err != nil {
 		return servicedata.Key{}, queryErr
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetKeyByURN"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_SERVICE_DATA_KEYS),
+		}...,
+	)
 
 	var keyModel Key
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -173,6 +200,14 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 	if err != nil {
 		return []servicedata.ServiceData{}, err
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_SERVICE_DATA),
+		}...,
+	)
 
 	var serviceDataModel []ServiceData
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {

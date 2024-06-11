@@ -13,15 +13,16 @@ import (
 	"github.com/goto/shield/internal/api/v1beta1"
 	"github.com/goto/shield/internal/server/grpc_interceptors"
 	"github.com/goto/shield/internal/server/health"
-	"github.com/goto/shield/pkg/telemetry"
+
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
 	grpc_recovery "github.com/grpc-ecosystem/go-grpc-middleware/recovery"
 	grpc_ctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
-	newrelic "github.com/newrelic/go-agent"
-	"github.com/newrelic/go-agent/_integrations/nrgrpc"
+	"github.com/newrelic/go-agent/v3/integrations/nrgrpc"
+	"github.com/newrelic/go-agent/v3/newrelic"
+	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"go.uber.org/zap"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -35,7 +36,7 @@ func Serve(
 	ctx context.Context,
 	logger log.Logger,
 	cfg Config,
-	nrApp newrelic.Application,
+	nrApp *newrelic.Application,
 	deps api.Deps,
 ) error {
 	httpMux := http.NewServeMux()
@@ -77,7 +78,10 @@ func Serve(
 		return err
 	}
 
-	grpcServer := grpc.NewServer(getGRPCMiddleware(cfg, logger, nrApp))
+	grpcServer := grpc.NewServer(
+		grpc.StatsHandler(otelgrpc.NewServerHandler()),
+		getGRPCMiddleware(cfg, logger, nrApp),
+	)
 	reflection.Register(grpcServer)
 
 	healthHandler := health.NewHandler()
@@ -89,13 +93,7 @@ func Serve(
 		return err
 	}
 
-	pe, err := telemetry.SetupOpenCensus(ctx, cfg.TelemetryConfig)
-	if err != nil {
-		logger.Error("failed to setup OpenCensus", "err", err)
-	}
-
 	httpMuxMetrics := http.NewServeMux()
-	httpMuxMetrics.Handle("/metrics", pe)
 
 	logger.Info("[shield] api server starting", "http-port", cfg.Port, "grpc-port", cfg.GRPC.Port, "metrics-port", cfg.MetricsPort)
 
@@ -125,7 +123,7 @@ func Serve(
 }
 
 // REVISIT: passing config.Shield as reference
-func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp newrelic.Application) grpc.ServerOption {
+func getGRPCMiddleware(cfg Config, logger log.Logger, nrApp *newrelic.Application) grpc.ServerOption {
 	recoveryFunc := func(p interface{}) (err error) {
 		fmt.Println("-----------------------------")
 		return status.Errorf(codes.Internal, "internal server error")

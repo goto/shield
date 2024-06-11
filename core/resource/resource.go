@@ -11,7 +11,7 @@ import (
 const (
 	NON_RESOURCE_ID = "*"
 
-	auditEntity = "resource"
+	AuditEntity = "resource"
 )
 
 type Repository interface {
@@ -72,7 +72,7 @@ type PagedResources struct {
 	Resources []Resource
 }
 
-type ResourceLogData struct {
+type LogData struct {
 	Entity         string `mapstructure:"entity"`
 	URN            string `mapstructure:"urn"`
 	Name           string `mapstructure:"name"`
@@ -82,9 +82,9 @@ type ResourceLogData struct {
 	UserID         string `mapstructure:"user_id"`
 }
 
-func (resource Resource) ToResourceLogData() ResourceLogData {
-	return ResourceLogData{
-		Entity:         auditEntity,
+func (resource Resource) ToLogData() LogData {
+	return LogData{
+		Entity:         AuditEntity,
 		URN:            resource.URN,
 		Name:           resource.Name,
 		OrganizationID: resource.OrganizationID,

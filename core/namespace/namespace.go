@@ -6,11 +6,11 @@ import (
 	"time"
 )
 
-const auditEntity = "namespace"
+const AuditEntity = "namespace"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Namespace, error)
-	Create(ctx context.Context, ns Namespace) (Namespace, error)
+	Upsert(ctx context.Context, ns Namespace) (Namespace, error)
 	List(ctx context.Context) ([]Namespace, error)
 	Update(ctx context.Context, ns Namespace) (Namespace, error)
 }
@@ -24,7 +24,7 @@ type Namespace struct {
 	UpdatedAt    time.Time
 }
 
-type NamspaceLogData struct {
+type LogData struct {
 	Entity       string `mapstructure:"entity"`
 	ID           string `mapstructure:"id"`
 	Name         string `mapstructure:"name"`
@@ -32,9 +32,9 @@ type NamspaceLogData struct {
 	ResourceType string `mapstructure:"resource_type"`
 }
 
-func (namespace Namespace) ToNameSpaceLogData() NamspaceLogData {
-	return NamspaceLogData{
-		Entity:       auditEntity,
+func (namespace Namespace) ToLogData() LogData {
+	return LogData{
+		Entity:       AuditEntity,
 		ID:           namespace.ID,
 		Name:         namespace.Name,
 		Backend:      namespace.Backend,

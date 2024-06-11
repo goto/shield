@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/goto/shield/pkg/telemetry"
+	"github.com/goto/salt/telemetry"
 )
 
 type GRPCConfig struct {
@@ -26,7 +26,9 @@ type Config struct {
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
 
-	//metrics port
+	Telemetry telemetry.Config `yaml:"telemetry" mapstructure:"telemetry"`
+
+	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
 
 	// the network interface to listen on
@@ -55,8 +57,6 @@ type Config struct {
 	// ResourcesPathSecretSecret could be a env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
-
-	TelemetryConfig telemetry.Config `yaml:"telemetry_config" mapstructure:"telemetry_config"`
 
 	// CheckAPILimit will have the maximum number of resource permissions that can be included
 	// in the resource permission check API. Default: 5

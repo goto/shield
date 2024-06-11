@@ -1,9 +1,8 @@
 package postgres
 
 import (
-	"time"
-
 	"database/sql"
+	"time"
 
 	"github.com/goto/shield/core/namespace"
 )

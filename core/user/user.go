@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	auditEntityUser         = "user"
-	auditEntityUserMetadata = "user_metadata_key"
+	AuditEntity         = "user"
+	AuditEntityMetadata = "user_metadata_key"
 )
 
 type Repository interface {
@@ -44,29 +44,29 @@ type PagedUsers struct {
 	Users []User
 }
 
-type UserLogData struct {
+type LogData struct {
 	Entity string `mapstructure:"entity"`
 	Name   string `mapstructure:"name"`
 	Email  string `mapstructure:"email"`
 }
 
-type UserMetadataKeyLogData struct {
+type MetadataKeyLogData struct {
 	Entity      string `mapstructure:"entity"`
 	Key         string `mapstructure:"key"`
 	Description string `mapstructure:"description"`
 }
 
-func (user User) ToUserLogData() UserLogData {
-	return UserLogData{
-		Entity: auditEntityUser,
+func (user User) ToLogData() LogData {
+	return LogData{
+		Entity: AuditEntity,
 		Name:   user.Name,
 		Email:  user.Email,
 	}
 }
 
-func (userMetadataKey UserMetadataKey) ToUserMetadataKeyLogData() UserMetadataKeyLogData {
-	return UserMetadataKeyLogData{
-		Entity:      auditEntityUserMetadata,
+func (userMetadataKey UserMetadataKey) ToMetadataKeyLogData() MetadataKeyLogData {
+	return MetadataKeyLogData{
+		Entity:      AuditEntityMetadata,
 		Key:         userMetadataKey.Key,
 		Description: userMetadataKey.Description,
 	}

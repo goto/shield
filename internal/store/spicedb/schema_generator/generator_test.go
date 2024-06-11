@@ -1,7 +1,7 @@
 package schema_generator
 
 import (
-	"io/ioutil"
+	"os"
 	"sort"
 	"strings"
 	"testing"
@@ -26,7 +26,7 @@ func makeDefnMap(s []string) map[string][]string {
 
 // Test to check difference between predefined_schema.txt and schema defined in predefined.go
 func TestPredefinedSchema(t *testing.T) {
-	content, err := ioutil.ReadFile("predefined_schema")
+	content, err := os.ReadFile("predefined_schema")
 	assert.NoError(t, err)
 
 	// slice and sort as GenerateSchema() generated the permissions and relations in random order

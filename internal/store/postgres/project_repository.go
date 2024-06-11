@@ -15,7 +15,10 @@ import (
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type ProjectRepository struct {
@@ -39,6 +42,14 @@ func (r ProjectRepository) GetByID(ctx context.Context, id string) (project.Proj
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -85,6 +96,14 @@ func (r ProjectRepository) GetBySlug(ctx context.Context, slug string) (project.
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetBySlug"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -136,10 +155,17 @@ func (r ProjectRepository) Create(ctx context.Context, prj project.Project) (pro
 			"org_id":   prj.Organization.ID,
 			"metadata": marshaledMetadata,
 		}).Returning(&Project{}).ToSQL()
-
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -181,6 +207,14 @@ func (r ProjectRepository) List(ctx context.Context) ([]project.Project, error) 
 	if err != nil {
 		return []project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	var projectModels []Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -229,6 +263,14 @@ func (r ProjectRepository) UpdateByID(ctx context.Context, prj project.Project) 
 	if err != nil {
 		return project.Project{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	query, params, err := dialect.Update(TABLE_PROJECTS).Set(
 		goqu.Record{
@@ -310,6 +352,14 @@ func (r ProjectRepository) UpdateBySlug(ctx context.Context, prj project.Project
 		return project.Project{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateBySlug"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
+
 	var projectModel Project
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -369,6 +419,14 @@ func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "ListAdmins"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_PROJECTS),
+		}...,
+	)
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)

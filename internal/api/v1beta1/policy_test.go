@@ -123,7 +123,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
@@ -140,7 +140,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return bad request error if foreign reference not exist",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					NamespaceID: "team",
 					RoleID:      "Admin",
 					ActionID:    "add-member",
@@ -157,7 +157,7 @@ func TestCreatePolicy(t *testing.T) {
 		{
 			title: "should return success if policy service return nil error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				ps.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					NamespaceID: "policy-1",
 					RoleID:      "reader",
 					ActionID:    "read",
@@ -365,7 +365,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return internal error if policy service return some error",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
@@ -386,7 +386,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return not found error if id is empty",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
 					ActionID:    testPolicyMap[testPolicyID].ActionID,
@@ -405,7 +405,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return not found error if id is not exist",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
@@ -426,7 +426,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return not found error if id is not uuid",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          "some-id",
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
@@ -447,7 +447,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return bad request error if field value not exist in foreign reference",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
@@ -468,7 +468,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 		{
 			name: "should return already exist error if policy service return err conflict",
 			setup: func(rs *mocks.PolicyService) {
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,
@@ -493,7 +493,7 @@ func TestHandler_UpdatePolicy(t *testing.T) {
 				for _, p := range testPolicyMap {
 					testPoliciesList = append(testPoliciesList, p)
 				}
-				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), policy.Policy{
+				rs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), &policy.Policy{
 					ID:          testPolicyMap[testPolicyID].ID,
 					RoleID:      testPolicyMap[testPolicyID].RoleID,
 					NamespaceID: testPolicyMap[testPolicyID].NamespaceID,

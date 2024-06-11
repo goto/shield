@@ -12,7 +12,6 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
 )
@@ -72,8 +71,8 @@ func (s Service) Create(ctx context.Context, grp Group) (Group, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		groupLogData := newGroup.ToGroupLogData()
+		ctx := context.WithoutCancel(ctx)
+		groupLogData := newGroup.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyGroupCreate, actor, groupLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -118,8 +117,8 @@ func (s Service) Update(ctx context.Context, grp Group) (Group, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		groupLogData := updatedGroup.ToGroupLogData()
+		ctx := context.WithoutCancel(ctx)
+		groupLogData := updatedGroup.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyGroupUpdate, actor, groupLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

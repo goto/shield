@@ -34,6 +34,13 @@ func (w *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	w.next.ServeHTTP(rw, req)
 }
 
+func (m Ware) Info() *middleware.MiddlewareInfo {
+	return &middleware.MiddlewareInfo{
+		Name:        "_prefix",
+		Description: "manipulating prefix middleware",
+	}
+}
+
 func (w *Ware) getPrefixStripped(urlPath, prefix string) string {
 	str := strings.TrimPrefix(urlPath, prefix)
 	// ensure leading slash

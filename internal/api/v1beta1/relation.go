@@ -105,7 +105,6 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 			RoleID:    request.GetBody().GetRoleName(),
 		},
 	})
-
 	if err != nil {
 		logger.Error(err.Error())
 		switch {

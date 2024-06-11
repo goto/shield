@@ -86,7 +86,7 @@ func (s *RelationRepositoryTestSuite) TestGet() {
 		ErrString        string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:      "should get a relation",
 			SelectedID:       s.relations[0].ID,
@@ -131,7 +131,7 @@ func (s *RelationRepositoryTestSuite) TestCreate() {
 		Err              error
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a relation with type role",
 			RelationToCreate: relation.RelationV2{
@@ -229,7 +229,7 @@ func (s *RelationRepositoryTestSuite) TestList() {
 		ErrString         string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all relations",
 			ExpectedRelations: []relation.RelationV2{
@@ -284,7 +284,7 @@ func (s *RelationRepositoryTestSuite) TestDeleteByID() {
 		ErrString   string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should delete a relation",
 			DeletedID:   s.relations[0].ID,

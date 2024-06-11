@@ -128,7 +128,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetByID() {
 		ErrString            string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get an organization",
 			SelectedID:  s.orgs[0].ID,
@@ -176,7 +176,7 @@ func (s *OrganizationRepositoryTestSuite) TestGetBySlug() {
 		ErrString            string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:  "should get an organization",
 			SelectedSlug: "org-1",
@@ -219,7 +219,7 @@ func (s *OrganizationRepositoryTestSuite) TestCreate() {
 		ErrString            string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create an organization",
 			OrganizationToCreate: organization.Organization{
@@ -271,7 +271,7 @@ func (s *OrganizationRepositoryTestSuite) TestList() {
 		ErrString             string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all organizations",
 			ExpectedOrganizations: []organization.Organization{
@@ -310,7 +310,7 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateByID() {
 		ErrString            string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
@@ -388,7 +388,7 @@ func (s *OrganizationRepositoryTestSuite) TestUpdateBySlug() {
 		ErrString            string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a organization",
 			OrganizationToUpdate: organization.Organization{
@@ -445,7 +445,7 @@ func (s *OrganizationRepositoryTestSuite) TestListAdmins() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should return list of admins if org does have admins",
 			OrgID:       s.orgs[0].ID,

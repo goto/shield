@@ -57,7 +57,7 @@ func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest
 		return fmt.Errorf("got non-zero exit code %s", stream.String())
 	}
 
-	//purge
+	// purge
 	if err := pool.Purge(resource); err != nil {
 		return err
 	}

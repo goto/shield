@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"strconv"
 	"sync"
 
@@ -53,9 +52,7 @@ func (p *payloadProtoCacheMutex) Set(key string, msgDescriptor *desc.MessageDesc
 	p.payloadProtoCache[key] = msgDescriptor
 }
 
-var (
-	payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
-)
+var payloadProtoCache = payloadProtoCacheMutex{payloadProtoCache: make(map[string]*desc.MessageDescriptor)}
 
 type Query struct {
 	Field    int    `json:"field"`
@@ -67,13 +64,13 @@ type GRPCPayloadHandler struct {
 }
 
 func (b GRPCPayloadHandler) Extract(body *io.ReadCloser, protoIndex string) (interface{}, error) {
-	reqBody, err := ioutil.ReadAll(*body)
+	reqBody, err := io.ReadAll(*body)
 	if err != nil {
 		return "", err
 	}
 	defer (*body).Close()
 	// repopulate body
-	*body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	*body = io.NopCloser(bytes.NewBuffer(reqBody))
 
 	return b.extractFromRequest(reqBody, protoIndex)
 }

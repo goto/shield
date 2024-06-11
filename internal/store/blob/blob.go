@@ -3,7 +3,6 @@ package blob
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
 	"net/url"
 	"os"
 	"strings"
@@ -26,8 +25,8 @@ type Bucket interface {
 }
 
 func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, error) {
-	var errBadSecretURL = errors.Errorf(`unsupported storage config %s, possible schemes supported: "env:// file:// val://" for example: "val://username:password"`, storageSecret)
-	var errBadStorageURL = errors.Errorf("unsupported storage config %s", storagePath)
+	errBadSecretURL := errors.Errorf(`unsupported storage config %s, possible schemes supported: "env:// file:// val://" for example: "val://username:password"`, storageSecret)
+	errBadStorageURL := errors.Errorf("unsupported storage config %s", storagePath)
 
 	var storageSecretValue []byte
 	if storageSecret != "" {
@@ -42,7 +41,7 @@ func NewStore(ctx context.Context, storagePath, storageSecret string) (Bucket, e
 			}
 		case "file":
 			{
-				fileContent, err := ioutil.ReadFile(parsedSecretURL.Path)
+				fileContent, err := os.ReadFile(parsedSecretURL.Path)
 				if err != nil {
 					return nil, errors.Wrap(err, "failed to read secret content at "+parsedSecretURL.Path)
 				}

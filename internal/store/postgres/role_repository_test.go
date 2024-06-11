@@ -86,7 +86,7 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 		ErrString    string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a role",
 			SelectedID:  "ns1:role1",
@@ -126,7 +126,7 @@ func (s *RoleRepositoryTestSuite) TestGet() {
 	}
 }
 
-func (s *RoleRepositoryTestSuite) TestCreate() {
+func (s *RoleRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description  string
 		RoleToCreate role.Role
@@ -134,7 +134,7 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 		ErrString    string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a role",
 			RoleToCreate: role.Role{
@@ -169,7 +169,7 @@ func (s *RoleRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.RoleToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.RoleToCreate)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -189,7 +189,7 @@ func (s *RoleRepositoryTestSuite) TestList() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all roles",
 			ExpectedRoles: []role.Role{
@@ -275,7 +275,7 @@ func (s *RoleRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			//TODO figure out how to compare metadata map[string]any
+			// TODO figure out how to compare metadata map[string]any
 			if !cmp.Equal(got, tc.ExpectedRoles, cmpopts.IgnoreFields(role.Role{},
 				"ID", "Types", "CreatedAt", "UpdatedAt", "Metadata")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedRoles)
@@ -292,7 +292,7 @@ func (s *RoleRepositoryTestSuite) TestUpdate() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a role",
 			RoleToUpdate: role.Role{

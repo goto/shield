@@ -8,11 +8,11 @@ import (
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"go.nhat.io/otelsql"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
-var (
-	transactionContextKey = struct{}{}
-)
+var transactionContextKey = struct{}{}
 
 type Client struct {
 	db           *sqlx.DB
@@ -20,7 +20,18 @@ type Client struct {
 }
 
 func New(cfg Config) (*Client, error) {
-	d, err := sqlx.Open(cfg.Driver, cfg.URL)
+	driverName, err := otelsql.Register(
+		cfg.Driver,
+		otelsql.TraceQueryWithoutArgs(),
+		otelsql.TraceRowsClose(),
+		otelsql.TraceRowsAffected(),
+		otelsql.WithSystem(semconv.DBSystemPostgreSQL),
+	)
+	if err != nil {
+		return nil, fmt.Errorf("new pgq processor: %w", err)
+	}
+
+	d, err := sqlx.Open(driverName, cfg.URL)
 	if err != nil {
 		return nil, err
 	}
@@ -32,6 +43,14 @@ func New(cfg Config) (*Client, error) {
 	d.SetMaxIdleConns(cfg.MaxIdleConns)
 	d.SetMaxOpenConns(cfg.MaxOpenConns)
 	d.SetConnMaxLifetime(cfg.ConnMaxLifeTime)
+
+	if err := otelsql.RecordStats(
+		d.DB,
+		otelsql.WithSystem(semconv.DBSystemPostgreSQL),
+		otelsql.WithInstanceName(cfg.URL),
+	); err != nil {
+		return nil, err
+	}
 
 	return &Client{db: d, queryTimeOut: cfg.MaxQueryTimeoutInMS}, err
 }

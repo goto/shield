@@ -257,7 +257,7 @@ func TestHandler_CheckResourcePermission(t *testing.T) {
 }
 
 func TestHandler_CheckResourceUserPermission(t *testing.T) {
-	var userEmail = "john.doe@gotocompany.com"
+	userEmail := "john.doe@gotocompany.com"
 	tests := []struct {
 		name    string
 		setup   func(res *mocks.ResourceService)

@@ -13,7 +13,7 @@ import (
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	newrelic "github.com/newrelic/go-agent"
+	"github.com/newrelic/go-agent/v3/newrelic"
 	"go.uber.org/zap"
 
 	"github.com/goto/shield/config"
@@ -39,13 +39,12 @@ import (
 	"github.com/goto/shield/pkg/db"
 
 	"github.com/goto/salt/log"
+	"github.com/goto/salt/telemetry"
 	"github.com/pkg/profile"
 	"google.golang.org/grpc/codes"
 )
 
-var (
-	ruleCacheRefreshDelay = time.Minute * 2
-)
+var ruleCacheRefreshDelay = time.Minute * 2
 
 func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	if profiling := os.Getenv("SHIELD_PROFILE"); profiling == "true" || profiling == "1" {
@@ -55,6 +54,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
+
+	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.App.Telemetry, logger)
+	if err != nil {
+		return err
+	}
+
+	defer cleanUpTelemetry()
 
 	dbClient, err := setupDB(cfg.DB, logger)
 	if err != nil {
@@ -244,26 +250,24 @@ func BuildAPIDependencies(
 	return dependencies, nil
 }
 
-func setupNewRelic(cfg config.NewRelic, logger log.Logger) (newrelic.Application, error) {
-	nrCfg := newrelic.NewConfig(cfg.AppName, cfg.License)
-	nrCfg.Enabled = cfg.Enabled
-	nrCfg.ErrorCollector.IgnoreStatusCodes = []int{
-		http.StatusNotFound,
-		http.StatusUnauthorized,
-		int(codes.Unauthenticated),
-		int(codes.PermissionDenied),
-		int(codes.InvalidArgument),
-		int(codes.AlreadyExists),
-	}
-
-	if nrCfg.Enabled {
-		nrApp, err := newrelic.NewApplication(nrCfg)
-		if err != nil {
-			return nil, errors.New("failed to load Newrelic Application")
+func setupNewRelic(cfg config.NewRelic, logger log.Logger) (*newrelic.Application, error) {
+	nrApp, err := newrelic.NewApplication(func(nrCfg *newrelic.Config) {
+		nrCfg.Enabled = cfg.Enabled
+		nrCfg.AppName = cfg.AppName
+		nrCfg.ErrorCollector.IgnoreStatusCodes = []int{
+			http.StatusNotFound,
+			http.StatusUnauthorized,
+			int(codes.Unauthenticated),
+			int(codes.PermissionDenied),
+			int(codes.InvalidArgument),
+			int(codes.AlreadyExists),
 		}
-		return nrApp, nil
+		nrCfg.License = cfg.License
+	})
+	if err != nil {
+		return nil, errors.New("failed to load Newrelic Application")
 	}
-	return nil, nil
+	return nrApp, nil
 }
 
 func setupDB(cfg db.Config, logger log.Logger) (dbc *db.Client, err error) {

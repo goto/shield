@@ -86,7 +86,7 @@ func (s *UserRepositoryTestSuite) TestGetByID() {
 		ErrString    string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a user",
 			SelectedID:  s.users[0].ID,
@@ -137,7 +137,7 @@ func (s *UserRepositoryTestSuite) TestGetByEmail() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:   "should get a user",
 			SelectedEmail: s.users[0].Email,
@@ -193,7 +193,7 @@ func (s *UserRepositoryTestSuite) TestCreate() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a user",
 			UserToCreate: user.User{
@@ -243,7 +243,7 @@ func (s *UserRepositoryTestSuite) TestList() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:   "should get all users",
 			ExpectedUsers: s.users,
@@ -374,7 +374,7 @@ func (s *UserRepositoryTestSuite) TestGetByIDs() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:   "should get all users with ids",
 			IDs:           []string{s.users[0].ID, s.users[0].ID},
@@ -415,7 +415,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 		Err          error
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a user",
 			UserToUpdate: user.User{
@@ -474,7 +474,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		Err          error
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a user",
 			UserToUpdate: user.User{
@@ -551,6 +551,7 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 		})
 	}
 }
+
 func TestUserRepository(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
 }

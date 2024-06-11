@@ -10,8 +10,8 @@ import (
 )
 
 const (
-	auditEntityRelation        = "relation"
-	auditEntityRelationSubject = "relation_subject"
+	AuditEntity        = "relation"
+	AuditEntitySubject = "relation_subject"
 )
 
 type Repository interface {
@@ -77,7 +77,7 @@ var RelationTypes = struct {
 	Namespace: "namespace",
 }
 
-type RelationLogData struct {
+type LogData struct {
 	Entity           string `mapstructure:"entity"`
 	ID               string `mapstructure:"id"`
 	ObjectID         string `mapstructure:"object_id"`
@@ -87,15 +87,15 @@ type RelationLogData struct {
 	RoleID           string `mapstructure:"role"`
 }
 
-type RelationSubjectLogData struct {
+type SubjectLogData struct {
 	Entity             string `mapstructure:"entity"`
 	ResourceType       string `mapstructure:"resource_type"`
 	OptionalResourceID string `mapstructure:"optional_resource_id"`
 }
 
-func (relation RelationV2) ToRelationLogData() RelationLogData {
-	return RelationLogData{
-		Entity:           auditEntityRelation,
+func (relation RelationV2) ToLogData() LogData {
+	return LogData{
+		Entity:           AuditEntity,
 		ID:               relation.ID,
 		ObjectID:         relation.Object.ID,
 		ObjectNamespace:  relation.Object.NamespaceID,
@@ -105,9 +105,9 @@ func (relation RelationV2) ToRelationLogData() RelationLogData {
 	}
 }
 
-func ToRelationSubjectLogData(resourceType, optionalResourceID string) RelationSubjectLogData {
-	return RelationSubjectLogData{
-		Entity:             auditEntityRelationSubject,
+func ToSubjectLogData(resourceType, optionalResourceID string) SubjectLogData {
+	return SubjectLogData{
+		Entity:             AuditEntitySubject,
 		ResourceType:       resourceType,
 		OptionalResourceID: optionalResourceID,
 	}

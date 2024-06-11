@@ -155,7 +155,7 @@ func (s *GroupRepositoryTestSuite) TestGetByID() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a group",
 			SelectedID:  s.groups[0].ID,
@@ -208,19 +208,20 @@ func (s *GroupRepositoryTestSuite) TestGetByIDs() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a group",
 			SelectedIDs: []string{s.groups[0].ID, s.groups[1].ID},
-			ExpectedGroups: []group.Group{{
-				Name:           "group1",
-				Slug:           "group-1",
-				OrganizationID: s.groups[0].OrganizationID,
-			}, {
-				Name:           "group2",
-				Slug:           "group-2",
-				OrganizationID: s.groups[1].OrganizationID,
-			},
+			ExpectedGroups: []group.Group{
+				{
+					Name:           "group1",
+					Slug:           "group-1",
+					OrganizationID: s.groups[0].OrganizationID,
+				}, {
+					Name:           "group2",
+					Slug:           "group-2",
+					OrganizationID: s.groups[1].OrganizationID,
+				},
 			},
 		},
 		{
@@ -265,7 +266,7 @@ func (s *GroupRepositoryTestSuite) TestGetBySlug() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description:  "should get a group",
 			SelectedSlug: "group-1",
@@ -309,7 +310,7 @@ func (s *GroupRepositoryTestSuite) TestCreate() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a group",
 			GroupToCreate: group.Group{
@@ -384,7 +385,7 @@ func (s *GroupRepositoryTestSuite) TestList() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all groups",
 			ExpectedGroups: []group.Group{
@@ -443,7 +444,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateByID() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a group",
 			GroupToUpdate: group.Group{
@@ -547,7 +548,7 @@ func (s *GroupRepositoryTestSuite) TestUpdateBySlug() {
 		ErrString     string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a group",
 			GroupToUpdate: group.Group{
@@ -627,7 +628,7 @@ func (s *GroupRepositoryTestSuite) TestListUserGroups() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a list of group",
 			UserID:      s.users[0].ID,
@@ -684,7 +685,7 @@ func (s *GroupRepositoryTestSuite) TestListGroupRelations() {
 		ErrString         string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a list of relations",
 			ObjectID:    s.groups[0].ID,

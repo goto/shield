@@ -1,13 +1,13 @@
 package proxy
 
 import (
+	"context"
 	"crypto/tls"
 	"net"
 	"net/http"
 	"time"
 
 	"github.com/goto/shield/internal/proxy/hook"
-	"github.com/goto/shield/pkg/context"
 
 	"github.com/goto/salt/log"
 	"go.uber.org/zap"
