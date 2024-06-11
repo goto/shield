@@ -1217,8 +1217,8 @@ github.com/gotestyourself/gotestyourself v2.2.0+incompatible h1:AQwinXlbQR2HvPjQ
 github.com/gotestyourself/gotestyourself v2.2.0+incompatible/go.mod h1:zZKM6oeNM8k+FRljX1mnzVYeS8wiGgQyvST1/GafPbY=
 github.com/goto/otelsql v0.0.2 h1:DzRiKIHvxYW4KnwzJCz38KoD1K6IH5joANal/DHPyW4=
 github.com/goto/otelsql v0.0.2/go.mod h1:HyYpqd7G9BK+9cPLydV+2JN/4J5D3wlX6+jDLTk52GE=
-github.com/goto/salt v0.3.7 h1:XwnKDEMXkYhStcyLtw7SjHg4TRseRt5OSqOV8DUqfBI=
-github.com/goto/salt v0.3.7/go.mod h1:KR7LfsHQY3ae1iBEZDOlDrDZQZVRtDNdwpBttrcT5sE=
+github.com/goto/salt v0.3.8-0.20240611153558-8d652d0cd330 h1:65hP8RSdPrrPwt/0OXzza95T/rTjwohUTb3e+6xwxuc=
+github.com/goto/salt v0.3.8-0.20240611153558-8d652d0cd330/go.mod h1:KR7LfsHQY3ae1iBEZDOlDrDZQZVRtDNdwpBttrcT5sE=
 github.com/grafana/regexp v0.0.0-20220304095617-2e8d9baf4ac2/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/grafana/regexp v0.0.0-20221005093135-b4c2bcb0a4b6/go.mod h1:M5qHK+eWfAv8VR/265dIuEpL3fNfeC21tXXp9itM24A=
 github.com/gregjones/httpcache v0.0.0-20180305231024-9cad4c3443a7/go.mod h1:FecbI9+v66THATjSRHfNgh1IVFe/9kFxbXtjV0ctIMA=
