@@ -2,10 +2,12 @@ package v1beta1
 
 import (
 	"context"
+	"fmt"
 	"strings"
 
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/errors"
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
@@ -15,6 +17,8 @@ import (
 
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 
@@ -216,6 +220,38 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			return nil, grpcInternalServerError
 		}
 	}
+
+	serviceDataMap := map[string]any{}
+	for k, v := range metaDataMap {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    updatedGroup.ID,
+			NamespaceID: groupNamespaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
+			},
+			Value: v.(string),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			case errors.Is(err, errorsPkg.ErrForbidden):
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+	}
+
+	//Note: this would return only the keys that are updated in the current request
+	updatedGroup.Metadata = serviceDataMap
 
 	groupPB, err := transformGroupToPB(updatedGroup)
 	if err != nil {

@@ -333,17 +333,11 @@ func (r GroupRepository) UpdateByID(ctx context.Context, grp group.Group) (group
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(
 		goqu.Record{
 			"name":       grp.Name,
 			"slug":       grp.Slug,
 			"org_id":     grp.OrganizationID,
-			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.ExOr{
 		"id": grp.ID,
@@ -399,16 +393,10 @@ func (r GroupRepository) UpdateBySlug(ctx context.Context, grp group.Group) (gro
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
 	query, params, err := dialect.Update(TABLE_GROUPS).Set(
 		goqu.Record{
 			"name":       grp.Name,
 			"org_id":     grp.OrganizationID,
-			"metadata":   marshaledMetadata,
 			"updated_at": goqu.L("now()"),
 		}).Where(goqu.Ex{
 		"slug": grp.Slug,

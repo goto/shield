@@ -372,6 +372,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
 	}
 
+	//Note: this would return only the keys that are updated in the current request
 	updatedUser.Metadata = serviceDataMap
 
 	userPB, err := transformUserToPB(updatedUser)
