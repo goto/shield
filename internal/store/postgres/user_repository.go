@@ -383,7 +383,6 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 }
 
 func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.User, error) {
-	userMetadata := make(map[string]any)
 
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
@@ -446,156 +445,11 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 			return fmt.Errorf("%s: %w", parseErr, err)
 		}
 
-		if usr.Metadata != nil {
-			existingMetadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
-				Where(goqu.Ex{
-					"user_id": transformedUser.ID,
-				}).ToSQL()
-			if err != nil {
-				return fmt.Errorf("%w: %s", queryErr, err)
-			}
-
-			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-				nrCtx := newrelic.FromContext(ctx)
-				if nrCtx != nil {
-					nr := newrelic.DatastoreSegment{
-						Product:    newrelic.DatastorePostgres,
-						Collection: TABLE_METADATA,
-						Operation:  "GetByUserID",
-						StartTime:  nrCtx.StartSegmentNow(),
-					}
-					defer nr.End()
-				}
-
-				metadata, err := r.dbc.QueryContext(ctx, existingMetadataQuery)
-				if err != nil {
-					return err
-				}
-
-				for {
-					var key string
-					var valuejson string
-					if !metadata.Next() {
-						break
-					}
-					err := metadata.Scan(&key, &valuejson)
-					if err != nil {
-						return err
-					}
-
-					var value any
-					err = json.Unmarshal([]byte(valuejson), &value)
-					if err != nil {
-						return err
-					}
-
-					userMetadata[key] = value
-				}
-
-				return nil
-			}); err != nil {
-				err = checkPostgresError(err)
-				switch {
-				case errors.Is(err, errDuplicateKey):
-					return user.ErrConflict
-				default:
-					return err
-				}
-			}
-
-			metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
-				Where(
-					goqu.Ex{
-						"user_id": transformedUser.ID,
-					},
-				).ToSQL()
-			if err != nil {
-				return nil
-			}
-
-			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-				nrCtx := newrelic.FromContext(ctx)
-				if nrCtx != nil {
-					nr := newrelic.DatastoreSegment{
-						Product:    newrelic.DatastorePostgres,
-						Collection: TABLE_METADATA,
-						Operation:  "DeleteByUserID",
-						StartTime:  nrCtx.StartSegmentNow(),
-					}
-					defer nr.End()
-				}
-
-				_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
-				if err != nil {
-					return err
-				}
-				return nil
-			}); err != nil {
-				err = checkPostgresError(err)
-				switch {
-				case errors.Is(err, errDuplicateKey):
-					return user.ErrConflict
-				default:
-					return err
-				}
-			}
-
-			for key, value := range usr.Metadata {
-				userMetadata[key] = value
-			}
-
-			var rows []interface{}
-			for k, v := range userMetadata {
-				valuejson, err := json.Marshal(v)
-				if err != nil {
-					return err
-				}
-				rows = append(rows, goqu.Record{
-					"user_id": transformedUser.ID,
-					"key":     k,
-					"value":   valuejson,
-				})
-			}
-			metadataQuery, params, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
-			if err != nil {
-				return err
-			}
-
-			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-				nrCtx := newrelic.FromContext(ctx)
-				if nrCtx != nil {
-					nr := newrelic.DatastoreSegment{
-						Product:    newrelic.DatastorePostgres,
-						Collection: TABLE_METADATA,
-						Operation:  "Create",
-						StartTime:  nrCtx.StartSegmentNow(),
-					}
-					defer nr.End()
-				}
-
-				_, err := tx.ExecContext(ctx, metadataQuery, params...)
-				if err != nil {
-					return err
-				}
-				return nil
-			}); err != nil {
-				err = checkPostgresError(err)
-				switch {
-				case errors.Is(err, errDuplicateKey):
-					return user.ErrConflict
-				default:
-					return err
-				}
-			}
-		}
-
 		return nil
 	})
 	if err != nil {
 		return user.User{}, err
 	}
-
-	transformedUser.Metadata = userMetadata
 
 	return transformedUser, nil
 }
@@ -669,98 +523,12 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		if err != nil {
 			return fmt.Errorf("%s: %w", parseErr, err)
 		}
-
-		metadataDeleteQuery, params, err := dialect.Delete(TABLE_METADATA).
-			Where(
-				goqu.Ex{
-					"user_id": transformedUser.ID,
-				},
-			).ToSQL()
-		if err != nil {
-			return nil
-		}
-
-		if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-			nrCtx := newrelic.FromContext(ctx)
-			if nrCtx != nil {
-				nr := newrelic.DatastoreSegment{
-					Product:    newrelic.DatastorePostgres,
-					Collection: TABLE_METADATA,
-					Operation:  "DeleteByUserID",
-					StartTime:  nrCtx.StartSegmentNow(),
-				}
-				defer nr.End()
-			}
-
-			_, err := tx.ExecContext(ctx, metadataDeleteQuery, params...)
-			if err != nil {
-				return err
-			}
-			return nil
-		}); err != nil {
-			err = checkPostgresError(err)
-			switch {
-			case errors.Is(err, errDuplicateKey):
-				return user.ErrConflict
-			default:
-				return err
-			}
-		}
-
-		if len(usr.Metadata) > 0 {
-			var rows []interface{}
-
-			for k, v := range usr.Metadata {
-				valuejson, err := json.Marshal(v)
-				if err != nil {
-					valuejson = []byte{}
-				}
-
-				rows = append(rows, goqu.Record{
-					"user_id": transformedUser.ID,
-					"key":     k,
-					"value":   valuejson,
-				})
-			}
-			metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
-			if err != nil {
-				return err
-			}
-
-			if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-				nrCtx := newrelic.FromContext(ctx)
-				if nrCtx != nil {
-					nr := newrelic.DatastoreSegment{
-						Product:    newrelic.DatastorePostgres,
-						Collection: TABLE_METADATA,
-						Operation:  "Create",
-						StartTime:  nrCtx.StartSegmentNow(),
-					}
-					defer nr.End()
-				}
-
-				_, err := tx.ExecContext(ctx, metadataQuery, params...)
-				if err != nil {
-					return err
-				}
-				return nil
-			}); err != nil {
-				err = checkPostgresError(err)
-				switch {
-				case errors.Is(err, errDuplicateKey):
-					return user.ErrConflict
-				default:
-					return err
-				}
-			}
-		}
 		return nil
 	})
 	if err != nil {
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = usr.Metadata
 	return transformedUser, nil
 }
 

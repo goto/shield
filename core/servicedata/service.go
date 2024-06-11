@@ -11,6 +11,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/errors"
 )
 
 const (
@@ -165,7 +166,7 @@ func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error
 		return ServiceData{}, err
 	}
 	if !permission {
-		return ServiceData{}, user.ErrInvalidEmail
+		return ServiceData{}, errors.ErrForbidden
 	}
 
 	returnedServiceData, err := s.repository.Upsert(ctx, sd)

@@ -17,7 +17,6 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
-	"github.com/goto/shield/pkg/metadata"
 )
 
 type UserRepositoryTestSuite struct {
@@ -421,16 +420,10 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k1": "v1",
-				},
 			},
 			ExpectedUser: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k1": "v1",
-				},
 			},
 		},
 		{
@@ -481,17 +474,11 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
 			},
 			ExpectedUser: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
 			},
 		},
 		{

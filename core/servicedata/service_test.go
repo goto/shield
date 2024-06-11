@@ -14,6 +14,7 @@ import (
 	"github.com/goto/shield/core/servicedata/mocks"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -460,7 +461,7 @@ func TestService_Upsert(t *testing.T) {
 					testResourceID, action.Action{ID: "edit"}).Return(false, nil)
 				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
 			},
-			wantErr: user.ErrInvalidEmail,
+			wantErr: errorsPkg.ErrForbidden,
 		},
 		{
 			name:  "UpsertErr",

@@ -3,6 +3,7 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/mail"
 	"strings"
 
@@ -13,10 +14,13 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/metadata"
 
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
@@ -323,9 +327,52 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		})
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+				return nil, grpcUserNotFoundError
+			case errors.Is(err, user.ErrInvalidEmail):
+				return nil, grpcBadBodyError
+			case errors.Is(err, user.ErrConflict):
+				return nil, grpcConflictError
+			case errors.Is(err, user.ErrInvalidEmail),
+				errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
 	}
+
+	serviceDataMap := map[string]any{}
+	for k, v := range metaDataMap {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    updatedUser.ID,
+			NamespaceID: userNamespaceID,
+			Key: servicedata.Key{
+				Key:       k,
+				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
+			},
+			Value: v.(string),
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			case errors.Is(err, errorsPkg.ErrForbidden):
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+	}
+
+	updatedUser.Metadata = serviceDataMap
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {
