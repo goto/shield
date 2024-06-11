@@ -2,18 +2,20 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"strings"
 
-	"database/sql"
-
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type RoleRepository struct {
@@ -53,6 +55,14 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 		return role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Get"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ROLES),
+		}...,
+	)
+
 	var roleModel Role
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -82,8 +92,7 @@ func (r RoleRepository) Get(ctx context.Context, id string) (role.Role, error) {
 	return transformedRole, nil
 }
 
-// TODO this is actually an upsert
-func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error) {
+func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error) {
 	if strings.TrimSpace(rl.ID) == "" {
 		return "", role.ErrInvalidID
 	}
@@ -97,7 +106,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	//TODO we have to go with this manually populating data since goqu does not support insert array string
+	// TODO we have to go with this manually populating data since goqu does not support insert array string
 	query, _, err := dialect.Insert(TABLE_ROLES).Rows(
 		goqu.Record{
 			"id":           goqu.L("$1"),
@@ -117,6 +126,14 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 	types := strings.Join(rl.Types, ",")
 	types = fmt.Sprintf("{%s}", types)
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ROLES),
+		}...,
+	)
+
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -124,7 +141,7 @@ func (r RoleRepository) Create(ctx context.Context, rl role.Role) (string, error
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
 				Collection: TABLE_ROLES,
-				Operation:  "Create",
+				Operation:  "Upsert",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
 			defer nr.End()
@@ -151,6 +168,14 @@ func (r RoleRepository) List(ctx context.Context) ([]role.Role, error) {
 	if err != nil {
 		return []role.Role{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ROLES),
+		}...,
+	)
 
 	var fetchedRoles []Role
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -196,7 +221,7 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 		return "", fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	//TODO we have to go with this manually populating data since goqu does not support insert array string
+	// TODO we have to go with this manually populating data since goqu does not support insert array string
 	query, _, err := dialect.Update(TABLE_ROLES).Set(
 		goqu.Record{
 			"name":         goqu.L("$2"),
@@ -210,6 +235,14 @@ func (r RoleRepository) Update(ctx context.Context, rl role.Role) (string, error
 	if err != nil {
 		return "", fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ROLES),
+		}...,
+	)
 
 	var roleID string
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {

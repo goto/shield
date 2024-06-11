@@ -17,7 +17,7 @@ import (
 type ActionService interface {
 	Get(ctx context.Context, id string) (action.Action, error)
 	List(ctx context.Context) ([]action.Action, error)
-	Create(ctx context.Context, action action.Action) (action.Action, error)
+	Upsert(ctx context.Context, action action.Action) (action.Action, error)
 	Update(ctx context.Context, id string, action action.Action) (action.Action, error)
 }
 
@@ -48,7 +48,7 @@ func (h Handler) ListActions(ctx context.Context, request *shieldv1beta1.ListAct
 func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.CreateActionRequest) (*shieldv1beta1.CreateActionResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	newAction, err := h.actionService.Create(ctx, action.Action{
+	newAction, err := h.actionService.Upsert(ctx, action.Action{
 		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
 		NamespaceID: request.GetBody().GetNamespaceId(),
@@ -69,7 +69,6 @@ func (h Handler) CreateAction(ctx context.Context, request *shieldv1beta1.Create
 	}
 
 	actionPB, err := transformActionToPB(newAction)
-
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

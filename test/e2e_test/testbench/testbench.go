@@ -30,9 +30,7 @@ const (
 	waitContainerTimeout = 60 * time.Second
 )
 
-var (
-	RuleCacheRefreshDelay = time.Minute * 2
-)
+var RuleCacheRefreshDelay = time.Minute * 2
 
 type TestBench struct {
 	PGConfig          db.Config
@@ -184,7 +182,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 		t.Fatal(err)
 	}
 
-	err = os.WriteFile(fmt.Sprintf("%s/%s", testDataPath, "configs/rules/rule.yaml"), tmplBuf.Bytes(), 0644)
+	err = os.WriteFile(fmt.Sprintf("%s/%s", testDataPath, "configs/rules/rule.yaml"), tmplBuf.Bytes(), 0o644)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -275,6 +273,7 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 	}
 	return client, serviceDataClient, appConfig, cancelClient, canceserviceDataClient, cancelContextFunc
 }
+
 func migrateShield(appConfig *config.Shield) error {
 	return db.RunMigrations(db.Config{
 		Driver: appConfig.DB.Driver,

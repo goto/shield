@@ -12,8 +12,7 @@ import (
 
 var ctxRequestErrorKey = struct{}{}
 
-type Director struct {
-}
+type Director struct{}
 
 func NewDirector() *Director {
 	return &Director{}

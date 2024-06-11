@@ -8,7 +8,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 )
 
-const auditEntity = "group"
+const AuditEntity = "group"
 
 type Repository interface {
 	Create(ctx context.Context, grp Group) (Group, error)
@@ -32,22 +32,20 @@ type Group struct {
 	UpdatedAt      time.Time
 }
 
-type GroupLogData struct {
-	Entity string `mapstructure:"entity"`
-	ID     string `mapstructure:"id"`
-	Name   string `mapstructure:"name"`
-	Slug   string `mapstructure:"slug"`
-	OrgID  string `mapstructure:"organization_id"`
+type LogData struct {
+	Entity         string `mapstructure:"entity"`
+	ID             string `mapstructure:"id"`
+	Name           string `mapstructure:"name"`
+	Slug           string `mapstructure:"slug"`
+	OrganizationID string `mapstructure:"organization_id"`
 }
 
-func (group Group) ToGroupLogData() GroupLogData {
-	logData := GroupLogData{
-		Entity: auditEntity,
-		ID:     group.ID,
-		Name:   group.Name,
-		Slug:   group.Slug,
-		OrgID:  group.OrganizationID,
+func (group Group) ToLogData() LogData {
+	return LogData{
+		Entity:         AuditEntity,
+		ID:             group.ID,
+		Name:           group.Name,
+		Slug:           group.Slug,
+		OrganizationID: group.OrganizationID,
 	}
-
-	return logData
 }

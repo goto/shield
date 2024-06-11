@@ -12,7 +12,10 @@ import (
 	"github.com/goto/salt/audit"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/pkg/db"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type ActivityRepository struct {
@@ -35,6 +38,14 @@ func (r ActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
 	if err != nil {
 		return fmt.Errorf("%w: %s", parseErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Insert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIVITY),
+		}...,
+	)
 
 	query, params, err := dialect.Insert(TABLE_ACTIVITY).Rows(
 		goqu.Record{
@@ -113,6 +124,14 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 	if err != nil {
 		return nil, err
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_ACTIVITY),
+		}...,
+	)
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)

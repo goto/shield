@@ -124,7 +124,7 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 		ErrString   string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a key",
 			KeyToCreate: servicedata.Key{
@@ -217,7 +217,7 @@ func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
 	testEntityID := uuid.NewString()
 	testValue := "test-value"
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a service data",
 			ServiceDataToCreate: servicedata.ServiceData{
@@ -260,7 +260,7 @@ func (s *ServiceDataRepositoryTestSuite) TestGetKeyByURN() {
 		ErrString   string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create a key",
 			URN:         s.keys[0].URN,
@@ -310,7 +310,7 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 		Value: s.data[0].Value,
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a service data",
 			filter: servicedata.Filter{

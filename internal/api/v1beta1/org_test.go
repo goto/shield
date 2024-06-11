@@ -220,7 +220,8 @@ func TestCreateOrganization(t *testing.T) {
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						"email": structpb.NewStringValue("a"),
-					}},
+					},
+				},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
 			}},
@@ -252,7 +253,6 @@ func TestHandler_GetOrganization(t *testing.T) {
 		want    *shieldv1beta1.GetOrganizationResponse
 		wantErr error
 	}{
-
 		{
 			name: "should return internal error if org service return some error",
 			setup: func(os *mocks.OrganizationService) {

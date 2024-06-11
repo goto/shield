@@ -24,6 +24,9 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware/prefix"
 	"github.com/goto/shield/internal/proxy/middleware/rulematch"
 	"github.com/goto/shield/internal/store/blob"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.20.0"
+	"go.opentelemetry.io/otel/trace"
 )
 
 func serveProxies(
@@ -83,7 +86,8 @@ func buildHookPipeline(
 	resourceService v1beta1.ResourceService,
 	relationService v1beta1.RelationService,
 	relationAdapter *adapter.Relation,
-	identityProxyHeaderKey string) hook.Service {
+	identityProxyHeaderKey string,
+) hook.Service {
 	rootHook := hook.New()
 	return authz_hook.New(log, rootHook, rootHook, resourceService, relationService, relationAdapter, identityProxyHeaderKey)
 }
@@ -104,7 +108,19 @@ func buildMiddlewarePipeline(
 	casbinAuthz := authz.New(logger, prefixWare, userIDHeaderKey, resourceService, userService, groupService)
 	basicAuthn := basic_auth.New(logger, casbinAuthz)
 	attributeExtractor := attributes.New(logger, basicAuthn, identityProxyHeaderKey, projectService)
-	matchWare := rulematch.New(logger, attributeExtractor, rulematch.NewRouteMatcher(ruleService))
+	otelMiddleware := otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		route := r.URL.Path
+		attr := semconv.HTTPRouteKey.String(route)
+
+		span := trace.SpanFromContext(r.Context())
+		span.SetAttributes(attr)
+
+		labeler, _ := otelhttp.LabelerFromContext(r.Context())
+		labeler.Add(attr)
+
+		attributeExtractor.ServeHTTP(w, r)
+	}), "")
+	matchWare := rulematch.New(logger, otelMiddleware, rulematch.NewRouteMatcher(ruleService))
 	observability := observability.New(logger, matchWare)
 	return observability
 }

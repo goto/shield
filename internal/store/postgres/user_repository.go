@@ -12,7 +12,10 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/jmoiron/sqlx"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/db"
@@ -52,6 +55,14 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -106,6 +117,14 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
 
 	var userModel User
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -241,6 +260,14 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -309,6 +336,14 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByIDs"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -353,6 +388,14 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateByEmail"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
 
 	var transformedUser user.User
 
@@ -548,7 +591,6 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 
 		return nil
 	})
-
 	if err != nil {
 		return user.User{}, err
 	}
@@ -565,6 +607,14 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 	if strings.TrimSpace(usr.Email) == "" {
 		return user.User{}, user.ErrInvalidEmail
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "UpdateByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
 
 	var transformedUser user.User
 
@@ -706,7 +756,6 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 		}
 		return nil
 	})
-
 	if err != nil {
 		return user.User{}, err
 	}
@@ -726,10 +775,17 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		goqu.Ex{
 			"email": email,
 		}).ToSQL()
-
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByEmail"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_USERS),
+		}...,
+	)
 
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -772,6 +828,14 @@ func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMeta
 	if err != nil {
 		return user.UserMetadataKey{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "CreateMetadataKey"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_METADATA_KEYS),
+		}...,
+	)
 
 	var metadataKey UserMetadataKey
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {

@@ -72,7 +72,8 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 
 	for _, permission := range req.ResourcePermissions {
 		go func(checkCtx context.Context, resourcePermission *shieldv1beta1.ResourcePermission,
-			resCh chan<- resourcePermissionResult, errCh chan<- error) {
+			resCh chan<- resourcePermissionResult, errCh chan<- error,
+		) {
 			var checkErr error
 			result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 				Name:        resourcePermission.GetObjectId(),

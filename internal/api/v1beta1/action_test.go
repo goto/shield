@@ -146,7 +146,7 @@ func TestCreateAction(t *testing.T) {
 		{
 			title: "should return internal error if action service return some error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
+				as.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -157,14 +157,15 @@ func TestCreateAction(t *testing.T) {
 					Id:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceId: testActionMap[testActionID].NamespaceID,
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcInternalServerError,
 		},
 		{
 			title: "should return bad request error if namespace id is wrong",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
+				as.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -175,14 +176,15 @@ func TestCreateAction(t *testing.T) {
 					Id:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceId: testActionMap[testActionID].NamespaceID,
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return bad request error if if id is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
+				as.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), action.Action{
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(action.Action{}, action.ErrInvalidID)
@@ -191,14 +193,15 @@ func TestCreateAction(t *testing.T) {
 				Body: &shieldv1beta1.ActionRequestBody{
 					Name:        testActionMap[testActionID].Name,
 					NamespaceId: testActionMap[testActionID].NamespaceID,
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return bad request error if if name is empty",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
+				as.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
 				}).Return(action.Action{}, action.ErrInvalidDetail)
@@ -207,14 +210,15 @@ func TestCreateAction(t *testing.T) {
 				Body: &shieldv1beta1.ActionRequestBody{
 					Id:          testActionMap[testActionID].ID,
 					NamespaceId: testActionMap[testActionID].NamespaceID,
-				}},
+				},
+			},
 			want: nil,
 			err:  grpcBadBodyError,
 		},
 		{
 			title: "should return success if action service return nil error",
 			setup: func(as *mocks.ActionService) {
-				as.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), action.Action{
+				as.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), action.Action{
 					ID:          testActionMap[testActionID].ID,
 					Name:        testActionMap[testActionID].Name,
 					NamespaceID: testActionMap[testActionID].NamespaceID,
@@ -358,7 +362,8 @@ func TestHandler_UpdateAction(t *testing.T) {
 				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
-					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrNotExist)
+					NamespaceID: testActionMap[testActionID].NamespaceID,
+				}).Return(action.Action{}, action.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateActionRequest{
 				Id: testActionID,
@@ -376,7 +381,8 @@ func TestHandler_UpdateAction(t *testing.T) {
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), "", action.Action{
 					Name:        testActionMap[testActionID].Name,
-					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrInvalidID)
+					NamespaceID: testActionMap[testActionID].NamespaceID,
+				}).Return(action.Action{}, action.ErrInvalidID)
 			},
 			request: &shieldv1beta1.UpdateActionRequest{
 				Body: &shieldv1beta1.ActionRequestBody{
@@ -394,7 +400,8 @@ func TestHandler_UpdateAction(t *testing.T) {
 				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionMap[testActionID].ID, action.Action{
 					ID:          testActionID,
 					Name:        testActionMap[testActionID].Name,
-					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, namespace.ErrNotExist)
+					NamespaceID: testActionMap[testActionID].NamespaceID,
+				}).Return(action.Action{}, namespace.ErrNotExist)
 			},
 			request: &shieldv1beta1.UpdateActionRequest{
 				Id: testActionID,
@@ -412,7 +419,8 @@ func TestHandler_UpdateAction(t *testing.T) {
 			setup: func(as *mocks.ActionService) {
 				as.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), testActionMap[testActionID].ID, action.Action{
 					ID:          testActionID,
-					NamespaceID: testActionMap[testActionID].NamespaceID}).Return(action.Action{}, action.ErrInvalidDetail)
+					NamespaceID: testActionMap[testActionID].NamespaceID,
+				}).Return(action.Action{}, action.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpdateActionRequest{
 				Id: testActionID,

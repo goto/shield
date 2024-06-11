@@ -3,7 +3,7 @@ package body_extractor
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"testing"
 
 	fixturesv1 "github.com/goto/shield/pkg/body_extractor/fixtures"
@@ -58,7 +58,8 @@ func TestNewQuery(t *testing.T) {
 			},
 			{
 				Field:    2,
-				DataType: String},
+				DataType: String,
+			},
 		}, parsedQuery)
 	})
 
@@ -244,7 +245,7 @@ func TestExtract(t *testing.T) {
 			msg, err := proto.Marshal(tt.testMessage)
 			assert.NoError(t, err)
 
-			testReader := ioutil.NopCloser(bytes.NewBuffer(msg))
+			testReader := io.NopCloser(bytes.NewBuffer(msg))
 			extractedData, err := testgrpcPayloadHandler.Extract(&testReader, tt.query)
 
 			assert.EqualValues(t, tt.want, extractedData)

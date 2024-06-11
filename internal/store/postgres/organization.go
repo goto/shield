@@ -1,10 +1,9 @@
 package postgres
 
 import (
+	"database/sql"
 	"encoding/json"
 	"time"
-
-	"database/sql"
 
 	"github.com/goto/shield/core/organization"
 )

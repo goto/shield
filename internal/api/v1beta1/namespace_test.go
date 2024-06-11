@@ -18,27 +18,29 @@ import (
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
-var testNSID = "team"
-var testNSMap = map[string]namespace.Namespace{
-	"team": {
-		ID:        "team",
-		Name:      "Team",
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-	"org": {
-		ID:        "org",
-		Name:      "Org",
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-	"project": {
-		ID:        "project",
-		Name:      "Project",
-		CreatedAt: time.Time{},
-		UpdatedAt: time.Time{},
-	},
-}
+var (
+	testNSID  = "team"
+	testNSMap = map[string]namespace.Namespace{
+		"team": {
+			ID:        "team",
+			Name:      "Team",
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+		"org": {
+			ID:        "org",
+			Name:      "Org",
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+		"project": {
+			ID:        "project",
+			Name:      "Project",
+			CreatedAt: time.Time{},
+			UpdatedAt: time.Time{},
+		},
+	}
+)
 
 func TestListNamespaces(t *testing.T) {
 	table := []struct {
@@ -118,7 +120,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return internal error if namespace service return some error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
+				ns.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
 				}).Return(namespace.Namespace{}, errors.New("some error"))
@@ -133,7 +135,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return already exist error if namespace service return err conflict",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
+				ns.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID:   "team",
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrConflict)
@@ -148,7 +150,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if id is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
+				ns.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					Name: "Team",
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidID)
 			},
@@ -161,7 +163,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return bad request error if name is empty",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
+				ns.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), namespace.Namespace{
 					ID: "team",
 				}).Return(namespace.Namespace{}, namespace.ErrInvalidDetail)
 			},
@@ -174,7 +176,7 @@ func TestCreateNamespace(t *testing.T) {
 		{
 			title: "should return success if namespace service return nil error",
 			setup: func(ns *mocks.NamespaceService) {
-				ns.EXPECT().Create(mock.Anything, mock.Anything).Return(
+				ns.EXPECT().Upsert(mock.Anything, mock.Anything).Return(
 					namespace.Namespace{
 						ID:   "team",
 						Name: "Team",

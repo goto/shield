@@ -15,7 +15,6 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	pkgctx "github.com/goto/shield/pkg/context"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -132,8 +131,8 @@ func (s Service) Upsert(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		resourceLogData := newResource.ToResourceLogData()
+		ctx := context.WithoutCancel(ctx)
+		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -190,8 +189,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		resourceLogData := newResource.ToResourceLogData()
+		ctx := context.WithoutCancel(ctx)
+		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
@@ -225,8 +224,8 @@ func (s Service) Update(ctx context.Context, id string, resource Resource) (Reso
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		resourceLogData := updatedResource.ToResourceLogData()
+		ctx := context.WithoutCancel(ctx)
+		resourceLogData := updatedResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceUpdate, actor, resourceLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

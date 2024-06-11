@@ -79,7 +79,7 @@ func (s *ActionRepositoryTestSuite) TestGet() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get an action",
 			SelectedID:  "action2",
@@ -115,18 +115,18 @@ func (s *ActionRepositoryTestSuite) TestGet() {
 	}
 }
 
-func (s *ActionRepositoryTestSuite) TestCreate() {
+func (s *ActionRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description    string
-		ActionToCreate action.Action
+		ActionToUpsert action.Action
 		ExpectedAction action.Action
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create an action",
-			ActionToCreate: action.Action{
+			ActionToUpsert: action.Action{
 				ID:          "123",
 				Name:        "action-123",
 				NamespaceID: "ns2",
@@ -139,7 +139,7 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 		},
 		{
 			Description: "should return error if namespace id not exist",
-			ActionToCreate: action.Action{
+			ActionToUpsert: action.Action{
 				ID:          "12345",
 				Name:        "action-123",
 				NamespaceID: "random-ns",
@@ -154,7 +154,7 @@ func (s *ActionRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.ActionToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.ActionToUpsert)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -174,7 +174,7 @@ func (s *ActionRepositoryTestSuite) TestList() {
 		ErrString       string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all actions",
 			ExpectedActions: []action.Action{
@@ -225,7 +225,7 @@ func (s *ActionRepositoryTestSuite) TestUpdate() {
 		ErrString      string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update an action",
 			ActionToUpdate: action.Action{

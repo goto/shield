@@ -16,9 +16,7 @@ type PolicyRepository struct {
 	spiceDB *SpiceDB
 }
 
-var (
-	ErrWritingSchema = errors.New("error in writing schema to spicedb")
-)
+var ErrWritingSchema = errors.New("error in writing schema to spicedb")
 
 func NewPolicyRepository(spiceDB *SpiceDB) *PolicyRepository {
 	return &PolicyRepository{

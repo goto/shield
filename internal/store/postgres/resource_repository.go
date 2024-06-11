@@ -2,17 +2,19 @@ package postgres
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"strings"
-
-	"database/sql"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
-	newrelic "github.com/newrelic/go-agent"
+	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"go.nhat.io/otelsql"
+	"go.opentelemetry.io/otel/attribute"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type ResourceRepository struct {
@@ -51,6 +53,14 @@ func (r ResourceRepository) Upsert(ctx context.Context, res resource.Resource) (
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Upsert"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
 
 	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -100,6 +110,14 @@ func (r ResourceRepository) Create(ctx context.Context, res resource.Resource) (
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Create"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
 
 	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -165,6 +183,14 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 		return nil, err
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
+
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -208,6 +234,14 @@ func (r ResourceRepository) GetByID(ctx context.Context, id string) (resource.Re
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByID"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
 
 	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
@@ -261,6 +295,14 @@ func (r ResourceRepository) Update(ctx context.Context, id string, res resource.
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "Update"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
+
 	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -307,6 +349,14 @@ func (r ResourceRepository) GetByURN(ctx context.Context, urn string) (resource.
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByURN"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
+
 	var resourceModel Resource
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
@@ -347,6 +397,14 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 	if err != nil {
 		return resource.Resource{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetByNamespace"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RESOURCES),
+		}...,
+	)
 
 	err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)

@@ -59,7 +59,7 @@ func TestGRPCProxyHelloWorld(t *testing.T) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		t.Fatal(err)
@@ -159,7 +159,7 @@ func BenchmarkGRPCProxyHelloWorld(b *testing.B) {
 	mux := http.NewServeMux()
 	mux.Handle("/", pipeline)
 
-	//create a tcp listener
+	// create a tcp listener
 	proxyListener, err := net.Listen("tcp", proxyURL)
 	if err != nil {
 		b.Fatal(err)

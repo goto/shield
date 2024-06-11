@@ -73,7 +73,7 @@ func (s *NamespaceRepositoryTestSuite) TestGet() {
 		ErrString         string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get a namespace",
 			SelectedID:  "ns2",
@@ -108,18 +108,18 @@ func (s *NamespaceRepositoryTestSuite) TestGet() {
 	}
 }
 
-func (s *NamespaceRepositoryTestSuite) TestCreate() {
+func (s *NamespaceRepositoryTestSuite) TestUpsert() {
 	type testCase struct {
 		Description       string
-		NamespaceToCreate namespace.Namespace
+		Namespace         namespace.Namespace
 		ExpectedNamespace namespace.Namespace
 		ErrString         string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should create an namespace",
-			NamespaceToCreate: namespace.Namespace{
+			Namespace: namespace.Namespace{
 				ID:   "ns3",
 				Name: "ns3",
 			},
@@ -130,7 +130,7 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 		},
 		{
 			Description: "should return error if namespace name already exist",
-			NamespaceToCreate: namespace.Namespace{
+			Namespace: namespace.Namespace{
 				ID:   "ns-new",
 				Name: "ns2",
 			},
@@ -144,7 +144,7 @@ func (s *NamespaceRepositoryTestSuite) TestCreate() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.Create(s.ctx, tc.NamespaceToCreate)
+			got, err := s.repository.Upsert(s.ctx, tc.Namespace)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
@@ -164,7 +164,7 @@ func (s *NamespaceRepositoryTestSuite) TestList() {
 		ErrString          string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should get all namespaces",
 			ExpectedNamespaces: []namespace.Namespace{
@@ -237,7 +237,7 @@ func (s *NamespaceRepositoryTestSuite) TestUpdate() {
 		ErrString         string
 	}
 
-	var testCases = []testCase{
+	testCases := []testCase{
 		{
 			Description: "should update a namespace",
 			NamespaceToUpdate: namespace.Namespace{

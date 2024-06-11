@@ -21,7 +21,7 @@ var grpcRoleNotFoundErr = status.Errorf(codes.NotFound, "role doesn't exist")
 
 type RoleService interface {
 	Get(ctx context.Context, id string) (role.Role, error)
-	Create(ctx context.Context, toCreate role.Role) (role.Role, error)
+	Upsert(ctx context.Context, toUpsert role.Role) (role.Role, error)
 	List(ctx context.Context) ([]role.Role, error)
 	Update(ctx context.Context, toUpdate role.Role) (role.Role, error)
 }
@@ -57,7 +57,7 @@ func (h Handler) CreateRole(ctx context.Context, request *shieldv1beta1.CreateRo
 		return nil, grpcBadBodyError
 	}
 
-	newRole, err := h.roleService.Create(ctx, role.Role{
+	newRole, err := h.roleService.Upsert(ctx, role.Role{
 		ID:          request.GetBody().GetId(),
 		Name:        request.GetBody().GetName(),
 		Types:       request.GetBody().GetTypes(),
@@ -170,9 +170,9 @@ func transformRoleToPB(from role.Role) (shieldv1beta1.Role, error) {
 		Name:  from.Name,
 		Types: from.Types,
 		// TODO(krtkvrm): use namespace id here instead of namespace as object
-		//Namespace: &namespace,
-		//Tags:      nil,
-		//Actions:   nil,
+		// Namespace: &namespace,
+		// Tags:      nil,
+		// Actions:   nil,
 		Metadata:  metaData,
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),

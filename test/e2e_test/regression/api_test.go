@@ -419,7 +419,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestRelationAPI() {
 	s.Run("1. should return not found error when resource name is send as object id, when name is uuid", func() {
 		_, err := s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
 			Body: &shieldv1beta1.RelationRequestBody{
-				ObjectId:        "47c412cf-d223-40ba-b8b3-895062980221", //appeal name
+				ObjectId:        "47c412cf-d223-40ba-b8b3-895062980221", // appeal name
 				ObjectNamespace: "guardian/appeal",
 				Subject:         "shield/user:member2-group1@gotocompany.com",
 				RoleName:        "owner",

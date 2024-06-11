@@ -7,11 +7,10 @@ import (
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/user"
-	pkgctx "github.com/goto/shield/pkg/context"
 )
 
 const (
-	auditKeyRoleCreate = "role.create"
+	auditKeyRoleUpsert = "role.upsert"
 	auditKeyRoleUpdate = "role.update"
 )
 
@@ -39,13 +38,13 @@ func NewService(logger log.Logger, repository Repository, userService UserServic
 	}
 }
 
-func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
+func (s Service) Upsert(ctx context.Context, toCreate Role) (Role, error) {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		return Role{}, err
 	}
 
-	roleID, err := s.repository.Create(ctx, toCreate)
+	roleID, err := s.repository.Upsert(ctx, toCreate)
 	if err != nil {
 		return Role{}, err
 	}
@@ -56,10 +55,10 @@ func (s Service) Create(ctx context.Context, toCreate Role) (Role, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		roleLogData := newRole.ToRoleLogData()
+		ctx := context.WithoutCancel(ctx)
+		roleLogData := newRole.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
-		if err := s.activityService.Log(ctx, auditKeyRoleCreate, actor, roleLogData); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyRoleUpsert, actor, roleLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
@@ -92,8 +91,8 @@ func (s Service) Update(ctx context.Context, toUpdate Role) (Role, error) {
 	}
 
 	go func() {
-		ctx := pkgctx.WithoutCancel(ctx)
-		roleLogData := updatedRole.ToRoleLogData()
+		ctx := context.WithoutCancel(ctx)
+		roleLogData := updatedRole.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyRoleUpdate, actor, roleLogData); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))

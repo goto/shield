@@ -3,9 +3,9 @@ package middleware
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"net/http"
 
+	"github.com/gorilla/mux"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/pkg/httputil"
 )
@@ -15,14 +15,14 @@ func EnrichRule(req *http.Request, r *rule.Rule) {
 }
 
 func EnrichRequestBody(r *http.Request) error {
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
 	}
 	defer (r.Body).Close()
 
 	// repopulate body
-	(*r).Body = ioutil.NopCloser(bytes.NewBuffer(reqBody))
+	(*r).Body = io.NopCloser(bytes.NewBuffer(reqBody))
 	*r = *r.WithContext(httputil.SetContextWithRequestBody(r.Context(), reqBody))
 	return nil
 }
@@ -32,7 +32,7 @@ func ExtractRequestBody(r *http.Request) (io.ReadCloser, bool) {
 	if !ok {
 		return nil, false
 	}
-	return ioutil.NopCloser(bytes.NewBuffer(body)), true
+	return io.NopCloser(bytes.NewBuffer(body)), true
 }
 
 func ExtractRule(r *http.Request) (*rule.Rule, bool) {
@@ -45,6 +45,10 @@ func ExtractMiddleware(r *http.Request, name string) (rule.MiddlewareSpec, bool)
 		return rule.MiddlewareSpec{}, false
 	}
 	return rl.Middlewares.Get(name)
+}
+
+func EnrichRequestWithMuxRouteAndVars(r *http.Request, route *mux.Route, vars map[string]string) {
+	*r = *r.WithContext(httputil.SetContextWithMuxRouteAndVars(r.Context(), route, vars))
 }
 
 func EnrichPathParams(r *http.Request, params map[string]string) {

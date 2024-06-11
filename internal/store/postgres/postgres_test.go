@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 	"time"
 
 	"github.com/goto/salt/audit"
@@ -47,7 +47,8 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 			"POSTGRES_USER=" + pg_uname,
 			"POSTGRES_DB=" + pg_dbname,
 		},
-		Cmd: []string{"postgres",
+		Cmd: []string{
+			"postgres",
 			"-c",
 			"log_statement=all",
 			"-c",
@@ -55,7 +56,8 @@ func newTestClient(logger log.Logger) (*db.Client, *dockertest.Pool, *dockertest
 			"-c",
 			"shared_preload_libraries=pg_cron",
 			"-c",
-			"cron.database_name=" + pg_dbname},
+			"cron.database_name=" + pg_dbname,
+		},
 	}
 
 	// uses a sensible default on windows (tcp/http) and linux/osx (socket)
@@ -148,7 +150,7 @@ func purgeDocker(pool *dockertest.Pool, resource *dockertest.Resource) error {
 }
 
 func setup(ctx context.Context, logger log.Logger, client *db.Client, cfg db.Config) (err error) {
-	var queries = []string{
+	queries := []string{
 		"DROP SCHEMA public CASCADE",
 		"CREATE SCHEMA public",
 	}
@@ -174,7 +176,7 @@ func execQueries(ctx context.Context, client *db.Client, queries []string) error
 
 func bootstrapAction(client *db.Client) ([]action.Action, error) {
 	actionRepository := postgres.NewActionRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-action.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-action.json")
 	if err != nil {
 		return nil, err
 	}
@@ -186,7 +188,7 @@ func bootstrapAction(client *db.Client) ([]action.Action, error) {
 
 	var insertedData []action.Action
 	for _, d := range data {
-		act, err := actionRepository.Create(context.Background(), d)
+		act, err := actionRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -199,7 +201,7 @@ func bootstrapAction(client *db.Client) ([]action.Action, error) {
 
 func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 	namespaceRepository := postgres.NewNamespaceRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-namespace.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-namespace.json")
 	if err != nil {
 		return nil, err
 	}
@@ -211,7 +213,7 @@ func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 
 	var insertedData []namespace.Namespace
 	for _, d := range data {
-		domain, err := namespaceRepository.Create(context.Background(), d)
+		domain, err := namespaceRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -224,7 +226,7 @@ func bootstrapNamespace(client *db.Client) ([]namespace.Namespace, error) {
 
 func bootstrapUser(client *db.Client) ([]user.User, error) {
 	userRepository := postgres.NewUserRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-user.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-user.json")
 	if err != nil {
 		return nil, err
 	}
@@ -249,7 +251,7 @@ func bootstrapUser(client *db.Client) ([]user.User, error) {
 
 func bootstrapMetadataKeys(client *db.Client) ([]user.UserMetadataKey, error) {
 	userRepository := postgres.NewUserRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-metadata-keys.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-metadata-keys.json")
 	if err != nil {
 		return nil, err
 	}
@@ -274,7 +276,7 @@ func bootstrapMetadataKeys(client *db.Client) ([]user.UserMetadataKey, error) {
 
 func bootstrapRole(client *db.Client) ([]string, error) {
 	roleRepository := postgres.NewRoleRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-role.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-role.json")
 	if err != nil {
 		return nil, err
 	}
@@ -286,7 +288,7 @@ func bootstrapRole(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := roleRepository.Create(context.Background(), d)
+		domain, err := roleRepository.Upsert(context.Background(), d)
 		if err != nil {
 			return nil, err
 		}
@@ -299,7 +301,7 @@ func bootstrapRole(client *db.Client) ([]string, error) {
 
 func bootstrapPolicy(client *db.Client) ([]string, error) {
 	policyRepository := postgres.NewPolicyRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-policy.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-policy.json")
 	if err != nil {
 		return nil, err
 	}
@@ -311,7 +313,7 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 
 	var insertedData []string
 	for _, d := range data {
-		domain, err := policyRepository.Create(context.Background(), d)
+		domain, err := policyRepository.Upsert(context.Background(), &d)
 		if err != nil {
 			return nil, err
 		}
@@ -324,7 +326,7 @@ func bootstrapPolicy(client *db.Client) ([]string, error) {
 
 func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 	relationRepository := postgres.NewRelationRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-relation.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-relation.json")
 	if err != nil {
 		return nil, err
 	}
@@ -349,7 +351,7 @@ func bootstrapRelation(client *db.Client) ([]relation.RelationV2, error) {
 
 func bootstrapOrganization(client *db.Client) ([]organization.Organization, error) {
 	orgRepository := postgres.NewOrganizationRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-organization.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-organization.json")
 	if err != nil {
 		return nil, err
 	}
@@ -374,7 +376,7 @@ func bootstrapOrganization(client *db.Client) ([]organization.Organization, erro
 
 func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]project.Project, error) {
 	projectRepository := postgres.NewProjectRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-project.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-project.json")
 	if err != nil {
 		return nil, err
 	}
@@ -403,7 +405,7 @@ func bootstrapProject(client *db.Client, orgs []organization.Organization) ([]pr
 
 func bootstrapGroup(client *db.Client, orgs []organization.Organization) ([]group.Group, error) {
 	groupRepository := postgres.NewGroupRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-group.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-group.json")
 	if err != nil {
 		return nil, err
 	}
@@ -435,9 +437,10 @@ func bootstrapResource(
 	projects []project.Project,
 	orgs []organization.Organization,
 	namespaces []namespace.Namespace,
-	users []user.User) ([]resource.Resource, error) {
+	users []user.User,
+) ([]resource.Resource, error) {
 	resRepository := postgres.NewResourceRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-resource.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource.json")
 	if err != nil {
 		return nil, err
 	}
@@ -479,7 +482,7 @@ func bootstrapActivity(
 	client *db.Client,
 ) ([]audit.Log, error) {
 	activityRepository := postgres.NewActivityRepository(client)
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-activity.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-activity.json")
 	if err != nil {
 		return nil, err
 	}
@@ -511,7 +514,7 @@ func bootstrapActivity(
 func bootstrapServiceDataKey(client *db.Client, resources []resource.Resource, projects []project.Project) ([]servicedata.Key, error) {
 	serviceDataRepository := postgres.NewServiceDataRepository(client)
 
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-servicedata-keys.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-servicedata-keys.json")
 	if err != nil {
 		return nil, err
 	}
@@ -541,7 +544,7 @@ func bootstrapServiceDataKey(client *db.Client, resources []resource.Resource, p
 func bootstrapServiceData(client *db.Client, users []user.User, keys []servicedata.Key) ([]servicedata.ServiceData, error) {
 	serviceDataRepository := postgres.NewServiceDataRepository(client)
 
-	testFixtureJSON, err := ioutil.ReadFile("./testdata/mock-servicedata.json")
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-servicedata.json")
 	if err != nil {
 		return nil, err
 	}
