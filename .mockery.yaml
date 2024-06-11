@@ -138,6 +138,9 @@ packages:
       ResourceService:
         config:
           filename: "resource_service.go"
+      ActivityService:
+        config:
+          filename: "activity_service.go"
       Repository:
         config:
           filename: "servicedata_repository.go"

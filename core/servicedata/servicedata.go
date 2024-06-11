@@ -5,6 +5,8 @@ import (
 	"fmt"
 )
 
+const auditEntityServiceDataKey = "service_data_key"
+
 type Repository interface {
 	Transactor
 	CreateKey(ctx context.Context, key Key) (Key, error)
@@ -37,6 +39,14 @@ type ServiceData struct {
 	Value       string
 }
 
+type KeyLogData struct {
+	Entity      string `mapstructure:"entity"`
+	URN         string `mapstructure:"urn"`
+	ProjectSlug string `mapstructure:"project_slug"`
+	Key         string `mapstructure:"key"`
+	Description string `mapstructure:"description"`
+}
+
 type Filter struct {
 	ID        string
 	Namespace string
@@ -47,4 +57,14 @@ type Filter struct {
 
 func (key Key) CreateURN() string {
 	return fmt.Sprintf("%s:servicedata_key:%s", key.ProjectSlug, key.Key)
+}
+
+func (key Key) ToKeyLogData() KeyLogData {
+	return KeyLogData{
+		Entity:      auditEntityServiceDataKey,
+		URN:         key.URN,
+		ProjectSlug: key.ProjectSlug,
+		Key:         key.Key,
+		Description: key.Description,
+	}
 }
