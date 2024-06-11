@@ -202,17 +202,17 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 		logger.Error(err.Error())
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
-			return nil, grpcUnauthenticated
+			break
 		default:
 			return nil, grpcInternalServerError
 		}
+	} else {
+		metadata := map[string]any{}
+		for _, sd := range userSD {
+			metadata[sd.Key.Key] = sd.Value
+		}
+		fetchedUser.Metadata = metadata
 	}
-
-	metadata := map[string]any{}
-	for _, sd := range userSD {
-		metadata[sd.Key.Key] = sd.Value
-	}
-	fetchedUser.Metadata = metadata
 
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
