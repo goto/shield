@@ -55,7 +55,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
-	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.App.Telemetry, logger)
+	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.Telemetry, logger)
 	if err != nil {
 		return err
 	}

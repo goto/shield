@@ -2,8 +2,6 @@ package server
 
 import (
 	"fmt"
-
-	"github.com/goto/salt/telemetry"
 )
 
 type GRPCConfig struct {
@@ -25,8 +23,6 @@ type Config struct {
 
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
-
-	Telemetry telemetry.Config `yaml:"telemetry" mapstructure:"telemetry"`
 
 	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
