@@ -66,7 +66,6 @@ func TestUserMetadataKey_ToMetadataKeyLogData(t *testing.T) {
 		fields fields
 		want   user.MetadataKeyLogData
 	}{
-
 		{
 			name: "should return log data",
 			fields: fields{

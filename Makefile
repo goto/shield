@@ -26,7 +26,7 @@ format:
 
 # TODO: create separate command for integration tests
 test: ## Run tests
-	go test -race $(shell go list ./... | grep -v /vendor/ | grep -v /test/ | grep -v /proto/) -covermode=atomic -coverprofile=coverage.out
+	go test -race $(shell go list ./... | grep -v /mocks | grep -v /test/ | grep -v /proto/) -covermode=atomic -coverprofile=coverage.out
 
 e2e-test: ## Run all e2e tests
 	go test -v -race ./test/e2e_test/... -covermode=atomic -coverprofile=coverage.out

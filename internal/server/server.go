@@ -1,4 +1,3 @@
-//coverage:ignore
 package server
 
 import (

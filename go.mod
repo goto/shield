@@ -1,8 +1,6 @@
 module github.com/goto/shield
 
-go 1.22
-
-toolchain go1.22.4
+go 1.21
 
 require (
 	github.com/MakeNowJust/heredoc v1.0.0

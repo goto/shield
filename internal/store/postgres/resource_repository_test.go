@@ -736,6 +736,46 @@ func (s *ResourceRepositoryTestSuite) TestUpdate() {
 	}
 }
 
+func (s *ResourceRepositoryTestSuite) TestGetByNamespace() {
+	type testCase struct {
+		Description string
+		Name        string
+		Namespace   string
+		Expected    resource.Resource
+		ErrString   string
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should get a resource",
+			Name:        s.resources[0].Name,
+			Namespace:   s.resources[0].NamespaceID,
+			Expected:    s.resources[0],
+		},
+		{
+			Description: "should return error no exist if can't found resource",
+			Name:        "some-urn",
+			ErrString:   resource.ErrNotExist.Error(),
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetByNamespace(s.ctx, tc.Name, tc.Namespace)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Resource{},
+				"CreatedAt",
+				"UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
+			}
+		})
+	}
+}
+
 func TestResourceRepository(t *testing.T) {
 	suite.Run(t, new(ResourceRepositoryTestSuite))
 }
