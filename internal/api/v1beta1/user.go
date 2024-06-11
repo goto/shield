@@ -9,11 +9,13 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"go.opencensus.io/stats"
 	"go.opencensus.io/tag"
+	"golang.org/x/exp/maps"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/telemetry"
@@ -186,6 +188,31 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 			return nil, grpcInternalServerError
 		}
 	}
+
+	filter := servicedata.Filter{
+		ID:        fetchedUser.ID,
+		Namespace: userNamespaceID,
+		Entities: maps.Values(map[string]string{
+			"user": userNamespaceID,
+		}),
+	}
+
+	userSD, err := h.serviceDataService.Get(ctx, filter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	metadata := map[string]any{}
+	for _, sd := range userSD {
+		metadata[sd.Key.Key] = sd.Value
+	}
+	fetchedUser.Metadata = metadata
 
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {

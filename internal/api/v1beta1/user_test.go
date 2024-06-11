@@ -7,10 +7,12 @@ import (
 	"time"
 
 	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/uuid"
+	"golang.org/x/exp/maps"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -311,13 +313,13 @@ func TestGetUser(t *testing.T) {
 	table := []struct {
 		title string
 		req   *shieldv1beta1.GetUserRequest
-		setup func(us *mocks.UserService)
+		setup func(us *mocks.UserService, sd *mocks.ServiceDataService)
 		want  *shieldv1beta1.GetUserResponse
 		err   error
 	}{
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
 			req: &shieldv1beta1.GetUserRequest{
@@ -328,7 +330,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user id is not uuid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
 			req: &shieldv1beta1.GetUserRequest{
@@ -339,7 +341,7 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user id is invalid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
 			req:  &shieldv1beta1.GetUserRequest{},
@@ -348,18 +350,30 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(
 					user.User{
-						ID:    randomID,
-						Name:  "some user",
-						Email: "someuser@test.com",
-						Metadata: metadata.Metadata{
-							"foo": "bar",
-						},
+						ID:        randomID,
+						Name:      "some user",
+						Email:     "someuser@test.com",
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
+
+				sd.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), servicedata.Filter{
+					ID:        randomID,
+					Namespace: userNamespaceID,
+					Entities: maps.Values(map[string]string{
+						"user": userNamespaceID,
+					}),
+				}).Return([]servicedata.ServiceData{
+					{
+						Key: servicedata.Key{
+							Key: "foo",
+						},
+						Value: "bar",
+					},
+				}, nil)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: randomID,
@@ -383,10 +397,12 @@ func TestGetUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSrv := new(mocks.ServiceDataService)
+
 			if tt.setup != nil {
-				tt.setup(mockUserSrv)
+				tt.setup(mockUserSrv, mockServiceDataSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, serviceDataService: mockServiceDataSrv}
 			resp, err := mockDep.GetUser(context.TODO(), tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -431,12 +447,9 @@ func TestGetCurrentUser(t *testing.T) {
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
 					user.User{
-						ID:    "user-id-1",
-						Name:  "some user",
-						Email: "someuser@test.com",
-						Metadata: metadata.Metadata{
-							"foo": "bar",
-						},
+						ID:        "user-id-1",
+						Name:      "some user",
+						Email:     "someuser@test.com",
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
@@ -447,9 +460,7 @@ func TestGetCurrentUser(t *testing.T) {
 				Name:  "some user",
 				Email: "someuser@test.com",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewStringValue("bar"),
-					},
+					Fields: map[string]*structpb.Value{},
 				},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),

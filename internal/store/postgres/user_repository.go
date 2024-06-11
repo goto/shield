@@ -80,67 +80,10 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 		}
 	}
 
-	metadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
-		Where(goqu.Ex{
-			"user_id": fetchedUser.ID,
-		}).ToSQL()
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	data := make(map[string]interface{})
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METADATA,
-				Operation:  "GetByUserID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		metadata, err := r.dbc.QueryContext(ctx, metadataQuery)
-		if err != nil {
-			return err
-		}
-
-		for {
-			var key string
-			var valuejson string
-			if !metadata.Next() {
-				break
-			}
-			err := metadata.Scan(&key, &valuejson)
-			if err != nil {
-				return err
-			}
-			var value any
-			err = json.Unmarshal([]byte(valuejson), &value)
-			if err != nil {
-				return err
-			}
-			data[key] = value
-		}
-
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			return user.User{}, err
-		}
-	}
-
 	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-	transformedUser.Metadata = data
 
 	return transformedUser, nil
 }
@@ -778,7 +721,6 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	}
 
 	var fetchedUser User
-	data := make(map[string]any)
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
@@ -809,66 +751,10 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 		return user.User{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 
-	metadataQuery, params, err := dialect.From(TABLE_METADATA).Select("key", "value").
-		Where(goqu.Ex{
-			"user_id": fetchedUser.ID,
-		}).ToSQL()
-	if err != nil {
-		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
-	}
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METADATA,
-				Operation:  "GetByUserID",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		metadata, err := r.dbc.QueryContext(ctx, metadataQuery)
-		if err != nil {
-			return err
-		}
-
-		for {
-			var key string
-			var valuejson string
-			if !metadata.Next() {
-				break
-			}
-			err := metadata.Scan(&key, &valuejson)
-			if err != nil {
-				return err
-			}
-			var value any
-			err = json.Unmarshal([]byte(valuejson), &value)
-			if err != nil {
-				return err
-			}
-			data[key] = value
-		}
-
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		default:
-			return user.User{}, err
-		}
-	}
-
 	transformedUser, err := fetchedUser.transformToUser()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
-
-	transformedUser.Metadata = data
 
 	return transformedUser, nil
 }
