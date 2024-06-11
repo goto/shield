@@ -37,7 +37,7 @@ type Shield struct {
 	App       server.Config        `yaml:"app"`
 	DB        db.Config            `yaml:"db"`
 	SpiceDB   spicedb.Config       `yaml:"spicedb"`
-	Telemetry telemetry.Config     `yaml:"telemetry" mapstructure:"telemetry"`
+	Telemetry telemetry.Config     `yaml:"telemetry"`
 }
 
 type NewRelic struct {
