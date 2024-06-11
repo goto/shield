@@ -7,8 +7,6 @@ import (
 	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
-	"go.opencensus.io/stats"
-	"go.opencensus.io/tag"
 	"golang.org/x/exp/maps"
 
 	"google.golang.org/grpc/codes"
