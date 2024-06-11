@@ -7,6 +7,7 @@ import (
 
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/internal/schema"
@@ -14,6 +15,7 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
+	"golang.org/x/exp/maps"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -417,14 +419,14 @@ func TestHandler_GetGroup(t *testing.T) {
 	someGroupID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(gs *mocks.GroupService)
+		setup   func(gs *mocks.GroupService, sds *mocks.ServiceDataService)
 		request *shieldv1beta1.GetGroupRequest
 		want    *shieldv1beta1.GetGroupResponse
 		wantErr error
 	}{
 		{
 			name: "should return internal error if group service return some error",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, sds *mocks.ServiceDataService) {
 				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), someGroupID).Return(group.Group{}, errors.New("some error"))
 			},
 			request: &shieldv1beta1.GetGroupRequest{Id: someGroupID},
@@ -433,7 +435,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		},
 		{
 			name: "should return not found error if id is invalid",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, sds *mocks.ServiceDataService) {
 				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(group.Group{}, group.ErrInvalidID)
 			},
 			request: &shieldv1beta1.GetGroupRequest{},
@@ -442,7 +444,7 @@ func TestHandler_GetGroup(t *testing.T) {
 		},
 		{
 			name: "should return not found error if group not exist",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, sds *mocks.ServiceDataService) {
 				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(group.Group{}, group.ErrNotExist)
 			},
 			request: &shieldv1beta1.GetGroupRequest{},
@@ -451,8 +453,21 @@ func TestHandler_GetGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if group service return nil",
-			setup: func(gs *mocks.GroupService) {
+			setup: func(gs *mocks.GroupService, sds *mocks.ServiceDataService) {
 				gs.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testGroupID).Return(testGroupMap[testGroupID], nil)
+
+				sds.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), servicedata.Filter{
+					ID:        testGroupID,
+					Namespace: groupNamespaceID,
+					Entities: maps.Values(map[string]string{
+						"group": groupNamespaceID,
+					}),
+				}).Return([]servicedata.ServiceData{{
+					Key: servicedata.Key{
+						Key: "foo",
+					},
+					Value: "bar",
+				}}, nil)
 			},
 			request: &shieldv1beta1.GetGroupRequest{Id: testGroupID},
 			want: &shieldv1beta1.GetGroupResponse{
@@ -476,11 +491,13 @@ func TestHandler_GetGroup(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
+			mockServiceDataSvc := new(mocks.ServiceDataService)
 			if tt.setup != nil {
-				tt.setup(mockGroupSvc)
+				tt.setup(mockGroupSvc, mockServiceDataSvc)
 			}
 			h := Handler{
-				groupService: mockGroupSvc,
+				groupService:       mockGroupSvc,
+				serviceDataService: mockServiceDataSvc,
 			}
 			got, err := h.GetGroup(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)

@@ -9,11 +9,13 @@ import (
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/str"
 	"github.com/goto/shield/pkg/uuid"
+	"golang.org/x/exp/maps"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
@@ -129,6 +131,31 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 		default:
 			return nil, grpcInternalServerError
 		}
+	}
+
+	filter := servicedata.Filter{
+		ID:        fetchedGroup.ID,
+		Namespace: groupNamespaceID,
+		Entities: maps.Values(map[string]string{
+			"group": groupNamespaceID,
+		}),
+	}
+
+	groupSD, err := h.serviceDataService.Get(ctx, filter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			break
+		default:
+			return nil, grpcInternalServerError
+		}
+	} else {
+		metadata := map[string]any{}
+		for _, sd := range groupSD {
+			metadata[sd.Key.Key] = sd.Value
+		}
+		fetchedGroup.Metadata = metadata
 	}
 
 	groupPB, err := transformGroupToPB(fetchedGroup)
