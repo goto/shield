@@ -127,8 +127,10 @@ Shield provides a fully-featured GRPC and HTTP API to interact with Shield serve
   <summary>Dependencies:</summary>
 
     - Git
-    - Go 1.17 or above
-    - PostgreSQL 13.2 or above
+    - Go 1.21 or above
+    - PostgreSQL 15 or above
+      - pg_partman 4.7.4
+      - pg_cron 1.6
 
 </details>
 
@@ -159,6 +161,11 @@ cp internal/server/config.yaml config.yaml
 
 Run database migrations
 
+Add these config in postgresql.conf
+```
+cron.database_name = {database name}
+shared_preload_libraries = 'pg_cron'
+```
 ```
 ./shield server migrate -c config.yaml
 ```

@@ -47,8 +47,8 @@ func ExtractMiddleware(r *http.Request, name string) (rule.MiddlewareSpec, bool)
 	return rl.Middlewares.Get(name)
 }
 
-func EnrichRequestWithMuxRouteAndVars(r *http.Request, route *mux.Route, vars map[string]string) {
-	*r = *r.WithContext(httputil.SetContextWithMuxRouteAndVars(r.Context(), route, vars))
+func EnrichRequestWithMuxRoute(r *http.Request, route *mux.Route) {
+	*r = *r.WithContext(httputil.SetContextWithMuxRoute(r.Context(), route))
 }
 
 func EnrichPathParams(r *http.Request, params map[string]string) {

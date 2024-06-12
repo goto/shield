@@ -26,7 +26,7 @@ func (r RouteMatcher) Match(req *http.Request) (*rule.Rule, error) {
 			route := router.NewRoute().Path(rule.Frontend.URL).Methods(rule.Frontend.Method)
 			routeMatcher := mux.RouteMatch{}
 			if route.Match(req, &routeMatcher) {
-				middleware.EnrichRequestWithMuxRouteAndVars(req, routeMatcher.Route, routeMatcher.Vars)
+				middleware.EnrichRequestWithMuxRoute(req, routeMatcher.Route)
 				middleware.EnrichPathParams(req, routeMatcher.Vars)
 				return &rule, nil
 			}
