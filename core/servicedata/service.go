@@ -2,6 +2,7 @@ package servicedata
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
 	"github.com/goto/shield/core/action"
@@ -11,6 +12,8 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/errors"
+	"github.com/goto/shield/pkg/uuid"
 )
 
 const (
@@ -233,4 +236,54 @@ func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) 
 	}
 
 	return resultSD, nil
+}
+
+func (s Service) ListUsers(ctx context.Context, filter ListUsersFilter) ([]user.User, error) {
+	// fetch current user
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	if len(filter.ServiceData) > 0 && filter.Project == "" {
+		return []user.User{}, ErrProjectMissing
+	}
+
+	servicedataKeyResourceIds := []string{}
+
+	if len(filter.ServiceData) > 0 {
+		projectSlug := filter.Project
+		if uuid.IsValid(filter.Project) {
+			prj, err := s.projectService.Get(ctx, filter.Project)
+			if err != nil {
+				return []user.User{}, err
+			}
+			projectSlug = prj.Slug
+		}
+		for k, _ := range filter.ServiceData {
+			key, err := s.repository.GetKeyByURN(ctx, fmt.Sprintf("%s:servicedata_key:%s", projectSlug, k))
+			if err != nil {
+				return []user.User{}, err
+			}
+
+			permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: editActionID})
+			if err != nil {
+				return []user.User{}, err
+			}
+			if !permission {
+				return []user.User{}, errors.ErrForbidden
+			}
+
+			servicedataKeyResourceIds = append(servicedataKeyResourceIds, key.ResourceID)
+		}
+	} else if filter.WithServiceData {
+		servicedataKeyResourceIds, err = s.relationService.LookupResources(ctx, keyNamespace, viewActionID, userNamespace, currentUser.ID)
+		if err != nil {
+			return []user.User{}, err
+		}
+	}
+
+	s.repository.
+
+	return []user.User{}, nil
 }
