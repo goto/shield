@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/goto/shield/internal/proxy/hook"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 
 	"github.com/goto/salt/log"
 	"go.uber.org/zap"
@@ -22,8 +23,8 @@ type h2cTransportWrapper struct {
 	// proxy for http & h2
 	// Reference: https://sourcegraph.com/github.com/tsenart/vegeta/-/blob/lib/attack.go?L206:6#tab=references
 
-	httpTransport *http.Transport
-	grpcTransport *http2.Transport
+	httpTransport *otelhttp.Transport
+	grpcTransport *otelhttp.Transport
 
 	log  log.Logger
 	hook hook.Service
@@ -63,20 +64,20 @@ func (t *h2cTransportWrapper) RoundTrip(req *http.Request) (*http.Response, erro
 
 func NewH2cRoundTripper(log log.Logger, hook hook.Service) http.RoundTripper {
 	return &h2cTransportWrapper{
-		httpTransport: &http.Transport{
+		httpTransport: otelhttp.NewTransport(&http.Transport{
 			DialContext: (&net.Dialer{
 				Timeout:   10 * time.Second,
 				KeepAlive: 1 * time.Minute,
 			}).DialContext,
 			DisableCompression: true,
-		},
-		grpcTransport: &http2.Transport{
+		}),
+		grpcTransport: otelhttp.NewTransport(&http2.Transport{
 			DialTLS: func(network, addr string, cfg *tls.Config) (net.Conn, error) {
 				return net.Dial(network, addr)
 			},
 			AllowHTTP:          true,
 			DisableCompression: true,
-		},
+		}),
 		log:  log,
 		hook: hook,
 	}

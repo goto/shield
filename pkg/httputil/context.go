@@ -10,7 +10,6 @@ type (
 	contextRequestBodyKey struct{}
 	contextPathParamsKey  struct{}
 	routeKey              struct{}
-	varsKey               struct{}
 )
 
 func SetContextWithRequestBody(ctx context.Context, body []byte) context.Context {
@@ -31,10 +30,13 @@ func GetPathParamsFromContext(ctx context.Context) (map[string]string, bool) {
 	return params, ok
 }
 
-func SetContextWithMuxRouteAndVars(ctx context.Context, route *mux.Route, vars map[string]string) context.Context {
-	ctx = context.WithValue(ctx, routeKey{}, route)
-	if len(vars) > 0 {
-		ctx = context.WithValue(ctx, varsKey{}, vars)
+func SetContextWithMuxRoute(ctx context.Context, route *mux.Route) context.Context {
+	return context.WithValue(ctx, routeKey{}, route)
+}
+
+func GetMuxRoute(ctx context.Context) *mux.Route {
+	if rv := ctx.Value(routeKey{}); rv != nil {
+		return rv.(*mux.Route)
 	}
-	return ctx
+	return nil
 }

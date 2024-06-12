@@ -5,6 +5,9 @@ import (
 	"strings"
 
 	"github.com/goto/shield/internal/proxy/middleware"
+	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
+	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
+	"go.opentelemetry.io/otel/trace"
 
 	"github.com/goto/salt/log"
 	"github.com/rs/xid"
@@ -16,14 +19,24 @@ const (
 )
 
 type Ware struct {
-	log  *log.Zap
-	next http.Handler
+	log         *log.Zap
+	otelHandler http.Handler
 }
 
 func New(log *log.Zap, next http.Handler) *Ware {
 	return &Ware{
-		log:  log,
-		next: next,
+		log: log,
+		otelHandler: otelhttp.NewHandler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			attr := semconv.HTTPRouteKey.String(r.URL.Path)
+
+			span := trace.SpanFromContext(r.Context())
+			span.SetAttributes(attr)
+
+			labeler, _ := otelhttp.LabelerFromContext(r.Context())
+			labeler.Add(attr)
+
+			next.ServeHTTP(w, r)
+		}), ""),
 	}
 }
 
@@ -46,7 +59,8 @@ func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		zap.String("request_id", reqID),
 	)
 	req = req.WithContext(ctx)
-	m.next.ServeHTTP(rw, req)
+
+	m.otelHandler.ServeHTTP(rw, req)
 }
 
 func setRequestID(req *http.Request) string {
