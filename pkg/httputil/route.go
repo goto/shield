@@ -2,12 +2,10 @@ package httputil
 
 import (
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 func MuxRouteName(r *http.Request) string {
-	route := mux.CurrentRoute(r)
+	route := GetMuxRoute(r.Context())
 	if nil == route {
 		return "NotFoundHandler"
 	}
