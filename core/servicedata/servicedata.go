@@ -3,6 +3,8 @@ package servicedata
 import (
 	"context"
 	"fmt"
+
+	"github.com/goto/shield/core/user"
 )
 
 type Repository interface {
@@ -11,6 +13,7 @@ type Repository interface {
 	Upsert(ctx context.Context, servicedata ServiceData) (ServiceData, error)
 	GetKeyByURN(ctx context.Context, URN string) (Key, error)
 	Get(ctx context.Context, filter Filter) ([]ServiceData, error)
+	ListUsers(ctx context.Context, filter ListUsersFilter, servicedataKeyResourceIds []string) ([]user.User, error)
 }
 
 type Transactor interface {
@@ -43,6 +46,14 @@ type Filter struct {
 	Entities  []string
 	EntityIDs [][]string
 	Project   string
+}
+
+type ListUsersFilter struct {
+	ServiceData     map[string]string
+	Project         string
+	Limit           int32
+	Page            int32
+	WithServiceData bool
 }
 
 func (key Key) CreateURN() string {

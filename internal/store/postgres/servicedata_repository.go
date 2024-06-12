@@ -8,6 +8,7 @@ import (
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/servicedata"
+	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 	"go.nhat.io/otelsql"
@@ -242,6 +243,21 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 	}
 
 	return transformedServiceData, nil
+}
+
+func (r ServiceDataRepository) ListUsers(ctx context.Context, filter servicedata.ListUsersFilter, servicedataKeyResourceIds []string) ([]user.User, error) {
+	var defaultLimit int32 = 50
+	var defaultPage int32 = 1
+	if filter.Limit < 1 {
+		filter.Limit = defaultLimit
+	}
+	if filter.Page < 1 {
+		filter.Page = defaultPage
+	}
+
+	_ = (filter.Page - 1) * filter.Limit
+
+	return []user.User{}, nil
 }
 
 func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {
