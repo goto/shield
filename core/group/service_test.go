@@ -203,7 +203,7 @@ func TestService_GetByIDs(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				userService := &mocks.UserService{}
 				activityService := &mocks.ActivityService{}
-				repository.EXPECT().GetByIDs(mock.Anything, testGroupSlug).Return([]group.Group{testGroup}, nil)
+				repository.EXPECT().GetByIDs(mock.Anything, []string{testGroupID}).Return([]group.Group{testGroup}, nil)
 				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
 			},
 			want: []group.Group{testGroup},
@@ -218,10 +218,11 @@ func TestService_GetByIDs(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				userService := &mocks.UserService{}
 				activityService := &mocks.ActivityService{}
-				repository.EXPECT().GetByIDs(mock.Anything, testGroupSlug).Return([]group.Group{}, group.ErrNotExist)
+				repository.EXPECT().GetByIDs(mock.Anything, []string{testGroupID}).Return([]group.Group{}, group.ErrNotExist)
 				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
 			},
 			wantErr: group.ErrNotExist,
+			want:    []group.Group{},
 		},
 	}
 
