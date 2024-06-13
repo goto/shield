@@ -120,6 +120,27 @@ packages:
       Repository:
         config:
           filename: "user_repository.go"
+  github.com/goto/shield/core/group:
+    config:
+      dir: "core/group/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces: 
+      ActivityService:
+        config:
+          filename: "activity_service.go"
+      RelationService:
+        config:
+          filename: "relation_service.go"
+      UserService:
+        config:
+          filename: "user_service.go"
+      Repository:
+        config:
+          filename: "group_repository.go"
+      CachedRepository:
+        config:
+          filename: "cached_group_repository.go"
   github.com/goto/shield/core/servicedata:
     config:
       dir: "core/servicedata/mocks"
