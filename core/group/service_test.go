@@ -182,3 +182,64 @@ func TestService_GetBySlug(t *testing.T) {
 		})
 	}
 }
+
+func TestService_List(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name    string
+		filter  group.Filter
+		setup   func(t *testing.T) *group.Service
+		want    []group.Group
+		wantErr error
+	}{
+		{
+			name: "List",
+			setup: func(t *testing.T) *group.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				cachedRepository := &mocks.CachedRepository{}
+				relationService := &mocks.RelationService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				repository.EXPECT().List(mock.Anything, group.Filter{}).Return([]group.Group{testGroup}, nil)
+				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
+			},
+			want: []group.Group{testGroup},
+		},
+		{
+			name: "ListErr",
+			setup: func(t *testing.T) *group.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				cachedRepository := &mocks.CachedRepository{}
+				relationService := &mocks.RelationService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				repository.EXPECT().List(mock.Anything, group.Filter{}).Return([]group.Group{}, group.ErrFetchingGroups)
+				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
+			},
+			wantErr: group.ErrFetchingGroups,
+			want:    []group.Group{},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			got, err := svc.List(context.TODO(), tt.filter)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}

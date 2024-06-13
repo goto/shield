@@ -8,14 +8,20 @@ import (
 )
 
 func (c Cache) MonitorCache(meter metric.Meter) error {
-	hits, err := meter.Int64ObservableCounter("cache.hits")
-	if err != nil {
-		otel.Handle(err)
+	metrics := []string{
+		"cache.hits", "cache.miss", "cache.cost_added",
+		"cache.cost_evicted", "cache.gets_dropped", "cache.gets_kept",
+		"cache.keys_added", "cache.keys_evicted", "cache.keys_updated",
+		"cache.sets_dropped", "cache.sets_rejected",
 	}
 
-	miss, err := meter.Int64ObservableCounter("cache.miss")
-	if err != nil {
-		otel.Handle(err)
+	int64Intruments := map[string]metric.Int64ObservableCounter{}
+	for _, m := range metrics {
+		inst, err := meter.Int64ObservableCounter(m)
+		if err != nil {
+			otel.Handle(err)
+		}
+		int64Intruments[m] = inst
 	}
 
 	ratio, err := meter.Float64ObservableGauge("cache.ratio")
@@ -23,70 +29,27 @@ func (c Cache) MonitorCache(meter metric.Meter) error {
 		otel.Handle(err)
 	}
 
-	costAdded, err := meter.Int64ObservableCounter("cache.cost_added")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	costEvicted, err := meter.Int64ObservableCounter("cache.cost_evicted")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	getsDropped, err := meter.Int64ObservableCounter("cache.gets_dropped")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	getsKept, err := meter.Int64ObservableCounter("cache.gets_kept")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	keysAdded, err := meter.Int64ObservableCounter("cache.keys_added")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	keysEvicted, err := meter.Int64ObservableCounter("cache.keys_evicted")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	keysUpdated, err := meter.Int64ObservableCounter("cache.keys_updated")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	setsDropped, err := meter.Int64ObservableCounter("cache.sets_dropped")
-	if err != nil {
-		otel.Handle(err)
-	}
-
-	setsRejected, err := meter.Int64ObservableCounter("cache.sets_rejected")
-	if err != nil {
-		otel.Handle(err)
-	}
-
 	_, err = meter.RegisterCallback(
 		func(_ context.Context, o metric.Observer) error {
-			o.ObserveInt64(hits, int64(c.Metrics.Hits()))
-			o.ObserveInt64(miss, int64(c.Metrics.Misses()))
+			o.ObserveInt64(int64Intruments["cache.hits"], int64(c.Metrics.Hits()))
+			o.ObserveInt64(int64Intruments["cache_miss"], int64(c.Metrics.Misses()))
+			o.ObserveInt64(int64Intruments["cache.cost_added"], int64(c.Metrics.CostAdded()))
+			o.ObserveInt64(int64Intruments["cache.cost_evicted"], int64(c.Metrics.CostEvicted()))
+			o.ObserveInt64(int64Intruments["cache.gets_dropped"], int64(c.Metrics.GetsDropped()))
+			o.ObserveInt64(int64Intruments["cache.gets_kept"], int64(c.Metrics.GetsKept()))
+			o.ObserveInt64(int64Intruments["cache.keys_added"], int64(c.Metrics.KeysAdded()))
+			o.ObserveInt64(int64Intruments["cache.keys_evicted"], int64(c.Metrics.KeysEvicted()))
+			o.ObserveInt64(int64Intruments["cache.keys_updated"], int64(c.Metrics.KeysUpdated()))
+			o.ObserveInt64(int64Intruments["cache.sets_dropped"], int64(c.Metrics.SetsDropped()))
+			o.ObserveInt64(int64Intruments["cache.sets_rejected"], int64(c.Metrics.SetsRejected()))
 			o.ObserveFloat64(ratio, c.Metrics.Ratio())
-			o.ObserveInt64(costAdded, int64(c.Metrics.CostAdded()))
-			o.ObserveInt64(costEvicted, int64(c.Metrics.CostEvicted()))
-			o.ObserveInt64(getsDropped, int64(c.Metrics.GetsDropped()))
-			o.ObserveInt64(getsKept, int64(c.Metrics.GetsKept()))
-			o.ObserveInt64(keysAdded, int64(c.Metrics.KeysAdded()))
-			o.ObserveInt64(keysEvicted, int64(c.Metrics.KeysEvicted()))
-			o.ObserveInt64(keysUpdated, int64(c.Metrics.KeysUpdated()))
-			o.ObserveInt64(setsDropped, int64(c.Metrics.SetsDropped()))
-			o.ObserveInt64(setsRejected, int64(c.Metrics.SetsRejected()))
 
 			return nil
 		},
-		hits, miss, ratio, costAdded, costEvicted, getsDropped, getsKept,
-		keysAdded, keysEvicted, keysUpdated, setsDropped, setsRejected,
+		int64Intruments["cache.hits"], int64Intruments["cache_miss"], ratio,
+		int64Intruments["cache.cost_added"], int64Intruments["cache.cost_evicted"], int64Intruments["cache.gets_dropped"],
+		int64Intruments["cache.gets_kept"], int64Intruments["cache.keys_added"], int64Intruments["cache.keys_evicted"],
+		int64Intruments["cache.keys_evicted"], int64Intruments["cache.sets_dropped"], int64Intruments["cache.sets_rejected"],
 	)
 	if err != nil {
 		return err
