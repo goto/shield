@@ -17,12 +17,13 @@ import (
 )
 
 const (
-	keyNamespace                 = schema.ServiceDataKeyNamespace
-	userNamespace                = schema.UserPrincipal
-	groupNamespace               = schema.GroupPrincipal
-	viewActionID                 = schema.ViewPermission
-	editActionID                 = schema.EditPermission
-	membershipPermission         = schema.MembershipPermission
+	keyNamespace         = schema.ServiceDataKeyNamespace
+	userNamespace        = schema.UserPrincipal
+	groupNamespace       = schema.GroupPrincipal
+	viewActionID         = schema.ViewPermission
+	editActionID         = schema.EditPermission
+	membershipPermission = schema.MembershipPermission
+
 	auditKeyServiceDataKeyCreate = "service_data_key.create"
 )
 
@@ -147,9 +148,8 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 
 	go func() {
 		ctx := context.TODO()
-		logData := key.ToKeyLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
-		if err := s.activityService.Log(ctx, auditKeyServiceDataKeyCreate, actor, logData); err != nil {
+		if err := s.activityService.Log(ctx, auditKeyServiceDataKeyCreate, actor, key.ToKeyLogData()); err != nil {
 			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
 		}
 	}()
