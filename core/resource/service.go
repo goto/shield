@@ -43,7 +43,7 @@ type OrganizationService interface {
 }
 
 type GroupService interface {
-	Get(ctx context.Context, id string) (group.Group, error)
+	GetBySlug(ctx context.Context, id string) (group.Group, error)
 }
 
 type ActivityService interface {
@@ -304,7 +304,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 				}
 				res.Name = organization.ID
 			case namespace.DefinitionTeam.ID:
-				group, err := s.groupService.Get(ctx, res.Name)
+				group, err := s.groupService.GetBySlug(ctx, res.Name)
 				if err != nil {
 					return false, err
 				}
