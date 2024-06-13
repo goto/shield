@@ -43,6 +43,7 @@ func TestService_Get(t *testing.T) {
 			name:     "GetGroupById",
 			idOrSlug: testGroupID,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
@@ -57,6 +58,7 @@ func TestService_Get(t *testing.T) {
 			name:     "GetGroupBySlug",
 			idOrSlug: testGroupSlug,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
@@ -71,6 +73,7 @@ func TestService_Get(t *testing.T) {
 			name:     "GetGroupByIdErr",
 			idOrSlug: testGroupID,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
@@ -85,6 +88,7 @@ func TestService_Get(t *testing.T) {
 			name:     "GetGroupBySlugErr",
 			idOrSlug: testGroupSlug,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
@@ -115,7 +119,6 @@ func TestService_Get(t *testing.T) {
 			assert.Equal(t, tt.want, got)
 		})
 	}
-
 }
 
 func TestService_GetBySlug(t *testing.T) {
@@ -132,6 +135,7 @@ func TestService_GetBySlug(t *testing.T) {
 			name:     "GetBySlug",
 			idOrSlug: testGroupSlug,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
@@ -146,6 +150,7 @@ func TestService_GetBySlug(t *testing.T) {
 			name:     "GetBySlugErr",
 			idOrSlug: testGroupSlug,
 			setup: func(t *testing.T) *group.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				cachedRepository := &mocks.CachedRepository{}
 				relationService := &mocks.RelationService{}
