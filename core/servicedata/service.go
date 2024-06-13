@@ -273,8 +273,6 @@ func (s Service) ListUsers(ctx context.Context, filter ListUsersFilter) ([]user.
 			if !permission {
 				return []user.User{}, errors.ErrForbidden
 			}
-
-			servicedataKeyResourceIds = append(servicedataKeyResourceIds, key.ResourceID)
 		}
 	} else if filter.WithServiceData {
 		servicedataKeyResourceIds, err = s.relationService.LookupResources(ctx, keyNamespace, viewActionID, userNamespace, currentUser.ID)
@@ -282,8 +280,16 @@ func (s Service) ListUsers(ctx context.Context, filter ListUsersFilter) ([]user.
 			return []user.User{}, err
 		}
 	}
+	fmt.Println(servicedataKeyResourceIds)
 
-	s.repository.
+	if len(filter.ServiceData) > 0 {
+		serviceData := [][]string{}
+		for k, v := range filter.ServiceData {
+			serviceData = append(serviceData, []string{k, v})
+		}
+
+		s.repository.ListUsersHavingData(ctx, filter, serviceData)
+	}
 
 	return []user.User{}, nil
 }

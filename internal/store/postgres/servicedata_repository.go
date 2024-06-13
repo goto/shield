@@ -9,6 +9,7 @@ import (
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 	"go.nhat.io/otelsql"
@@ -245,7 +246,7 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 	return transformedServiceData, nil
 }
 
-func (r ServiceDataRepository) ListUsers(ctx context.Context, filter servicedata.ListUsersFilter, servicedataKeyResourceIds []string) ([]user.User, error) {
+func (r ServiceDataRepository) ListUsersHavingData(ctx context.Context, filter servicedata.ListUsersFilter, serviceData [][]string) ([]user.User, error) {
 	var defaultLimit int32 = 50
 	var defaultPage int32 = 1
 	if filter.Limit < 1 {
@@ -256,6 +257,44 @@ func (r ServiceDataRepository) ListUsers(ctx context.Context, filter servicedata
 	}
 
 	_ = (filter.Page - 1) * filter.Limit
+
+	subquery := dialect.Select("sd.entity_id").From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
+		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(
+			goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
+		Where(goqu.Ex{"sk.project_id": filter.Project},
+			goqu.Ex{"sd.namespace_id": schema.UserPrincipal},
+			goqu.L(
+				"(sk.key, sd.value)",
+			).In(serviceData)).
+		GroupBy(goqu.I("sd.entity_id"))
+
+	// Main query
+	query, params, err := dialect.Select(
+		goqu.I("u.id"),
+		goqu.I("u.name"),
+		goqu.I("u.email"),
+		goqu.I("u.created_at"),
+		goqu.I("u.updated_at"),
+	).From(goqu.T(TABLE_USERS).As("u")).Join(subquery.As("sd"), goqu.On(
+		goqu.Cast(goqu.C("id"), "TEXT").Eq(goqu.I("sd.entity_id")))).ToSQL()
+	if err != nil {
+		return []user.User{}, nil
+	}
+
+	var users []User
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		return r.dbc.SelectContext(ctx, &users, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []user.User{}, nil
+		case errors.Is(err, errInvalidTexRepresentation):
+			return []user.User{}, servicedata.ErrInvalidDetail
+		default:
+			return []user.User{}, err
+		}
+	}
 
 	return []user.User{}, nil
 }
