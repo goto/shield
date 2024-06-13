@@ -6,6 +6,7 @@ import (
 	context "context"
 
 	group "github.com/goto/shield/core/group"
+
 	mock "github.com/stretchr/testify/mock"
 )
 

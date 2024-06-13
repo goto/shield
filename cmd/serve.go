@@ -14,6 +14,7 @@ import (
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
 	"github.com/goto/shield/config"
@@ -196,6 +197,10 @@ func BuildAPIDependencies(
 ) (api.Deps, error) {
 	cache, err := inmemory.NewCache(cfg.App.CacheConfig)
 	if err != nil {
+		return api.Deps{}, err
+	}
+
+	if err = cache.MonitorCache(otel.Meter("github.com/goto/shield/internal/store/inmemory")); err != nil {
 		return api.Deps{}, err
 	}
 
