@@ -14,11 +14,16 @@ import (
 	"github.com/goto/shield/core/servicedata/mocks"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/logger"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 var (
+	testLogger = logger.InitLogger(logger.Config{
+		Level:  "info",
+		Format: "json",
+	})
 	testResourceID  = "test-resource-id"
 	testUserID      = "test-user-id"
 	testProjectID   = "test-project-id"
@@ -99,6 +104,7 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
 				repository.On("Commit", mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
@@ -116,7 +122,8 @@ func TestService_CreateKey(t *testing.T) {
 				}, nil)
 				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(testCreatedKey, nil)
 				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, nil)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				activityService.EXPECT().Log(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			want: testCreatedKey,
 		},
@@ -134,7 +141,8 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				activityService := &mocks.ActivityService{}
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrInvalidDetail,
 		},
@@ -148,8 +156,9 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrMissingEmail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrMissingEmail,
 		},
@@ -164,8 +173,9 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrInvalidEmail,
 		},
@@ -184,9 +194,10 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com"}, nil)
 				projectService.EXPECT().Get(mock.Anything, "invalid-test-project-slug").Return(project.Project{}, project.ErrNotExist)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: project.ErrNotExist,
 		},
@@ -201,6 +212,7 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
@@ -214,7 +226,7 @@ func TestService_CreateKey(t *testing.T) {
 						Slug: testProjectSlug,
 					}, nil)
 				resourceService.EXPECT().Create(mock.Anything, testResource).Return(resource.Resource{}, resource.ErrConflict)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: resource.ErrConflict,
 		},
@@ -229,6 +241,7 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
@@ -245,7 +258,7 @@ func TestService_CreateKey(t *testing.T) {
 					Idxa: testResourceID,
 				}, nil)
 				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(servicedata.Key{}, servicedata.ErrConflict)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrConflict,
 		},
@@ -260,6 +273,7 @@ func TestService_CreateKey(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				repository.On("WithTransaction", mock.Anything).Return(context.TODO())
 				repository.On("Rollback", mock.Anything, mock.Anything).Return(nil)
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
@@ -277,7 +291,7 @@ func TestService_CreateKey(t *testing.T) {
 				}, nil)
 				repository.EXPECT().CreateKey(mock.Anything, testCreateKey).Return(testCreatedKey, nil)
 				relationService.EXPECT().Create(mock.Anything, testRelation).Return(relation.RelationV2{}, relation.ErrCreatingRelationInAuthzEngine)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: relation.ErrCreatingRelationInAuthzEngine,
 		},
@@ -326,6 +340,7 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -343,7 +358,7 @@ func TestService_Upsert(t *testing.T) {
 				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					testResourceID, action.Action{ID: "edit"}).Return(true, nil)
 				repository.EXPECT().Upsert(mock.Anything, testServiceData).Return(testServiceData, nil)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			want: testServiceData,
 		},
@@ -361,7 +376,8 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				activityService := &mocks.ActivityService{}
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrInvalidDetail,
 		},
@@ -376,8 +392,9 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrInvalidEmail,
 		},
@@ -397,9 +414,10 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com"}, nil)
 				projectService.EXPECT().Get(mock.Anything, "invalid-test-project-slug").Return(project.Project{}, project.ErrNotExist)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: project.ErrNotExist,
 		},
@@ -414,6 +432,7 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -425,7 +444,7 @@ func TestService_Upsert(t *testing.T) {
 						Slug: testProjectSlug,
 					}, nil)
 				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{}, servicedata.ErrNotExist)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrNotExist,
 		},
@@ -440,6 +459,7 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -458,7 +478,7 @@ func TestService_Upsert(t *testing.T) {
 					Email: "john.doe@gotocompany.com",
 				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					testResourceID, action.Action{ID: "edit"}).Return(false, nil)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrInvalidEmail,
 		},
@@ -473,6 +493,7 @@ func TestService_Upsert(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -490,7 +511,7 @@ func TestService_Upsert(t *testing.T) {
 				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					testResourceID, action.Action{ID: "edit"}).Return(true, nil)
 				repository.EXPECT().Upsert(mock.Anything, testServiceData).Return(servicedata.ServiceData{}, servicedata.ErrInvalidDetail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrInvalidDetail,
 		},
@@ -544,6 +565,7 @@ func TestService_Get(t *testing.T) {
 				projectService := &mocks.ProjectService{}
 				resourceService := &mocks.ResourceService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -568,7 +590,7 @@ func TestService_Get(t *testing.T) {
 					},
 					Project: testProjectID,
 				}).Return(testGetRepositoryResult, nil)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 
 			want: testGetResult,
@@ -583,8 +605,9 @@ func TestService_Get(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrMissingEmail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrMissingEmail,
 			want:    []servicedata.ServiceData{},
@@ -600,8 +623,9 @@ func TestService_Get(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: user.ErrInvalidEmail,
 			want:    []servicedata.ServiceData{},
@@ -619,9 +643,10 @@ func TestService_Get(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com"}, nil)
 				projectService.EXPECT().Get(mock.Anything, "invalid-test-project-slug").Return(project.Project{}, project.ErrNotExist)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: project.ErrNotExist,
 			want:    []servicedata.ServiceData{},
@@ -641,10 +666,11 @@ func TestService_Get(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com"}, nil)
 				relationService.EXPECT().LookupResources(mock.Anything, schema.GroupNamespace, schema.MembershipPermission, schema.UserPrincipal, testEntityID).
 					Return(nil, relation.ErrInvalidDetail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: relation.ErrInvalidDetail,
 			want:    []servicedata.ServiceData{},
@@ -664,12 +690,13 @@ func TestService_Get(t *testing.T) {
 				relationService := &mocks.RelationService{}
 				projectService := &mocks.ProjectService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{Email: "jane.doe@gotocompany.com", ID: testUserID}, nil)
 				relationService.EXPECT().LookupResources(mock.Anything, schema.GroupNamespace, schema.MembershipPermission, schema.UserPrincipal, testEntityID).
 					Return([]string{testGroupID}, nil)
 				relationService.EXPECT().LookupResources(mock.Anything, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, testUserID).
 					Return(nil, relation.ErrInvalidDetail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: relation.ErrInvalidDetail,
 			want:    []servicedata.ServiceData{},
@@ -690,6 +717,7 @@ func TestService_Get(t *testing.T) {
 				projectService := &mocks.ProjectService{}
 				resourceService := &mocks.ResourceService{}
 				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
 				userService.EXPECT().FetchCurrentUser(mock.Anything).
 					Return(user.User{
 						ID:    testUserID,
@@ -714,7 +742,7 @@ func TestService_Get(t *testing.T) {
 					},
 					Project: testProjectID,
 				}).Return(nil, servicedata.ErrInvalidDetail)
-				return servicedata.NewService(repository, resourceService, relationService, projectService, userService)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
 			wantErr: servicedata.ErrInvalidDetail,
 			want:    []servicedata.ServiceData{},
