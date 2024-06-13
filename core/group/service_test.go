@@ -7,6 +7,8 @@ import (
 
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/group/mocks"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/logger"
 	"github.com/goto/shield/pkg/uuid"
 	"github.com/stretchr/testify/assert"
@@ -20,9 +22,15 @@ var (
 	})
 	testOrgID     = uuid.NewString()
 	testGroupID   = uuid.NewString()
+	testUserID    = uuid.NewString()
 	testGroupSlug = "test-group-slug"
 	testGroup     = group.Group{
 		ID:             testGroupID,
+		Name:           "Test Group",
+		Slug:           testGroupSlug,
+		OrganizationID: testOrgID,
+	}
+	testGroupCreate = group.Group{
 		Name:           "Test Group",
 		Slug:           testGroupSlug,
 		OrganizationID: testOrgID,
@@ -296,6 +304,98 @@ func TestService_List(t *testing.T) {
 			assert.NotNil(t, svc)
 
 			got, err := svc.List(context.TODO(), tt.filter)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func TestService_Create(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name          string
+		email         string
+		groupToCreate group.Group
+		setup         func(t *testing.T) *group.Service
+		want          group.Group
+		wantErr       error
+	}{
+		{
+			name:          "Create",
+			email:         "john.doe@gotocompany.com",
+			groupToCreate: testGroupCreate,
+			setup: func(t *testing.T) *group.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				cachedRepository := &mocks.CachedRepository{}
+				relationService := &mocks.RelationService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				repository.EXPECT().Create(mock.Anything, testGroupCreate).Return(testGroup, nil)
+				relationService.EXPECT().Create(mock.Anything, mock.Anything).Return(relation.RelationV2{}, nil)
+				activityService.EXPECT().Log(mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(nil)
+				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
+			},
+			want: testGroup,
+		},
+		{
+			name:          "CreateErr",
+			email:         "john.doe@gotocompany.com",
+			groupToCreate: testGroupCreate,
+			setup: func(t *testing.T) *group.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				cachedRepository := &mocks.CachedRepository{}
+				relationService := &mocks.RelationService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).
+					Return(user.User{
+						ID:    testUserID,
+						Email: "john.doe@gotocompany.com",
+					}, nil)
+				repository.EXPECT().Create(mock.Anything, testGroupCreate).Return(group.Group{}, group.ErrConflict)
+				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
+			},
+			wantErr: group.ErrConflict,
+		},
+		{
+			name:          "CreateFetchUserErr",
+			email:         "john.doe@gotocompany.com",
+			groupToCreate: testGroupCreate,
+			setup: func(t *testing.T) *group.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				cachedRepository := &mocks.CachedRepository{}
+				relationService := &mocks.RelationService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
+				return group.NewService(testLogger, repository, cachedRepository, relationService, userService, activityService)
+			},
+			wantErr: user.ErrInvalidEmail,
+		},
+	}
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			got, err := svc.Create(context.TODO(), tt.groupToCreate)
 			if tt.wantErr != nil {
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, tt.wantErr))
