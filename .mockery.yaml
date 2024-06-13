@@ -144,9 +144,9 @@ packages:
       Repository:
         config:
           filename: "servicedata_repository.go"
-  github.com/goto/shield/internal/store/cache:
+  github.com/goto/shield/internal/store/inmemory:
     config:
-      dir: "internal/store/cache/mocks"
+      dir: "internal/store/inmemory/mocks"
       outpkg: "mocks"
       mockname: "{{.InterfaceName}}"
     interfaces:
