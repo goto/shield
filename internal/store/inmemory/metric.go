@@ -8,62 +8,62 @@ import (
 )
 
 func (c Cache) MonitorCache(meter metric.Meter) error {
-	hits, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.hits")
+	hits, err := meter.Int64ObservableCounter("inmemory.cache.hits")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	miss, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.miss")
+	miss, err := meter.Int64ObservableCounter("inmemory.cache.miss")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	ratio, err := meter.Float64ObservableGauge("shield.internal.store.inmemory.cache.ratio")
+	ratio, err := meter.Float64ObservableGauge("inmemory.cache.ratio")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	costAdded, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.cost_added")
+	costAdded, err := meter.Int64ObservableCounter("inmemory.cache.cost_added")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	costEvicted, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.cost_evicted")
+	costEvicted, err := meter.Int64ObservableCounter("inmemory.cache.cost_evicted")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	getsDropped, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.gets_dropped")
+	getsDropped, err := meter.Int64ObservableCounter("inmemory.cache.gets_dropped")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	getsKept, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.gets_kept")
+	getsKept, err := meter.Int64ObservableCounter("inmemory.cache.gets_kept")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	keysAdded, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.keys_added")
+	keysAdded, err := meter.Int64ObservableCounter("inmemory.cache.keys_added")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	keysEvicted, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.keys_evicted")
+	keysEvicted, err := meter.Int64ObservableCounter("inmemory.cache.keys_evicted")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	keysUpdated, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.keys_updated")
+	keysUpdated, err := meter.Int64ObservableCounter("inmemory.cache.keys_updated")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	setsDropped, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.sets_dropped")
+	setsDropped, err := meter.Int64ObservableCounter("inmemory.cache.sets_dropped")
 	if err != nil {
 		otel.Handle(err)
 	}
 
-	setsRejected, err := meter.Int64ObservableCounter("shield.internal.store.inmemory.cache.sets_rejected")
+	setsRejected, err := meter.Int64ObservableCounter("inmemory.cache.sets_rejected")
 	if err != nil {
 		otel.Handle(err)
 	}
