@@ -18,6 +18,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/metadata"
 
 	errorsPkg "github.com/goto/shield/pkg/errors"
@@ -32,7 +33,7 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 	Create(ctx context.Context, user user.User) (user.User, error)
-	List(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
+	List(ctx context.Context, flt user.Filter, project string, serviceDataKeyResourceIds []string) (user.PagedUsers, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
@@ -43,11 +44,29 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
 
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	prj, err := h.projectService.Get(ctx, h.serviceDataConfig.DefaultServiceDataProject)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
 	userResp, err := h.userService.List(ctx, user.Filter{
 		Limit:   request.GetPageSize(),
 		Page:    request.GetPageNum(),
 		Keyword: request.GetKeyword(),
-	})
+	}, prj.ID, servicedataKeyResourceIds)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

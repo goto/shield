@@ -17,7 +17,7 @@ type Repository interface {
 	GetByEmail(ctx context.Context, email string) (User, error)
 	GetByIDs(ctx context.Context, userIds []string) ([]User, error)
 	Create(ctx context.Context, user User) (User, error)
-	List(ctx context.Context, flt Filter) ([]User, error)
+	List(ctx context.Context, flt Filter, project string, serviceDataKeysResourceIds []string) ([]User, error)
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)

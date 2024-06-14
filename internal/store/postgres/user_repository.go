@@ -18,6 +18,7 @@ import (
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
 )
@@ -226,7 +227,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	return transformedUser, nil
 }
 
-func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
+func (r UserRepository) List(ctx context.Context, flt user.Filter, project string, serviceDataKeyResourceIds []string) ([]user.User, error) {
 	var fetchedJoinUserMetadata []joinUserMetadata
 
 	var defaultLimit int32 = 50
@@ -240,24 +241,64 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	offset := (flt.Page - 1) * flt.Limit
 
-	query, params, err := dialect.From(TABLE_USERS).LeftOuterJoin(
-		goqu.T(TABLE_METADATA),
-		goqu.On(goqu.Ex{"users.id": goqu.I("metadata.user_id")})).Select("users.id", "name", "email", "key", "value", "users.created_at", "users.updated_at").Where(
-		goqu.I("users.email").In(
-			goqu.From("users").
-				Select(goqu.DISTINCT("email")).
-				Where(
-					goqu.Or(
-						goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-						goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-					),
-				).
-				Limit(uint(flt.Limit)).
-				Offset(uint(offset)),
+	query, params, err := dialect.From(goqu.T(TABLE_USERS)).Select(
+		goqu.I("id"),
+		goqu.I("name"),
+		goqu.I("email"),
+		goqu.I("created_at"),
+		goqu.I("updated_at"),
+	).Where(
+		goqu.Or(
+			goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+			goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
 		),
-	).ToSQL()
+	).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	if len(serviceDataKeyResourceIds) > 0 {
+		subquery := dialect.Select(
+			goqu.I("sd.namespace_id"),
+			goqu.I("sd.entity_id"),
+			goqu.I("sk.key"),
+			goqu.I("sd.value"),
+			goqu.I("sk.resource_id"),
+		).From(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk")).
+			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
+				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
+			Where(goqu.Ex{"sd.namespace_id": schema.UserPrincipal},
+				goqu.Ex{"sk.project_id": project},
+				goqu.L(
+					"sk.resource_id",
+				).In(serviceDataKeyResourceIds))
+
+		query, params, err = dialect.Select(
+			goqu.I("u.id"),
+			goqu.I("u.name"),
+			goqu.I("u.email"),
+			goqu.I("sd.key"),
+			goqu.I("sd.value"),
+			goqu.I("u.created_at"),
+			goqu.I("u.updated_at"),
+		).From(goqu.T(TABLE_USERS).As("u")).LeftJoin(subquery.As("sd"), goqu.On(
+			goqu.Cast(goqu.C("id"), "TEXT").Eq(goqu.I("sd.entity_id")))).Where(
+			goqu.I("u.email").In(
+				goqu.From(TABLE_USERS).
+					Select(goqu.DISTINCT("email")).
+					Where(
+						goqu.Or(
+							goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+							goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+						),
+					).
+					Limit(uint(flt.Limit)).
+					Offset(uint(offset)),
+			),
+		).ToSQL()
+		if err != nil {
+			return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
+		}
 	}
 
 	ctx = otelsql.WithCustomAttributes(
