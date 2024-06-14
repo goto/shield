@@ -63,7 +63,7 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 	}
 
 	go func() {
-		ctx := context.WithoutCancel(ctx)
+		ctx := context.TODO()
 		relationLogData := createdRelation.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyRelationCreate, actor, relationLogData); err != nil {

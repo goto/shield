@@ -189,7 +189,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx := context.WithoutCancel(ctx)
+		ctx := context.TODO()
 		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
