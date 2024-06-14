@@ -126,6 +126,10 @@ func (c Client) Rollback(ctx context.Context) error {
 	return errors.New("no transaction")
 }
 
+func WithoutTx(ctx context.Context) context.Context {
+	return context.WithValue(ctx, transactionContextKey, nil)
+}
+
 func extractTransaction(ctx context.Context) *sqlx.Tx {
 	if tx, ok := ctx.Value(transactionContextKey).(*sqlx.Tx); !ok {
 		return nil

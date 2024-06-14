@@ -15,6 +15,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -189,7 +190,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx := context.TODO()
+		ctx = db.WithoutTx(ctx)
+		ctx = context.WithoutCancel(ctx)
 		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
