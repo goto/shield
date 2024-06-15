@@ -32,7 +32,7 @@ import (
 type GroupService interface {
 	Create(ctx context.Context, grp group.Group) (group.Group, error)
 	Get(ctx context.Context, id string) (group.Group, error)
-	List(ctx context.Context, flt group.Filter, projectId string, servicedataKeyResourceIds []string) ([]group.Group, error)
+	List(ctx context.Context, flt group.Filter) ([]group.Group, error)
 	Update(ctx context.Context, grp group.Group) (group.Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]group.Group, error)
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
@@ -64,8 +64,10 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 	}
 
 	groupList, err := h.groupService.List(ctx, group.Filter{
-		OrganizationID: request.GetOrgId(),
-	}, prj.ID, servicedataKeyResourceIds)
+		OrganizationID:            request.GetOrgId(),
+		Project:                   prj.ID,
+		ServicedataKeyResourceIds: servicedataKeyResourceIds,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -141,7 +143,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 			EntityID:    newGroup.ID,
 			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
 			},
 			Value: v,
@@ -161,7 +163,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
 	newGroup.Metadata = metaDataMap
@@ -209,7 +211,7 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 	} else {
 		metadata := map[string]any{}
 		for _, sd := range groupSD {
-			metadata[sd.Key.Key] = sd.Value
+			metadata[sd.Key.Name] = sd.Value
 		}
 		fetchedGroup.Metadata = metadata
 	}
@@ -279,7 +281,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			EntityID:    updatedGroup.ID,
 			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
 			},
 			Value: v,
@@ -299,7 +301,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
 	//Note: this would return only the keys that are updated in the current request

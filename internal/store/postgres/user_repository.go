@@ -227,7 +227,7 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 	return transformedUser, nil
 }
 
-func (r UserRepository) List(ctx context.Context, flt user.Filter, project string, serviceDataKeyResourceIds []string) ([]user.User, error) {
+func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User, error) {
 	var fetchedJoinUserMetadata []joinUserMetadata
 
 	var defaultLimit int32 = 50
@@ -257,27 +257,27 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter, project strin
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
-	if len(serviceDataKeyResourceIds) > 0 {
+	if len(flt.ServiceDataKeyResourceIds) > 0 {
 		subquery := dialect.Select(
 			goqu.I("sd.namespace_id"),
 			goqu.I("sd.entity_id"),
-			goqu.I("sk.key"),
+			goqu.I("sk.name").As("name"),
 			goqu.I("sd.value"),
 			goqu.I("sk.resource_id"),
 		).From(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk")).
 			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
 				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
 			Where(goqu.Ex{"sd.namespace_id": schema.UserPrincipal},
-				goqu.Ex{"sk.project_id": project},
+				goqu.Ex{"sk.project_id": flt.Project},
 				goqu.L(
 					"sk.resource_id",
-				).In(serviceDataKeyResourceIds))
+				).In(flt.ServiceDataKeyResourceIds))
 
 		query, params, err = dialect.Select(
 			goqu.I("u.id"),
 			goqu.I("u.name"),
 			goqu.I("u.email"),
-			goqu.I("sd.key"),
+			goqu.I("sd.name").As("key"),
 			goqu.I("sd.value"),
 			goqu.I("u.created_at"),
 			goqu.I("u.updated_at"),

@@ -1,5 +1,7 @@
 package group
 
 type Filter struct {
-	OrganizationID string
+	OrganizationID            string
+	Project                   string
+	ServicedataKeyResourceIds []string
 }

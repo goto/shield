@@ -280,7 +280,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 	return transformedGroup, nil
 }
 
-func (r GroupRepository) List(ctx context.Context, flt group.Filter, project string, serviceDataKeyResourceIds []string) ([]group.Group, error) {
+func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Group, error) {
 	sqlStatement := dialect.From(TABLE_GROUPS).Select(
 		goqu.I("id"),
 		goqu.I("name"),
@@ -290,28 +290,28 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter, project str
 		goqu.I("updated_at"),
 	)
 
-	if len(serviceDataKeyResourceIds) > 0 {
+	if len(flt.ServicedataKeyResourceIds) > 0 {
 		subquery := dialect.Select(
 			goqu.I("sd.namespace_id"),
 			goqu.I("sd.entity_id"),
-			goqu.I("sk.key"),
+			goqu.I("sk.name").As("name"),
 			goqu.I("sd.value"),
 			goqu.I("sk.resource_id"),
 		).From(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk")).
 			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
 				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
 			Where(goqu.Ex{"sd.namespace_id": schema.GroupPrincipal},
-				goqu.Ex{"sk.project_id": project},
+				goqu.Ex{"sk.project_id": flt.Project},
 				goqu.L(
 					"sk.resource_id",
-				).In(serviceDataKeyResourceIds))
+				).In(flt.ServicedataKeyResourceIds))
 
 		sqlStatement = dialect.Select(
 			goqu.I("g.id"),
 			goqu.I("g.name"),
 			goqu.I("g.slug"),
 			goqu.I("g.org_id"),
-			goqu.I("sd.key"),
+			goqu.I("sd.name").As("key"),
 			goqu.I("sd.value"),
 			goqu.I("g.created_at"),
 			goqu.I("g.updated_at"),

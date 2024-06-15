@@ -13,7 +13,6 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/metadata"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"golang.org/x/exp/maps"
@@ -46,7 +45,7 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 
 	keyResp, err := h.serviceDataService.CreateKey(ctx, servicedata.Key{
 		ProjectID:   requestBody.GetProject(),
-		Key:         requestBody.GetKey(),
+		Name:        requestBody.GetKey(),
 		Description: requestBody.GetDescription(),
 	})
 	if err != nil {
@@ -88,10 +87,11 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
-	sdMap, err := metadata.Build(request.GetBody().GetData().AsMap())
-	if err != nil {
+	data := requestBody.GetData()
+	if data == nil {
 		return nil, grpcBadBodyError
 	}
+	sdMap := data.AsMap()
 
 	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
@@ -116,7 +116,7 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 			EntityID:    userEntity.ID,
 			NamespaceID: userNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: requestBody.Project,
 			},
 			Value: v,
@@ -134,11 +134,16 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
+	}
+
+	serviceDataMapPB, err := structpb.NewStruct(serviceDataMap)
+	if err != nil {
+		return nil, grpcInternalServerError
 	}
 
 	return &shieldv1beta1.UpsertUserServiceDataResponse{
-		Data: requestBody.GetData(),
+		Data: serviceDataMapPB,
 	}, nil
 }
 
@@ -154,10 +159,11 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyError
 	}
 
-	sdMap, err := Build(request.GetBody().GetData().AsMap())
-	if err != nil {
+	data := requestBody.GetData()
+	if data == nil {
 		return nil, grpcBadBodyError
 	}
+	sdMap := data.AsMap()
 
 	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
@@ -182,7 +188,7 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 			EntityID:    groupEntity.ID,
 			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: requestBody.Project,
 			},
 			Value: v,
@@ -200,11 +206,16 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
+	}
+
+	serviceDataMapPB, err := structpb.NewStruct(serviceDataMap)
+	if err != nil {
+		return nil, grpcInternalServerError
 	}
 
 	return &shieldv1beta1.UpsertGroupServiceDataResponse{
-		Data: requestBody.GetData(),
+		Data: serviceDataMapPB,
 	}, nil
 }
 
@@ -333,14 +344,14 @@ func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Str
 		if ok {
 			ent, ok := prj[entKey]
 			if ok {
-				ent[sd.Key.Key] = sd.Value
+				ent[sd.Key.Name] = sd.Value
 			} else {
 				prj[entKey] = map[string]any{
-					sd.Key.Key: sd.Value,
+					sd.Key.Name: sd.Value,
 				}
 			}
 		} else {
-			kv := map[string]any{sd.Key.Key: sd.Value}
+			kv := map[string]any{sd.Key.Name: sd.Value}
 			data[prjKey] = map[string]map[string]any{
 				entKey: kv,
 			}
@@ -363,29 +374,4 @@ func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Str
 	}
 
 	return serviceData, nil
-}
-
-func ToStructPB(m map[string]any) (*structpb.Struct, error) {
-	newMap := make(map[string]interface{})
-
-	for key, value := range m {
-		newMap[key] = value
-	}
-
-	return structpb.NewStruct(newMap)
-}
-
-func Build(m map[string]interface{}) (map[string]any, error) {
-	newMap := make(map[string]any)
-
-	for key, value := range m {
-		switch value := value.(type) {
-		case any:
-			newMap[key] = value
-		default:
-			return map[string]any{}, fmt.Errorf("value for %s key is not string", key)
-		}
-	}
-
-	return newMap, nil
 }

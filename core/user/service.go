@@ -120,8 +120,8 @@ func (s Service) CreateMetadataKey(ctx context.Context, key UserMetadataKey) (Us
 	return newUserMetadataKey, nil
 }
 
-func (s Service) List(ctx context.Context, flt Filter, project string, serviceDataKeyResourceIds []string) (PagedUsers, error) {
-	users, err := s.repository.List(ctx, flt, project, serviceDataKeyResourceIds)
+func (s Service) List(ctx context.Context, flt Filter) (PagedUsers, error) {
+	users, err := s.repository.List(ctx, flt)
 	if err != nil {
 		return PagedUsers{}, err
 	}

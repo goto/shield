@@ -97,8 +97,8 @@ func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, erro
 	return s.repository.GetByIDs(ctx, groupIDs)
 }
 
-func (s Service) List(ctx context.Context, flt Filter, project string, servicedataKeyResourceIds []string) ([]Group, error) {
-	return s.repository.List(ctx, flt, project, servicedataKeyResourceIds)
+func (s Service) List(ctx context.Context, flt Filter) ([]Group, error) {
+	return s.repository.List(ctx, flt)
 }
 
 func (s Service) Update(ctx context.Context, grp Group) (Group, error) {

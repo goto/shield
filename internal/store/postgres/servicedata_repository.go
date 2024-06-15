@@ -27,7 +27,7 @@ func NewServiceDataRepository(dbc *db.Client) *ServiceDataRepository {
 }
 
 func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error) {
-	if len(key.Key) == 0 {
+	if len(key.Name) == 0 {
 		return servicedata.Key{}, servicedata.ErrInvalidDetail
 	}
 
@@ -35,7 +35,7 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 		goqu.Record{
 			"urn":         key.URN,
 			"project_id":  key.ProjectID,
-			"key":         key.Key,
+			"name":        key.Name,
 			"description": key.Description,
 			"resource_id": key.ResourceID,
 		}).Returning(&Key{}).ToSQL()
@@ -97,7 +97,7 @@ func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.Serv
 			"key_id": data.Key.ID,
 			"value":  valuejson,
 		},
-	)).Returning("value", goqu.L(`?`, data.Key.Key).As("key")).ToSQL()
+	)).Returning("value", goqu.L(`?`, data.Key.Name).As("key")).ToSQL()
 	if err != nil {
 		return servicedata.ServiceData{}, queryErr
 	}
@@ -189,7 +189,7 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 		goqu.I("sk.resource_id"),
 		goqu.I("sd.namespace_id"),
 		goqu.I("sd.entity_id"),
-		goqu.I("sk.key"),
+		goqu.I("sk.name").As("key"),
 		goqu.I("sd.value"),
 	).From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
 		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(

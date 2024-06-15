@@ -33,7 +33,7 @@ type UserService interface {
 	GetByIDs(ctx context.Context, userIDs []string) ([]user.User, error)
 	GetByEmail(ctx context.Context, email string) (user.User, error)
 	Create(ctx context.Context, user user.User) (user.User, error)
-	List(ctx context.Context, flt user.Filter, project string, serviceDataKeyResourceIds []string) (user.PagedUsers, error)
+	List(ctx context.Context, flt user.Filter) (user.PagedUsers, error)
 	UpdateByID(ctx context.Context, toUpdate user.User) (user.User, error)
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
@@ -63,10 +63,12 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	}
 
 	userResp, err := h.userService.List(ctx, user.Filter{
-		Limit:   request.GetPageSize(),
-		Page:    request.GetPageNum(),
-		Keyword: request.GetKeyword(),
-	}, prj.ID, servicedataKeyResourceIds)
+		Limit:                     request.GetPageSize(),
+		Page:                      request.GetPageNum(),
+		Keyword:                   request.GetKeyword(),
+		Project:                   prj.ID,
+		ServiceDataKeyResourceIds: servicedataKeyResourceIds,
+	})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -149,7 +151,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 			EntityID:    newUser.ID,
 			NamespaceID: userNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
 			},
 			Value: v,
@@ -169,7 +171,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
 	newUser.Metadata = metaDataMap
@@ -247,7 +249,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 	} else {
 		metadata := map[string]any{}
 		for _, sd := range userSD {
-			metadata[sd.Key.Key] = sd.Value
+			metadata[sd.Key.Name] = sd.Value
 		}
 		fetchedUser.Metadata = metadata
 	}
@@ -392,7 +394,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 			EntityID:    updatedUser.ID,
 			NamespaceID: userNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
 			},
 			Value: v,
@@ -412,7 +414,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
 	//Note: this would return only the keys that are updated in the current request
