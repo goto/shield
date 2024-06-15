@@ -15,7 +15,7 @@ type Repository interface {
 	GetByID(ctx context.Context, id string) (Group, error)
 	GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error)
 	GetBySlug(ctx context.Context, slug string) (Group, error)
-	List(ctx context.Context, flt Filter) ([]Group, error)
+	List(ctx context.Context, flt Filter, project string, serviceDataKeyResourceIds []string) ([]Group, error)
 	UpdateByID(ctx context.Context, toUpdate Group) (Group, error)
 	UpdateBySlug(ctx context.Context, toUpdate Group) (Group, error)
 	ListUserGroups(ctx context.Context, userId string, roleId string) ([]Group, error)

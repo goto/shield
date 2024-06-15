@@ -34,7 +34,7 @@ type ServiceData struct {
 	NamespaceID string
 	EntityID    string
 	Key         Key
-	Value       string
+	Value       any
 }
 
 type Filter struct {

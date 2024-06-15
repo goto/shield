@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/metadata"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"golang.org/x/exp/maps"
@@ -87,7 +88,12 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+	sdMap, err := metadata.Build(request.GetBody().GetData().AsMap())
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
 
@@ -104,8 +110,8 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 			return nil, grpcInternalServerError
 		}
 	}
-	serviceDataMap := map[string]string{}
-	for k, v := range requestBody.Data {
+	serviceDataMap := map[string]any{}
+	for k, v := range sdMap {
 		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
 			EntityID:    userEntity.ID,
 			NamespaceID: userNamespaceID,
@@ -132,7 +138,7 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 	}
 
 	return &shieldv1beta1.UpsertUserServiceDataResponse{
-		Data: serviceDataMap,
+		Data: requestBody.GetData(),
 	}, nil
 }
 
@@ -148,7 +154,12 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+	sdMap, err := Build(request.GetBody().GetData().AsMap())
+	if err != nil {
+		return nil, grpcBadBodyError
+	}
+
+	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
 
@@ -165,8 +176,8 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 			return nil, grpcInternalServerError
 		}
 	}
-	serviceDataMap := map[string]string{}
-	for k, v := range requestBody.Data {
+	serviceDataMap := map[string]any{}
+	for k, v := range sdMap {
 		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
 			EntityID:    groupEntity.ID,
 			NamespaceID: groupNamespaceID,
@@ -193,7 +204,7 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 	}
 
 	return &shieldv1beta1.UpsertGroupServiceDataResponse{
-		Data: serviceDataMap,
+		Data: requestBody.GetData(),
 	}, nil
 }
 
@@ -313,7 +324,7 @@ func transformServiceDataKeyToPB(from servicedata.Key) (shieldv1beta1.ServiceDat
 }
 
 func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Struct, error) {
-	data := map[string]map[string]map[string]string{}
+	data := map[string]map[string]map[string]any{}
 
 	for _, sd := range from {
 		prjKey := fmt.Sprintf("%s:%s", projectNamespaceID, sd.Key.ProjectID)
@@ -324,13 +335,13 @@ func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Str
 			if ok {
 				ent[sd.Key.Key] = sd.Value
 			} else {
-				prj[entKey] = map[string]string{
+				prj[entKey] = map[string]any{
 					sd.Key.Key: sd.Value,
 				}
 			}
 		} else {
-			kv := map[string]string{sd.Key.Key: sd.Value}
-			data[prjKey] = map[string]map[string]string{
+			kv := map[string]any{sd.Key.Key: sd.Value}
+			data[prjKey] = map[string]map[string]any{
 				entKey: kv,
 			}
 		}
@@ -352,4 +363,29 @@ func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Str
 	}
 
 	return serviceData, nil
+}
+
+func ToStructPB(m map[string]any) (*structpb.Struct, error) {
+	newMap := make(map[string]interface{})
+
+	for key, value := range m {
+		newMap[key] = value
+	}
+
+	return structpb.NewStruct(newMap)
+}
+
+func Build(m map[string]interface{}) (map[string]any, error) {
+	newMap := make(map[string]any)
+
+	for key, value := range m {
+		switch value := value.(type) {
+		case any:
+			newMap[key] = value
+		default:
+			return map[string]any{}, fmt.Errorf("value for %s key is not string", key)
+		}
+	}
+
+	return newMap, nil
 }

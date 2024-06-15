@@ -2,6 +2,7 @@ package postgres
 
 import (
 	"database/sql"
+	"encoding/json"
 	"time"
 
 	"github.com/goto/shield/core/servicedata"
@@ -20,16 +21,26 @@ type Key struct {
 }
 
 type ServiceData struct {
-	URN         string `db:"urn"`
-	NamespaceID string `db:"namespace_id"`
-	EntityID    string `db:"entity_id"`
-	Value       string `db:"value"`
-	Key         string `db:"key"`
-	ProjectID   string `db:"project_id"`
-	ResourceID  string `db:"resource_id"`
+	URN         string         `db:"urn"`
+	NamespaceID string         `db:"namespace_id"`
+	EntityID    string         `db:"entity_id"`
+	Value       sql.NullString `db:"value"`
+	Key         string         `db:"key"`
+	ProjectID   string         `db:"project_id"`
+	ResourceID  string         `db:"resource_id"`
 }
 
 func (from ServiceData) transformToServiceData() servicedata.ServiceData {
+	var value any
+	if from.Key != "" {
+
+		err := json.Unmarshal([]byte(from.Value.String), &value)
+		if err != nil {
+			return servicedata.ServiceData{}
+		}
+
+	}
+
 	return servicedata.ServiceData{
 		NamespaceID: from.NamespaceID,
 		EntityID:    from.EntityID,
@@ -39,7 +50,7 @@ func (from ServiceData) transformToServiceData() servicedata.ServiceData {
 			Key:        from.Key,
 			ResourceID: from.ResourceID,
 		},
-		Value: from.Value,
+		Value: value,
 	}
 }
 

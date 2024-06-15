@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -79,17 +80,22 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 }
 
 func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.ServiceData) (servicedata.ServiceData, error) {
+	valuejson, err := json.Marshal(data.Value)
+	if err != nil {
+		valuejson = []byte{}
+	}
+
 	query, params, err := dialect.Insert(TABLE_SERVICE_DATA).Rows(
 		goqu.Record{
 			"namespace_id": data.NamespaceID,
 			"entity_id":    data.EntityID,
 			"key_id":       data.Key.ID,
-			"value":        data.Value,
+			"value":        valuejson,
 		},
 	).OnConflict(goqu.DoUpdate(
 		"ON CONSTRAINT servicedata_namespace_id_entity_id_key_id_key", goqu.Record{
 			"key_id": data.Key.ID,
-			"value":  data.Value,
+			"value":  valuejson,
 		},
 	)).Returning("value", goqu.L(`?`, data.Key.Key).As("key")).ToSQL()
 	if err != nil {
@@ -232,6 +238,18 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 			return []servicedata.ServiceData{}, servicedata.ErrInvalidDetail
 		default:
 			return []servicedata.ServiceData{}, err
+		}
+	}
+
+	sdMap := map[string]any{}
+	for _, sd := range serviceDataModel {
+		if sd.Key != "" {
+			var value any
+			err := json.Unmarshal([]byte(sd.Value.String), &value)
+			if err != nil {
+				continue
+			}
+			sdMap[sd.Key] = value
 		}
 	}
 
