@@ -721,7 +721,7 @@ func TestUpdateUser(t *testing.T) {
 			err:  status.Error(codes.PermissionDenied, "you are not authorized to update foo key"),
 		},
 		{
-			title: "should be succesful if user and servicedata service return nil error",
+			title: "should be successful if user and servicedata service return nil error",
 			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService) {
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
