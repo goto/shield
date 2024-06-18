@@ -40,15 +40,17 @@ type ActivityService interface {
 type Service struct {
 	logger          log.Logger
 	repository      Repository
+	cacheRepository CachedRepository
 	relationService RelationService
 	userService     UserService
 	activityService ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, cacheRepository CachedRepository, relationService RelationService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
 		repository:      repository,
+		cacheRepository: cacheRepository,
 		relationService: relationService,
 		userService:     userService,
 		activityService: activityService,
@@ -90,7 +92,7 @@ func (s Service) Get(ctx context.Context, idOrSlug string) (Group, error) {
 }
 
 func (s Service) GetBySlug(ctx context.Context, slug string) (Group, error) {
-	return s.repository.GetBySlug(ctx, slug)
+	return s.cacheRepository.GetBySlug(ctx, slug)
 }
 
 func (s Service) GetByIDs(ctx context.Context, groupIDs []string) ([]Group, error) {

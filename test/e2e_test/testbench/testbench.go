@@ -16,6 +16,7 @@ import (
 	"github.com/goto/shield/config"
 	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/server"
+	"github.com/goto/shield/internal/store/inmemory"
 	"github.com/goto/shield/internal/store/postgres/migrations"
 	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/goto/shield/pkg/db"
@@ -207,6 +208,13 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 				DefaultServiceDataProject: DefaultServiceDataProjectName,
 			},
 			PublicAPIPrefix: "/shield",
+			CacheConfig: inmemory.Config{
+				NumCounters:  10000000,
+				MaxCost:      1073741824,
+				BufferItems:  64,
+				Metrics:      true,
+				TTLInSeconds: 3600,
+			},
 		},
 		Proxy: proxy.ServicesConfig{
 			Services: []proxy.Config{

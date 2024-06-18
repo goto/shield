@@ -8,6 +8,7 @@ require (
 	github.com/authzed/authzed-go v0.7.1-0.20221109204547-1aa903788b3b
 	github.com/authzed/grpcutil v0.0.0-20230908193239-4286bb1d6403
 	github.com/authzed/spicedb v1.15.0
+	github.com/dgraph-io/ristretto v0.1.1
 	github.com/doug-martin/goqu/v9 v9.18.0
 	github.com/envoyproxy/protoc-gen-validate v1.0.4
 	github.com/ghodss/yaml v1.0.0
@@ -16,7 +17,7 @@ require (
 	github.com/google/go-cmp v0.6.0
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.0
-	github.com/goto/salt v0.3.7
+	github.com/goto/salt v0.3.8-0.20240611153558-8d652d0cd330
 	github.com/grpc-ecosystem/go-grpc-middleware v1.4.0
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.16.0
 	github.com/jackc/pgconn v1.14.0
@@ -76,6 +77,7 @@ require (
 	github.com/cenkalti/backoff v2.2.1+incompatible // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/certifi/gocertifi v0.0.0-20210507211836-431795d63e8d // indirect
+	github.com/cespare/xxhash/v2 v2.2.0 // indirect
 	github.com/charmbracelet/glamour v0.6.0 // indirect
 	github.com/cli/safeexec v1.0.1 // indirect
 	github.com/containerd/continuity v0.3.0 // indirect
@@ -84,6 +86,7 @@ require (
 	github.com/dlclark/regexp2 v1.9.0 // indirect
 	github.com/docker/go-connections v0.4.0 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
+	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/fatih/color v1.14.1 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
@@ -93,6 +96,7 @@ require (
 	github.com/go-logr/stdr v1.2.2 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/go-sql-driver/mysql v1.7.0 // indirect
+	github.com/golang/glog v1.2.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/google/cel-go v0.13.0 // indirect
 	github.com/google/pprof v0.0.0-20221219190121-3cb0bae90811 // indirect

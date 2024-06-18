@@ -2,9 +2,12 @@ package servicedata
 
 import (
 	"context"
+	"fmt"
 	"slices"
 
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
@@ -12,6 +15,8 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/errors"
+	"github.com/goto/shield/pkg/db"
+
 )
 
 const (
@@ -21,6 +26,8 @@ const (
 	viewActionID         = schema.ViewPermission
 	editActionID         = schema.EditPermission
 	membershipPermission = schema.MembershipPermission
+
+	auditKeyServiceDataKeyCreate = "service_data_key.create"
 )
 
 type ResourceService interface {
@@ -42,21 +49,29 @@ type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 }
 
+type ActivityService interface {
+	Log(ctx context.Context, action string, actor activity.Actor, data any) error
+}
+
 type Service struct {
+	logger          log.Logger
 	repository      Repository
 	resourceService ResourceService
 	relationService RelationService
 	projectService  ProjectService
 	userService     UserService
+	activityService ActivityService
 }
 
-func NewService(repository Repository, resourceService ResourceService, relationService RelationService, projectService ProjectService, userService UserService) *Service {
+func NewService(logger log.Logger, repository Repository, resourceService ResourceService, relationService RelationService, projectService ProjectService, userService UserService, activityService ActivityService) *Service {
 	return &Service{
+		logger:          logger,
 		repository:      repository,
 		resourceService: resourceService,
 		relationService: relationService,
 		projectService:  projectService,
 		userService:     userService,
+		activityService: activityService,
 	}
 }
 
@@ -133,6 +148,15 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	if err := s.repository.Commit(ctx); err != nil {
 		return Key{}, err
 	}
+
+	go func() {
+		ctx = db.WithoutTx(ctx)
+		ctx = context.WithoutCancel(ctx)
+		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
+		if err := s.activityService.Log(ctx, auditKeyServiceDataKeyCreate, actor, key.ToKeyLogData()); err != nil {
+			s.logger.Error(fmt.Sprintf("%s: %s", ErrLogActivity.Error(), err.Error()))
+		}
+	}()
 
 	return createdServiceDataKey, nil
 }

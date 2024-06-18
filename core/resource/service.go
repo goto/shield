@@ -15,6 +15,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
 )
 
@@ -43,7 +44,7 @@ type OrganizationService interface {
 }
 
 type GroupService interface {
-	Get(ctx context.Context, id string) (group.Group, error)
+	GetBySlug(ctx context.Context, id string) (group.Group, error)
 }
 
 type ActivityService interface {
@@ -189,7 +190,8 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx := context.WithoutCancel(ctx)
+		ctx = db.WithoutTx(ctx)
+		ctx = context.WithoutCancel(ctx)
 		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyResourceCreate, actor, resourceLogData); err != nil {
@@ -304,7 +306,7 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 				}
 				res.Name = organization.ID
 			case namespace.DefinitionTeam.ID:
-				group, err := s.groupService.Get(ctx, res.Name)
+				group, err := s.groupService.GetBySlug(ctx, res.Name)
 				if err != nil {
 					return false, err
 				}

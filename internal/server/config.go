@@ -3,7 +3,7 @@ package server
 import (
 	"fmt"
 
-	"github.com/goto/salt/telemetry"
+	"github.com/goto/shield/internal/store/inmemory"
 )
 
 type GRPCConfig struct {
@@ -26,8 +26,6 @@ type Config struct {
 
 	// GRPC Config
 	GRPC GRPCConfig `mapstructure:"grpc"`
-
-	Telemetry telemetry.Config `yaml:"telemetry" mapstructure:"telemetry"`
 
 	// metrics port
 	MetricsPort int `yaml:"metrics_port" mapstructure:"metrics_port" default:"9000"`
@@ -68,4 +66,6 @@ type Config struct {
 	ServiceData ServiceDataConfig `yaml:"service_data" mapstructure:"service_data"`
 
 	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/shield"`
+
+	CacheConfig inmemory.Config `yaml:"cache" mapstructure:"cache"`
 }

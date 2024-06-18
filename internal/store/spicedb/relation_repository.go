@@ -108,6 +108,11 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 	}
 
 	request := &authzedpb.CheckPermissionRequest{
+		Consistency: &authzedpb.Consistency{
+			Requirement: &authzedpb.Consistency_FullyConsistent{
+				FullyConsistent: true,
+			},
+		},
 		Resource:   relationship.Resource,
 		Subject:    relationship.Subject,
 		Permission: act.ID,

@@ -146,64 +146,49 @@ func (_c *RelationService_Create_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
-// LookupResources provides a mock function with given fields: ctx, resourceType, permission, subjectType, subjectID
-func (_m *RelationService) LookupResources(ctx context.Context, resourceType string, permission string, subjectType string, subjectID string) ([]string, error) {
-	ret := _m.Called(ctx, resourceType, permission, subjectType, subjectID)
+// Delete provides a mock function with given fields: ctx, rel
+func (_m *RelationService) Delete(ctx context.Context, rel relation.Relation) error {
+	ret := _m.Called(ctx, rel)
 
 	if len(ret) == 0 {
-		panic("no return value specified for LookupResources")
+		panic("no return value specified for Delete")
 	}
 
-	var r0 []string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) ([]string, error)); ok {
-		return rf(ctx, resourceType, permission, subjectType, subjectID)
-	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string, string, string) []string); ok {
-		r0 = rf(ctx, resourceType, permission, subjectType, subjectID)
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, relation.Relation) error); ok {
+		r0 = rf(ctx, rel)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]string)
-		}
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string, string, string) error); ok {
-		r1 = rf(ctx, resourceType, permission, subjectType, subjectID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
-// RelationService_LookupResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'LookupResources'
-type RelationService_LookupResources_Call struct {
+// RelationService_Delete_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Delete'
+type RelationService_Delete_Call struct {
 	*mock.Call
 }
 
-// LookupResources is a helper method to define mock.On call
+// Delete is a helper method to define mock.On call
 //   - ctx context.Context
-//   - resourceType string
-//   - permission string
-//   - subjectType string
-//   - subjectID string
-func (_e *RelationService_Expecter) LookupResources(ctx interface{}, resourceType interface{}, permission interface{}, subjectType interface{}, subjectID interface{}) *RelationService_LookupResources_Call {
-	return &RelationService_LookupResources_Call{Call: _e.mock.On("LookupResources", ctx, resourceType, permission, subjectType, subjectID)}
+//   - rel relation.Relation
+func (_e *RelationService_Expecter) Delete(ctx interface{}, rel interface{}) *RelationService_Delete_Call {
+	return &RelationService_Delete_Call{Call: _e.mock.On("Delete", ctx, rel)}
 }
 
-func (_c *RelationService_LookupResources_Call) Run(run func(ctx context.Context, resourceType string, permission string, subjectType string, subjectID string)) *RelationService_LookupResources_Call {
+func (_c *RelationService_Delete_Call) Run(run func(ctx context.Context, rel relation.Relation)) *RelationService_Delete_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].(string), args[4].(string))
+		run(args[0].(context.Context), args[1].(relation.Relation))
 	})
 	return _c
 }
 
-func (_c *RelationService_LookupResources_Call) Return(_a0 []string, _a1 error) *RelationService_LookupResources_Call {
-	_c.Call.Return(_a0, _a1)
+func (_c *RelationService_Delete_Call) Return(_a0 error) *RelationService_Delete_Call {
+	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *RelationService_LookupResources_Call) RunAndReturn(run func(context.Context, string, string, string, string) ([]string, error)) *RelationService_LookupResources_Call {
+func (_c *RelationService_Delete_Call) RunAndReturn(run func(context.Context, relation.Relation) error) *RelationService_Delete_Call {
 	_c.Call.Return(run)
 	return _c
 }

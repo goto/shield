@@ -14,6 +14,7 @@ import (
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/newrelic/go-agent/v3/newrelic"
+	"go.opentelemetry.io/otel"
 	"go.uber.org/zap"
 
 	"github.com/goto/shield/config"
@@ -34,6 +35,7 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/server"
 	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/internal/store/inmemory"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/internal/store/spicedb"
 	"github.com/goto/shield/pkg/db"
@@ -55,7 +57,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	ctx, cancelFunc := signal.NotifyContext(context.Background(), syscall.SIGTERM, syscall.SIGINT)
 	defer cancelFunc()
 
-	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.App.Telemetry, logger)
+	cleanUpTelemetry, err := telemetry.Init(ctx, cfg.Telemetry, logger)
 	if err != nil {
 		return err
 	}
@@ -149,7 +151,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
 	if err != nil {
 		return err
 	}
@@ -191,7 +193,17 @@ func BuildAPIDependencies(
 	resourceBlobRepository *blob.ResourcesRepository,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	cfg *config.Shield,
 ) (api.Deps, error) {
+	cache, err := inmemory.NewCache(cfg.App.CacheConfig)
+	if err != nil {
+		return api.Deps{}, err
+	}
+
+	if err = cache.MonitorCache(otel.Meter("github.com/goto/shield/internal/store/inmemory")); err != nil {
+		return api.Deps{}, err
+	}
+
 	appConfig := activity.AppConfig{Version: config.Version}
 	activityService := activity.NewService(appConfig, activityRepository)
 
@@ -212,7 +224,8 @@ func BuildAPIDependencies(
 	relationService := relation.NewService(logger, relationPGRepository, relationSpiceRepository, userService, activityService)
 
 	groupRepository := postgres.NewGroupRepository(dbc)
-	groupService := group.NewService(logger, groupRepository, relationService, userService, activityService)
+	cachedGroupRepository := inmemory.NewCachedGroupRepository(cache, groupRepository)
+	groupService := group.NewService(logger, groupRepository, cachedGroupRepository, relationService, userService, activityService)
 
 	organizationRepository := postgres.NewOrganizationRepository(dbc)
 	organizationService := organization.NewService(logger, organizationRepository, relationService, userService, activityService)
@@ -228,7 +241,7 @@ func BuildAPIDependencies(
 		logger, resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
-	serviceDataService := servicedata.NewService(serviceDataRepository, resourceService, relationService, projectService, userService)
+	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
 
