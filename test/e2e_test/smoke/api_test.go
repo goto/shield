@@ -24,6 +24,10 @@ type EndToEndAPISmokeTestSuite struct {
 
 func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	ctx := context.Background()
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
 	s.client, _, s.appConfig, s.cancelClient, _, _ = testbench.SetupTests(s.T())
 
 	// validate
@@ -39,11 +43,15 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
+	s.Require().Equal(2, len(pRes.GetProjects()))
 
 	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
+
+	rRes, err := s.client.ListResources(ctx, &shieldv1beta1.ListResourcesRequest{})
+	s.Require().NoError(err)
+	s.Require().Equal(5, len(rRes.GetResources()))
 }
 
 func (s *EndToEndAPISmokeTestSuite) TearDownTest() {

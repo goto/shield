@@ -27,6 +27,7 @@ type RelationService interface {
 	List(ctx context.Context) ([]relation.RelationV2, error)
 	DeleteV2(ctx context.Context, rel relation.RelationV2) error
 	GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
+	LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")

@@ -8,19 +8,22 @@ import (
 	"net"
 	"os"
 
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 const (
-	OrgAdminEmail      = "admin1-group1-org1@gotocompany.com"
-	DefaultSystemEmail = "shield-service@gotocompany.com"
-	IdentityHeader     = "X-Shield-Email"
-	userIDHeaderKey    = "X-Shield-UserID"
+	OrgAdminEmail                 = "admin1-group1-org1@gotocompany.com"
+	DefaultSystemEmail            = "shield-service@gotocompany.com"
+	IdentityHeader                = "X-Shield-Email"
+	userIDHeaderKey               = "X-Shield-UserID"
+	DefaultServiceDataProjectName = "system"
 )
 
 func GetFreePort() (int, error) {
@@ -124,6 +127,69 @@ func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceCli
 	return nil
 }
 
+func BootstrapServiceDataKey(ctx context.Context, cl shieldv1beta1.ServiceDataServiceClient, creatorEmail, defaultServiceDataProjectName, testDataPath string) error {
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-servicedata-keys.json")
+	if err != nil {
+		return err
+	}
+
+	var data []servicedata.Key
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return err
+	}
+
+	for _, d := range data {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			IdentityHeader: creatorEmail,
+		}))
+		_, err := cl.CreateServiceDataKey(ctx, &shieldv1beta1.CreateServiceDataKeyRequest{
+			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
+				Project:     DefaultServiceDataProjectName,
+				Key:         d.Name,
+				Description: d.Description,
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func BootstrapUserServiceData(ctx context.Context, cl shieldv1beta1.ServiceDataServiceClient, userID, creatorEmail, defaultServiceDataProjectName, testDataPath string) error {
+	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-servicedata.json")
+	if err != nil {
+		return err
+	}
+	var data []servicedata.ServiceData
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return err
+	}
+
+	for _, d := range data {
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			IdentityHeader: creatorEmail,
+		}))
+		_, err := cl.UpsertUserServiceData(ctx, &shieldv1beta1.UpsertUserServiceDataRequest{
+			UserId: userID,
+			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
+				Project: DefaultServiceDataProjectName,
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						d.Key.Name: structpb.NewStringValue(d.Value.(string)),
+					},
+				},
+			},
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
 func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {
@@ -170,6 +236,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	}
 
 	data[0].OrgId = orgResp.GetOrganizations()[0].GetId()
+	data[1].OrgId = orgResp.GetOrganizations()[0].GetId()
 
 	for _, d := range data {
 		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{

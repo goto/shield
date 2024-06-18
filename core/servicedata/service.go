@@ -11,6 +11,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	"github.com/goto/shield/pkg/errors"
 )
 
 const (
@@ -61,7 +62,7 @@ func NewService(repository Repository, resourceService ResourceService, relation
 
 func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// check if key contains ':'
-	if key.Key == "" {
+	if key.Name == "" {
 		return Key{}, ErrInvalidDetail
 	}
 
@@ -137,7 +138,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 }
 
 func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error) {
-	if sd.Key.Key == "" {
+	if sd.Key.Name == "" {
 		return ServiceData{}, ErrInvalidDetail
 	}
 
@@ -165,7 +166,7 @@ func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error
 		return ServiceData{}, err
 	}
 	if !permission {
-		return ServiceData{}, user.ErrInvalidEmail
+		return ServiceData{}, errors.ErrForbidden
 	}
 
 	returnedServiceData, err := s.repository.Upsert(ctx, sd)
