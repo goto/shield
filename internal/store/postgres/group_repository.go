@@ -220,11 +220,6 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
 	ctx = otelsql.WithCustomAttributes(
 		ctx,
 		[]attribute.KeyValue{
@@ -238,7 +233,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 			"name":     grp.Name,
 			"slug":     grp.Slug,
 			"org_id":   grp.OrganizationID,
-			"metadata": marshaledMetadata,
+			"metadata": nil,
 		}).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
