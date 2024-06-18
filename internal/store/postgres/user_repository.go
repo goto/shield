@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 
@@ -164,66 +163,11 @@ func (r UserRepository) Create(ctx context.Context, usr user.User) (user.User, e
 		return user.User{}, fmt.Errorf("%w: %s", parseErr, err)
 	}
 
-	var rows []interface{}
-	for k, v := range usr.Metadata {
-		valuejson, err := json.Marshal(v)
-		if err != nil {
-			valuejson = []byte{}
-		}
-
-		rows = append(rows, goqu.Record{
-			"user_id": transformedUser.ID,
-			"key":     k,
-			"value":   valuejson,
-		})
-	}
-	metadataQuery, _, err := dialect.Insert(TABLE_METADATA).Rows(rows...).ToSQL()
-	if err != nil {
-		return user.User{}, err
-	}
-
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_METADATA,
-				Operation:  "Create",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		_, err := tx.ExecContext(ctx, metadataQuery, params...)
-		if err != nil {
-			return err
-		}
-		return nil
-	}); err != nil {
-		err = checkPostgresError(err)
-		switch {
-		case errors.Is(err, errDuplicateKey):
-			return user.User{}, user.ErrConflict
-		case errors.Is(err, errForeignKeyViolation):
-			re := regexp.MustCompile(`\(([^)]+)\) `)
-			match := re.FindStringSubmatch(err.Error())
-			if len(match) > 1 {
-				return user.User{}, fmt.Errorf("%w:%s", user.ErrKeyDoesNotExists, match[1])
-			}
-			return user.User{}, user.ErrKeyDoesNotExists
-
-		default:
-			tx.Rollback()
-			return user.User{}, err
-		}
-	}
-
 	err = tx.Commit()
 	if err != nil {
 		return user.User{}, err
 	}
 
-	transformedUser.Metadata = usr.Metadata
 	return transformedUser, nil
 }
 
@@ -268,7 +212,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
 				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
 			Where(goqu.Ex{"sd.namespace_id": schema.UserPrincipal},
-				goqu.Ex{"sk.project_id": flt.Project},
+				goqu.Ex{"sk.project_id": flt.ProjectID},
 				goqu.L(
 					"sk.resource_id",
 				).In(flt.ServiceDataKeyResourceIds))

@@ -65,8 +65,8 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 
 	groupList, err := h.groupService.List(ctx, group.Filter{
 		OrganizationID:            request.GetOrgId(),
-		Project:                   prj.ID,
-		ServicedataKeyResourceIds: servicedataKeyResourceIds,
+		ProjectID:                 prj.ID,
+		ServicedataKeyResourceIDs: servicedataKeyResourceIds,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -93,15 +93,10 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyError
 	}
 
-	currentUserEmail, ok := user.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
-	}
-
-	currentUserEmail = strings.TrimSpace(currentUserEmail)
-	if currentUserEmail == "" {
-		logger.Error(ErrEmptyEmailID.Error())
-		return nil, grpcUnauthenticated
+	_, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
 	}
 
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())

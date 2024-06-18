@@ -66,7 +66,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 		Limit:                     request.GetPageSize(),
 		Page:                      request.GetPageNum(),
 		Keyword:                   request.GetKeyword(),
-		Project:                   prj.ID,
+		ProjectID:                 prj.ID,
 		ServiceDataKeyResourceIds: servicedataKeyResourceIds,
 	})
 	if err != nil {

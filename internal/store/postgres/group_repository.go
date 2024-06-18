@@ -290,7 +290,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		goqu.I("updated_at"),
 	)
 
-	if len(flt.ServicedataKeyResourceIds) > 0 {
+	if len(flt.ServicedataKeyResourceIDs) > 0 {
 		subquery := dialect.Select(
 			goqu.I("sd.namespace_id"),
 			goqu.I("sd.entity_id"),
@@ -301,10 +301,10 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
 				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
 			Where(goqu.Ex{"sd.namespace_id": schema.GroupPrincipal},
-				goqu.Ex{"sk.project_id": flt.Project},
+				goqu.Ex{"sk.project_id": flt.ProjectID},
 				goqu.L(
 					"sk.resource_id",
-				).In(flt.ServicedataKeyResourceIds))
+				).In(flt.ServicedataKeyResourceIDs))
 
 		sqlStatement = dialect.Select(
 			goqu.I("g.id"),
@@ -369,6 +369,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		currentGroup := groupedMetadataByGroup[g.ID]
 		currentGroup.ID = g.ID
 		currentGroup.Slug = g.Slug
+		currentGroup.Name = g.Name
 		currentGroup.OrganizationID = g.OrgId
 		currentGroup.CreatedAt = g.CreatedAt
 		currentGroup.UpdatedAt = g.UpdatedAt

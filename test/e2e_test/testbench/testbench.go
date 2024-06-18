@@ -52,7 +52,7 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort
 		resources:         []*dockertest.Resource{},
 	}
 
-	te.pool, err = dockertest.NewPool("")
+	te.pool, err = dockertest.NewPool("unix:///Users/ishanarya/.rd/docker.sock")
 	if err != nil {
 		return nil, nil, err
 	}
@@ -202,8 +202,9 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
 			RulesPath:           fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
 			ServiceData: server.ServiceDataConfig{
-				BootstrapEnabled: true,
-				MaxNumUpsertData: 1,
+				BootstrapEnabled:          true,
+				MaxNumUpsertData:          1,
+				DefaultServiceDataProject: DefaultServiceDataProjectName,
 			},
 			PublicAPIPrefix: "/shield",
 		},
@@ -247,18 +248,18 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 	}); err != nil {
 		t.Fatal(err.Error())
 	}
-
-	if err := BootstrapMetadataKey(ctx, client, OrgAdminEmail, testDataPath); err != nil {
-		t.Fatal(err)
-	}
-
-	if err := BootstrapUser(ctx, client, OrgAdminEmail, testDataPath); err != nil {
-		t.Fatal(err)
-	}
 	if err := BootstrapOrganization(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
 	if err := BootstrapProject(ctx, client, OrgAdminEmail, testDataPath); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := BootstrapServiceDataKey(ctx, serviceDataClient, OrgAdminEmail, DefaultServiceDataProjectName, testDataPath); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := BootstrapUser(ctx, client, OrgAdminEmail, testDataPath); err != nil {
 		t.Fatal(err)
 	}
 	if err := BootstrapGroup(ctx, client, OrgAdminEmail, testDataPath); err != nil {

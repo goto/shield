@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/suite"
+	"google.golang.org/grpc/metadata"
 
 	"github.com/goto/shield/config"
 	"github.com/goto/shield/pkg/db"
@@ -35,6 +36,10 @@ type EndToEndProxySmokeTestSuite struct {
 
 func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 	ctx := context.Background()
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
 	s.client, s.serviceDataClient, s.appConfig, s.cancelClient, s.cancelServiceDataClient, _ = testbench.SetupTests(s.T())
 
 	dbClient, err := testbench.SetupDB(s.appConfig.DB)
@@ -59,7 +64,7 @@ func (s *EndToEndProxySmokeTestSuite) SetupTest() {
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
+	s.Require().Equal(2, len(pRes.GetProjects()))
 	s.projID = pRes.GetProjects()[0].GetId()
 	s.projSlug = pRes.GetProjects()[0].GetSlug()
 
