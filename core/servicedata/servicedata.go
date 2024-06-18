@@ -64,7 +64,7 @@ func (key Key) ToKeyLogData() KeyLogData {
 		Entity:      auditEntityServiceDataKey,
 		URN:         key.URN,
 		ProjectSlug: key.ProjectSlug,
-		Key:         key.Key,
+		Key:         key.Name,
 		Description: key.Description,
 	}
 }
