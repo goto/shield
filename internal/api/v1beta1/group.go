@@ -39,9 +39,21 @@ type GroupService interface {
 }
 
 var grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
+var grpcInvalidOrgIDErr = status.Errorf(codes.InvalidArgument, "ordIs is not valid uuid")
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
+
+	if request.GetOrgId() != "" {
+		if !uuid.IsValid(request.GetOrgId()) {
+			return nil, grpcInvalidOrgIDErr
+		}
+
+		_, err := h.orgService.Get(ctx, request.GetOrgId())
+		if err != nil {
+			return &shieldv1beta1.ListGroupsResponse{Groups: nil}, nil
+		}
+	}
 
 	var groups []*shieldv1beta1.Group
 
@@ -99,6 +111,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcInternalServerError
 	}
 
+	//TODO: change this
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -227,6 +240,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyError
 	}
 
+	//TODO: change this implementation
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError

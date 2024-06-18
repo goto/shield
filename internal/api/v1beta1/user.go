@@ -174,6 +174,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
+	//TODO: use serviceDataMap
 	newUser.Metadata = metaDataMap
 
 	userPB, err := transformUserToPB(newUser)
