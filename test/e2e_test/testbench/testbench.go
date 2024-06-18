@@ -52,7 +52,7 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort
 		resources:         []*dockertest.Resource{},
 	}
 
-	te.pool, err = dockertest.NewPool("unix:///Users/ishanarya/.rd/docker.sock")
+	te.pool, err = dockertest.NewPool("")
 	if err != nil {
 		return nil, nil, err
 	}
