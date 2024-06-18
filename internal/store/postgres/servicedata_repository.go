@@ -3,6 +3,7 @@ package postgres
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
 
@@ -26,7 +27,7 @@ func NewServiceDataRepository(dbc *db.Client) *ServiceDataRepository {
 }
 
 func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error) {
-	if len(key.Key) == 0 {
+	if len(key.Name) == 0 {
 		return servicedata.Key{}, servicedata.ErrInvalidDetail
 	}
 
@@ -34,7 +35,7 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 		goqu.Record{
 			"urn":         key.URN,
 			"project_id":  key.ProjectID,
-			"key":         key.Key,
+			"name":        key.Name,
 			"description": key.Description,
 			"resource_id": key.ResourceID,
 		}).Returning(&Key{}).ToSQL()
@@ -79,19 +80,24 @@ func (r ServiceDataRepository) CreateKey(ctx context.Context, key servicedata.Ke
 }
 
 func (r ServiceDataRepository) Upsert(ctx context.Context, data servicedata.ServiceData) (servicedata.ServiceData, error) {
+	valuejson, err := json.Marshal(data.Value)
+	if err != nil {
+		valuejson = []byte{}
+	}
+
 	query, params, err := dialect.Insert(TABLE_SERVICE_DATA).Rows(
 		goqu.Record{
 			"namespace_id": data.NamespaceID,
 			"entity_id":    data.EntityID,
 			"key_id":       data.Key.ID,
-			"value":        data.Value,
+			"value":        valuejson,
 		},
 	).OnConflict(goqu.DoUpdate(
 		"ON CONSTRAINT servicedata_namespace_id_entity_id_key_id_key", goqu.Record{
 			"key_id": data.Key.ID,
-			"value":  data.Value,
+			"value":  valuejson,
 		},
-	)).Returning("value", goqu.L(`?`, data.Key.Key).As("key")).ToSQL()
+	)).Returning("value", goqu.L(`?`, data.Key.Name).As("key")).ToSQL()
 	if err != nil {
 		return servicedata.ServiceData{}, queryErr
 	}
@@ -183,7 +189,7 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 		goqu.I("sk.resource_id"),
 		goqu.I("sd.namespace_id"),
 		goqu.I("sd.entity_id"),
-		goqu.I("sk.key"),
+		goqu.I("sk.name").As("key"),
 		goqu.I("sd.value"),
 	).From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
 		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(
@@ -232,6 +238,18 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 			return []servicedata.ServiceData{}, servicedata.ErrInvalidDetail
 		default:
 			return []servicedata.ServiceData{}, err
+		}
+	}
+
+	sdMap := map[string]any{}
+	for _, sd := range serviceDataModel {
+		if sd.Key != "" {
+			var value any
+			err := json.Unmarshal([]byte(sd.Value.String), &value)
+			if err != nil {
+				continue
+			}
+			sdMap[sd.Key] = value
 		}
 	}
 

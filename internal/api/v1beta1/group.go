@@ -39,14 +39,46 @@ type GroupService interface {
 }
 
 var grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
+var grpcInvalidOrgIDErr = status.Errorf(codes.InvalidArgument, "ordIs is not valid uuid")
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	if request.GetOrgId() != "" {
+		if !uuid.IsValid(request.GetOrgId()) {
+			return nil, grpcInvalidOrgIDErr
+		}
+
+		_, err := h.orgService.Get(ctx, request.GetOrgId())
+		if err != nil {
+			return &shieldv1beta1.ListGroupsResponse{Groups: nil}, nil
+		}
+	}
+
 	var groups []*shieldv1beta1.Group
 
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	prj, err := h.projectService.Get(ctx, h.serviceDataConfig.DefaultServiceDataProject)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
 	groupList, err := h.groupService.List(ctx, group.Filter{
-		OrganizationID: request.GetOrgId(),
+		OrganizationID:            request.GetOrgId(),
+		ProjectID:                 prj.ID,
+		ServicedataKeyResourceIDs: servicedataKeyResourceIds,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -73,6 +105,13 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyError
 	}
 
+	_, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	//TODO: change this
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -83,7 +122,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		Name:           request.GetBody().GetName(),
 		Slug:           request.GetBody().GetSlug(),
 		OrganizationID: request.GetBody().GetOrgId(),
-		Metadata:       metaDataMap,
+		Metadata:       nil,
 	}
 
 	if strings.TrimSpace(grp.Slug) == "" {
@@ -106,21 +145,44 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		}
 	}
 
-	metaData, err := newGroup.Metadata.ToStructPB()
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+	serviceDataMap := map[string]any{}
+	for k, v := range metaDataMap {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    newGroup.ID,
+			NamespaceID: groupNamespaceID,
+			Key: servicedata.Key{
+				Name:      k,
+				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			case errors.Is(err, errorsPkg.ErrForbidden):
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
-	return &shieldv1beta1.CreateGroupResponse{Group: &shieldv1beta1.Group{
-		Id:        newGroup.ID,
-		Name:      newGroup.Name,
-		Slug:      newGroup.Slug,
-		OrgId:     newGroup.OrganizationID,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(newGroup.CreatedAt),
-		UpdatedAt: timestamppb.New(newGroup.UpdatedAt),
-	}}, nil
+	newGroup.Metadata = metaDataMap
+
+	groupPB, err := transformGroupToPB(newGroup)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, ErrInternalServer
+	}
+
+	return &shieldv1beta1.CreateGroupResponse{Group: &groupPB}, nil
 }
 
 func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRequest) (*shieldv1beta1.GetGroupResponse, error) {
@@ -157,7 +219,7 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 	} else {
 		metadata := map[string]any{}
 		for _, sd := range groupSD {
-			metadata[sd.Key.Key] = sd.Value
+			metadata[sd.Key.Name] = sd.Value
 		}
 		fetchedGroup.Metadata = metadata
 	}
@@ -178,6 +240,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyError
 	}
 
+	//TODO: change this implementation
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
@@ -190,14 +253,14 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			Name:           request.GetBody().GetName(),
 			Slug:           request.GetBody().GetSlug(),
 			OrganizationID: request.GetBody().GetOrgId(),
-			Metadata:       metaDataMap,
+			Metadata:       nil,
 		})
 	} else {
 		updatedGroup, err = h.groupService.Update(ctx, group.Group{
 			Name:           request.GetBody().GetName(),
 			Slug:           request.GetId(),
 			OrganizationID: request.GetBody().GetOrgId(),
-			Metadata:       metaDataMap,
+			Metadata:       nil,
 		})
 	}
 	if err != nil {
@@ -227,10 +290,10 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 			EntityID:    updatedGroup.ID,
 			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
 			},
-			Value: v.(string),
+			Value: v,
 		})
 		if err != nil {
 			logger.Error(err.Error())
@@ -247,11 +310,11 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
 	//Note: this would return only the keys that are updated in the current request
-	updatedGroup.Metadata = serviceDataMap
+	updatedGroup.Metadata = metaDataMap
 
 	groupPB, err := transformGroupToPB(updatedGroup)
 	if err != nil {

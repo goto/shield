@@ -130,14 +130,14 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 			KeyToCreate: servicedata.Key{
 				URN:         "test-urn",
 				ProjectID:   s.projects[0].ID,
-				Key:         "test-key",
+				Name:        "test-key",
 				Description: "description for test-key",
 				ResourceID:  s.resources[0].Idxa,
 			},
 			ExpectedKey: servicedata.Key{
 				URN:         "test-urn",
 				ProjectID:   s.projects[0].ID,
-				Key:         "test-key",
+				Name:        "test-key",
 				Description: "description for test-key",
 				ResourceID:  s.resources[0].Idxa,
 			},
@@ -147,8 +147,8 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 			KeyToCreate: servicedata.Key{
 				URN:         s.keys[0].URN,
 				ProjectID:   s.projects[0].ID,
-				Key:         s.keys[0].Key,
-				Description: s.keys[0].Key,
+				Name:        s.keys[0].Name,
+				Description: s.keys[0].Name,
 				ResourceID:  s.resources[0].Idxa,
 			},
 			ErrString: servicedata.ErrConflict.Error(),
@@ -158,7 +158,7 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 			KeyToCreate: servicedata.Key{
 				URN:         "test-urn-00",
 				ProjectID:   "00000000-0000-0000-0000-000000000000",
-				Key:         "test-key",
+				Name:        "test-key",
 				Description: "description for test-key",
 				ResourceID:  s.resources[0].Idxa,
 			},
@@ -169,7 +169,7 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 			KeyToCreate: servicedata.Key{
 				URN:         "test-urn-00",
 				ProjectID:   s.projects[0].ID,
-				Key:         "test-key",
+				Name:        "test-key",
 				Description: "description for test-key",
 				ResourceID:  "00000000-0000-0000-0000-000000000000",
 			},
@@ -180,7 +180,7 @@ func (s *ServiceDataRepositoryTestSuite) TestCreateKey() {
 			KeyToCreate: servicedata.Key{
 				URN:         "test-urn-00",
 				ProjectID:   s.projects[0].ID,
-				Key:         "",
+				Name:        "",
 				Description: "description for test-key",
 				ResourceID:  s.resources[0].Idxa,
 			},
@@ -228,7 +228,7 @@ func (s *ServiceDataRepositoryTestSuite) TestUpsert() {
 			},
 			ExpectedServiceData: servicedata.ServiceData{
 				Key: servicedata.Key{
-					Key: s.keys[0].Key,
+					Name: s.keys[0].Name,
 				},
 				Value: testValue,
 			},
@@ -304,7 +304,7 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 		Key: servicedata.Key{
 			URN:        s.keys[0].URN,
 			ProjectID:  s.keys[0].ProjectID,
-			Key:        s.keys[0].Key,
+			Name:       s.keys[0].Name,
 			ResourceID: s.keys[0].ResourceID,
 		},
 		Value: s.data[0].Value,

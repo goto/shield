@@ -3,6 +3,7 @@ package postgres_test
 import (
 	"context"
 	"fmt"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -20,6 +21,12 @@ import (
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 )
+
+type SortByName []group.Group
+
+func (a SortByName) Len() int           { return len(a) }
+func (a SortByName) Less(i, j int) bool { return a[i].Name < a[j].Name }
+func (a SortByName) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 
 type GroupRepositoryTestSuite struct {
 	suite.Suite
@@ -429,6 +436,9 @@ func (s *GroupRepositoryTestSuite) TestList() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
+
+			sort.Sort(SortByName(got))
+
 			if !cmp.Equal(got, tc.ExpectedGroups, cmpopts.IgnoreFields(group.Group{}, "ID", "Metadata", "CreatedAt", "UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedGroups)
 			}

@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
 	"github.com/goto/shield/core/group"
@@ -23,6 +24,17 @@ import (
 
 type GroupRepository struct {
 	dbc *db.Client
+}
+
+type joinGroupMetadata struct {
+	ID        string         `db:"id"`
+	Name      string         `db:"name"`
+	Slug      string         `db:"slug"`
+	OrgId     string         `db:"org_id"`
+	Key       any            `db:"key"`
+	Value     sql.NullString `db:"value"`
+	CreatedAt time.Time      `db:"created_at"`
+	UpdatedAt time.Time      `db:"updated_at"`
 }
 
 func NewGroupRepository(dbc *db.Client) *GroupRepository {
@@ -208,11 +220,6 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 		return group.Group{}, group.ErrInvalidDetail
 	}
 
-	marshaledMetadata, err := json.Marshal(grp.Metadata)
-	if err != nil {
-		return group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
-	}
-
 	ctx = otelsql.WithCustomAttributes(
 		ctx,
 		[]attribute.KeyValue{
@@ -226,7 +233,7 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 			"name":     grp.Name,
 			"slug":     grp.Slug,
 			"org_id":   grp.OrganizationID,
-			"metadata": marshaledMetadata,
+			"metadata": nil,
 		}).Returning(&Group{}).ToSQL()
 	if err != nil {
 		return group.Group{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -269,7 +276,44 @@ func (r GroupRepository) Create(ctx context.Context, grp group.Group) (group.Gro
 }
 
 func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Group, error) {
-	sqlStatement := dialect.From(TABLE_GROUPS)
+	sqlStatement := dialect.From(TABLE_GROUPS).Select(
+		goqu.I("id"),
+		goqu.I("name"),
+		goqu.I("slug"),
+		goqu.I("org_id"),
+		goqu.I("created_at"),
+		goqu.I("updated_at"),
+	)
+
+	if len(flt.ServicedataKeyResourceIDs) > 0 {
+		subquery := dialect.Select(
+			goqu.I("sd.namespace_id"),
+			goqu.I("sd.entity_id"),
+			goqu.I("sk.name").As("name"),
+			goqu.I("sd.value"),
+			goqu.I("sk.resource_id"),
+		).From(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk")).
+			RightJoin(goqu.T(TABLE_SERVICE_DATA).As("sd"), goqu.On(
+				goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
+			Where(goqu.Ex{"sd.namespace_id": schema.GroupPrincipal},
+				goqu.Ex{"sk.project_id": flt.ProjectID},
+				goqu.L(
+					"sk.resource_id",
+				).In(flt.ServicedataKeyResourceIDs))
+
+		sqlStatement = dialect.Select(
+			goqu.I("g.id"),
+			goqu.I("g.name"),
+			goqu.I("g.slug"),
+			goqu.I("g.org_id"),
+			goqu.I("sd.name").As("key"),
+			goqu.I("sd.value"),
+			goqu.I("g.created_at"),
+			goqu.I("g.updated_at"),
+		).From(goqu.T(TABLE_GROUPS).As("g")).LeftJoin(subquery.As("sd"), goqu.On(
+			goqu.Cast(goqu.C("id"), "TEXT").Eq(goqu.I("sd.entity_id"))))
+	}
+
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
@@ -286,7 +330,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		}...,
 	)
 
-	var fetchedGroups []Group
+	var fetchedJoinGroupMetadata []joinGroupMetadata
 	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
 		nrCtx := newrelic.FromContext(ctx)
 		if nrCtx != nil {
@@ -299,7 +343,7 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 			defer nr.End()
 		}
 
-		return r.dbc.SelectContext(ctx, &fetchedGroups, query, params...)
+		return r.dbc.SelectContext(ctx, &fetchedJoinGroupMetadata, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		switch {
@@ -312,13 +356,39 @@ func (r GroupRepository) List(ctx context.Context, flt group.Filter) ([]group.Gr
 		}
 	}
 
-	var transformedGroups []group.Group
-	for _, v := range fetchedGroups {
-		transformedGroup, err := v.transformToGroup()
-		if err != nil {
-			return []group.Group{}, fmt.Errorf("%w: %s", parseErr, err)
+	groupedMetadataByGroup := make(map[string]group.Group)
+	for _, g := range fetchedJoinGroupMetadata {
+		if _, ok := groupedMetadataByGroup[g.ID]; !ok {
+			groupedMetadataByGroup[g.ID] = group.Group{}
 		}
-		transformedGroups = append(transformedGroups, transformedGroup)
+		currentGroup := groupedMetadataByGroup[g.ID]
+		currentGroup.ID = g.ID
+		currentGroup.Slug = g.Slug
+		currentGroup.Name = g.Name
+		currentGroup.OrganizationID = g.OrgId
+		currentGroup.CreatedAt = g.CreatedAt
+		currentGroup.UpdatedAt = g.UpdatedAt
+
+		if currentGroup.Metadata == nil {
+			currentGroup.Metadata = make(map[string]any)
+		}
+
+		if g.Key != nil {
+			var value any
+			err := json.Unmarshal([]byte(g.Value.String), &value)
+			if err != nil {
+				continue
+			}
+
+			currentGroup.Metadata[g.Key.(string)] = value
+		}
+
+		groupedMetadataByGroup[g.ID] = currentGroup
+	}
+
+	var transformedGroups []group.Group
+	for _, group := range groupedMetadataByGroup {
+		transformedGroups = append(transformedGroups, group)
 	}
 
 	return transformedGroups, nil

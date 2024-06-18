@@ -62,7 +62,7 @@ func NewService(repository Repository, resourceService ResourceService, relation
 
 func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	// check if key contains ':'
-	if key.Key == "" {
+	if key.Name == "" {
 		return Key{}, ErrInvalidDetail
 	}
 
@@ -138,7 +138,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 }
 
 func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error) {
-	if sd.Key.Key == "" {
+	if sd.Key.Name == "" {
 		return ServiceData{}, ErrInvalidDetail
 	}
 
