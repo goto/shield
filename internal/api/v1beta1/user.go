@@ -174,7 +174,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
-	//TODO: use serviceDataMap
+	// TODO: use serviceDataMap
 	newUser.Metadata = metaDataMap
 
 	userPB, err := transformUserToPB(newUser)
@@ -418,7 +418,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
-	//Note: this would return only the keys that are updated in the current request
+	// Note: this would return only the keys that are updated in the current request
 	updatedUser.Metadata = metaDataMap
 
 	userPB, err := transformUserToPB(updatedUser)

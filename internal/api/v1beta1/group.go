@@ -38,8 +38,10 @@ type GroupService interface {
 	ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []group.Group, map[string][]string, map[string][]string, error)
 }
 
-var grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
-var grpcInvalidOrgIDErr = status.Errorf(codes.InvalidArgument, "ordIs is not valid uuid")
+var (
+	grpcGroupNotFoundErr = status.Errorf(codes.NotFound, "group doesn't exist")
+	grpcInvalidOrgIDErr  = status.Errorf(codes.InvalidArgument, "ordIs is not valid uuid")
+)
 
 func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGroupsRequest) (*shieldv1beta1.ListGroupsResponse, error) {
 	logger := grpczap.Extract(ctx)
@@ -111,7 +113,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcInternalServerError
 	}
 
-	//TODO: change this
+	// TODO: change this
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		logger.Error(err.Error())
@@ -240,7 +242,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyError
 	}
 
-	//TODO: change this implementation
+	// TODO: change this implementation
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
@@ -313,7 +315,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
-	//Note: this would return only the keys that are updated in the current request
+	// Note: this would return only the keys that are updated in the current request
 	updatedGroup.Metadata = metaDataMap
 
 	groupPB, err := transformGroupToPB(updatedGroup)

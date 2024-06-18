@@ -14,9 +14,8 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/db"
-
+	"github.com/goto/shield/pkg/errors"
 )
 
 const (

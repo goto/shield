@@ -16,7 +16,7 @@ import (
 	"github.com/goto/shield/internal/schema"
 	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/logger"
-  
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
