@@ -120,7 +120,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
-	for k, _ := range metaDataMap {
+	for k := range metaDataMap {
 		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
 		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
 		if err != nil {
@@ -352,7 +352,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
-	for k, _ := range metaDataMap {
+	for k := range metaDataMap {
 		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
 		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
 		if err != nil {

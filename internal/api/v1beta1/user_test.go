@@ -609,7 +609,8 @@ func TestUpdateUser(t *testing.T) {
 					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
 				}, nil)
 				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
-					Email: "user2@gotocompany.com"},
+					Email: "user2@gotocompany.com",
+				},
 					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
 					action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -670,7 +671,8 @@ func TestUpdateUser(t *testing.T) {
 					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
 				}, nil)
 				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
-					Email: "user2@gotocompany.com"},
+					Email: "user2@gotocompany.com",
+				},
 					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
 					action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -764,7 +766,8 @@ func TestUpdateUser(t *testing.T) {
 					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
 				}, nil)
 				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
-					Email: "user2@gotocompany.com"},
+					Email: "user2@gotocompany.com",
+				},
 					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
 					action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -816,7 +819,8 @@ func TestUpdateUser(t *testing.T) {
 					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
 				}, nil)
 				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
-					Email: "user2@gotocompany.com"},
+					Email: "user2@gotocompany.com",
+				},
 					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
 					action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -887,7 +891,8 @@ func TestUpdateUser(t *testing.T) {
 					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
 				}, nil)
 				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
-					Email: "user2@gotocompany.com"},
+					Email: "user2@gotocompany.com",
+				},
 					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
 					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
 					action.Action{ID: schema.EditPermission}).Return(true, nil)
@@ -955,9 +960,10 @@ func TestUpdateUser(t *testing.T) {
 			if tt.setup != nil {
 				tt.setup(mockUserSrv, mockServiceDataSrv, mockRelationSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv, serviceDataService: mockServiceDataSrv, serviceDataConfig: ServiceDataConfig{
-				DefaultServiceDataProject: "system",
-			},
+			mockDep := Handler{
+				userService: mockUserSrv, serviceDataService: mockServiceDataSrv, serviceDataConfig: ServiceDataConfig{
+					DefaultServiceDataProject: "system",
+				},
 				relationService: mockRelationSrv,
 			}
 			resp, err := mockDep.UpdateUser(ctx, tt.req)
