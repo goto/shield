@@ -15,7 +15,9 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
+	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
@@ -62,7 +64,7 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, grpcUnauthenticated
 	}
 
 	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
@@ -107,10 +109,10 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 		return nil, grpcBadBodyError
 	}
 
-	_, err := h.userService.FetchCurrentUser(ctx)
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, grpcUnauthenticated
 	}
 
 	// TODO: change this
@@ -118,6 +120,22 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
+	}
+
+	for k := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
 	}
 
 	grp := group.Group{
@@ -190,6 +208,12 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRequest) (*shieldv1beta1.GetGroupResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	_, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
 	fetchedGroup, err := h.groupService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -242,10 +266,32 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 		return nil, grpcBadBodyError
 	}
 
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
 	// TODO: change this implementation
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	for k := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
 	}
 
 	var updatedGroup group.Group
