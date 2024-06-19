@@ -33,6 +33,7 @@ type ServiceDataService interface {
 	CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error)
 	Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error)
 	Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error)
+	GetKeyByURN(ctx context.Context, urn string) (servicedata.Key, error)
 }
 
 func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta1.CreateServiceDataKeyRequest) (*shieldv1beta1.CreateServiceDataKeyResponse, error) {

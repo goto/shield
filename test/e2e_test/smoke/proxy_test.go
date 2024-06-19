@@ -146,7 +146,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 	})
 
 	s.Run("user not part of group will not be authenticated by middleware auth", func() {
-		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
+		ctx := context.Background()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		groupDetail, err := s.client.GetGroup(ctx, &shieldv1beta1.GetGroupRequest{Id: s.groupID})
 		s.Require().NoError(err)
 
 		url := fmt.Sprintf("http://localhost:%d/api/resource_slug", s.appConfig.Proxy.Services[0].Port)
@@ -277,7 +281,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 	})
 
 	s.Run("resource created on echo server should persist in shieldDB when using group slug", func() {
-		groupDetail, err := s.client.GetGroup(context.Background(), &shieldv1beta1.GetGroupRequest{Id: s.groupID})
+		ctx := context.Background()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		groupDetail, err := s.client.GetGroup(ctx, &shieldv1beta1.GetGroupRequest{Id: s.groupID})
 		s.Require().NoError(err)
 
 		url := fmt.Sprintf("http://localhost:%d/api/resource_slug", s.appConfig.Proxy.Services[0].Port)
@@ -378,7 +386,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(s.userID, subjectID)
 	})
 	s.Run("resource created on echo server should persist in shieldDB when using user e-mail", func() {
-		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		ctx := context.Background()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		userDetail, err := s.client.GetUser(ctx, &shieldv1beta1.GetUserRequest{Id: s.userID})
 		s.Require().NoError(err)
 
 		url := fmt.Sprintf("http://localhost:%d/api/resource_user_email", s.appConfig.Proxy.Services[0].Port)

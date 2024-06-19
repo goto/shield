@@ -55,8 +55,8 @@ type Filter struct {
 	Project   string
 }
 
-func (key Key) CreateURN() string {
-	return fmt.Sprintf("%s:servicedata_key:%s", key.ProjectSlug, key.Name)
+func CreateURN(projectSlug, keyName string) string {
+	return fmt.Sprintf("%s:servicedata_key:%s", projectSlug, keyName)
 }
 
 func (key Key) ToKeyLogData() KeyLogData {

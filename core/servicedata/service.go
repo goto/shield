@@ -95,7 +95,7 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	key.ProjectSlug = prj.Slug
 
 	// create URN
-	key.URN = key.CreateURN()
+	key.URN = CreateURN(key.ProjectSlug, key.Name)
 
 	// Transaction for postgres repository
 	// TODO find way to use transaction for spicedb
@@ -160,6 +160,10 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	return createdServiceDataKey, nil
 }
 
+func (s Service) GetKeyByURN(ctx context.Context, urn string) (Key, error) {
+	return s.repository.GetKeyByURN(ctx, urn)
+}
+
 func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error) {
 	if sd.Key.Name == "" {
 		return ServiceData{}, ErrInvalidDetail
@@ -176,7 +180,7 @@ func (s Service) Upsert(ctx context.Context, sd ServiceData) (ServiceData, error
 	}
 	sd.Key.ProjectSlug = prj.Slug
 
-	sd.Key.URN = sd.Key.CreateURN()
+	sd.Key.URN = CreateURN(sd.Key.ProjectSlug, sd.Key.Name)
 
 	sd.Key, err = s.repository.GetKeyByURN(ctx, sd.Key.URN)
 	if err != nil {

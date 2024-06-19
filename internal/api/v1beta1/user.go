@@ -14,6 +14,8 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/servicedata"
@@ -47,7 +49,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+		return nil, grpcUnauthenticated
 	}
 
 	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
@@ -94,14 +96,9 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	currentUserEmail, ok := user.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
-	}
-
-	currentUserEmail = strings.TrimSpace(currentUserEmail)
-	if currentUserEmail == "" {
-		logger.Error(ErrEmptyEmailID.Error())
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
 		return nil, grpcUnauthenticated
 	}
 
@@ -111,9 +108,8 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
-		email = currentUserEmail
+		return nil, grpcBadBodyError
 	}
-
 	if !isValidEmail(email) {
 		return nil, user.ErrInvalidEmail
 	}
@@ -122,6 +118,22 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcBadBodyError
+	}
+
+	for k, _ := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
 	}
 
 	// TODO might need to check the valid email form
@@ -219,6 +231,12 @@ func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.C
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	_, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
 	fetchedUser, err := h.userService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -306,6 +324,12 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	logger := grpczap.Extract(ctx)
 	var updatedUser user.User
 
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
 	if strings.TrimSpace(request.GetId()) == "" {
 		return nil, grpcUserNotFoundError
 	}
@@ -326,6 +350,22 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	metaDataMap, err := metadata.Build(request.GetBody().GetMetadata().AsMap())
 	if err != nil {
 		return nil, grpcBadBodyError
+	}
+
+	for k, _ := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
 	}
 
 	id := request.GetId()
