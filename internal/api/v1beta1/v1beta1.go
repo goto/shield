@@ -14,7 +14,8 @@ type RelationTransformer interface {
 }
 
 type ServiceDataConfig struct {
-	MaxUpsert int
+	MaxUpsert                 int
+	DefaultServiceDataProject string
 }
 
 type Handler struct {

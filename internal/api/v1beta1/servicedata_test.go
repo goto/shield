@@ -14,6 +14,7 @@ import (
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
+	"google.golang.org/protobuf/types/known/structpb"
 )
 
 var (
@@ -27,7 +28,7 @@ var (
 		ID:          testKeyID,
 		URN:         "key-urn",
 		ProjectID:   testKeyProjectID,
-		Key:         testKeyName,
+		Name:        testKeyName,
 		Description: "test description",
 		ResourceID:  testKeyResourceID,
 	}
@@ -39,7 +40,7 @@ var (
 		EntityID:    testEntityID,
 		NamespaceID: userNamespaceID,
 		Key: servicedata.Key{
-			Key:       testKeyName,
+			Name:      testKeyName,
 			ProjectID: testKeyProjectID,
 		},
 		Value: testValue,
@@ -48,7 +49,7 @@ var (
 		EntityID:    testEntityID,
 		NamespaceID: groupNamespaceID,
 		Key: servicedata.Key{
-			Key:       testKeyName,
+			Name:      testKeyName,
 			ProjectID: testKeyProjectID,
 		},
 		Value: testValue,
@@ -87,7 +88,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService) context.Context {
 				ss.EXPECT().CreateKey(mock.AnythingOfType("*context.valueCtx"), servicedata.Key{
 					ProjectID:   "non-existing-project",
-					Key:         testKey.Key,
+					Name:        testKey.Name,
 					Description: testKey.Description,
 				}).Return(servicedata.Key{}, project.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
@@ -95,7 +96,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			request: &shieldv1beta1.CreateServiceDataKeyRequest{
 				Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 					Project:     "non-existing-project",
-					Key:         testKey.Key,
+					Key:         testKey.Name,
 					Description: testKey.Description,
 				},
 			},
@@ -107,7 +108,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService) context.Context {
 				ss.EXPECT().CreateKey(mock.AnythingOfType("*context.valueCtx"), servicedata.Key{
 					ProjectID:   testKey.ProjectID,
-					Key:         testKey.Key,
+					Name:        testKey.Name,
 					Description: testKey.Description,
 				}).Return(servicedata.Key{}, servicedata.ErrConflict)
 				return user.SetContextWithEmail(ctx, email)
@@ -115,7 +116,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			request: &shieldv1beta1.CreateServiceDataKeyRequest{
 				Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 					Project:     testKey.ProjectID,
-					Key:         testKey.Key,
+					Key:         testKey.Name,
 					Description: testKey.Description,
 				},
 			},
@@ -127,7 +128,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService) context.Context {
 				ss.EXPECT().CreateKey(mock.AnythingOfType("*context.valueCtx"), servicedata.Key{
 					ProjectID:   testKey.ProjectID,
-					Key:         testKey.Key,
+					Name:        testKey.Name,
 					Description: testKey.Description,
 				}).Return(servicedata.Key{}, relation.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
@@ -135,7 +136,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			request: &shieldv1beta1.CreateServiceDataKeyRequest{
 				Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 					Project:     testKey.ProjectID,
-					Key:         testKey.Key,
+					Key:         testKey.Name,
 					Description: testKey.Description,
 				},
 			},
@@ -147,7 +148,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService) context.Context {
 				ss.EXPECT().CreateKey(mock.AnythingOfType("*context.valueCtx"), servicedata.Key{
 					ProjectID:   testKey.ProjectID,
-					Key:         testKey.Key,
+					Name:        testKey.Name,
 					Description: testKey.Description,
 				}).Return(servicedata.Key{}, servicedata.ErrInvalidDetail)
 				return user.SetContextWithEmail(ctx, email)
@@ -155,7 +156,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			request: &shieldv1beta1.CreateServiceDataKeyRequest{
 				Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 					Project:     testKey.ProjectID,
-					Key:         testKey.Key,
+					Key:         testKey.Name,
 					Description: testKey.Description,
 				},
 			},
@@ -167,7 +168,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService) context.Context {
 				ss.EXPECT().CreateKey(mock.AnythingOfType("*context.valueCtx"), servicedata.Key{
 					ProjectID:   testKey.ProjectID,
-					Key:         testKey.Key,
+					Name:        testKey.Name,
 					Description: testKey.Description,
 				}).Return(servicedata.Key{
 					ID:  testKey.ID,
@@ -178,7 +179,7 @@ func TestHandler_CreateKey(t *testing.T) {
 			request: &shieldv1beta1.CreateServiceDataKeyRequest{
 				Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 					Project:     testKey.ProjectID,
-					Key:         testKey.Key,
+					Key:         testKey.Name,
 					Description: testKey.Description,
 				},
 			},
@@ -232,7 +233,7 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{},
+					Data: &structpb.Struct{},
 				},
 			},
 			want:    nil,
@@ -243,9 +244,11 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{
-						"test-key-1": "test-value-1",
-						"test-key-2": "test-value-2",
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"test-key-1": structpb.NewStringValue("test-value-1"),
+							"test-key-2": structpb.NewStringValue("test-value-2"),
+						},
 					},
 				},
 			},
@@ -257,8 +260,10 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertUserServiceDataRequest{
 				UserId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -275,8 +280,10 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -294,8 +301,10 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -313,22 +322,26 @@ func TestHandler_UpdateUserServiceData(t *testing.T) {
 				UserId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, us *mocks.UserService) context.Context {
 				us.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(user.User{ID: testEntityID}, nil)
 				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testUserServiceDataCreate).Return(servicedata.ServiceData{
-					Key:   servicedata.Key{Key: testKeyName},
+					Key:   servicedata.Key{Name: testKeyName},
 					Value: testValue,
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.UpsertUserServiceDataResponse{
-				Data: map[string]string{
-					testKeyName: testValue,
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						testKeyName: structpb.NewStringValue(testValue),
+					},
 				},
 			},
 			wantErr: nil,
@@ -379,7 +392,7 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				GroupId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{},
+					Data: &structpb.Struct{},
 				},
 			},
 			want:    nil,
@@ -390,9 +403,11 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				GroupId: "",
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{
-						"test-key-1": "test-value-1",
-						"test-key-2": "test-value-2",
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"test-key-1": structpb.NewStringValue("test-value-1"),
+							"test-key-2": structpb.NewStringValue("test-value-2"),
+						},
 					},
 				},
 			},
@@ -404,8 +419,10 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 			request: &shieldv1beta1.UpsertGroupServiceDataRequest{
 				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -422,8 +439,10 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -441,8 +460,10 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
@@ -460,22 +481,26 @@ func TestHandler_UpdateGroupServiceData(t *testing.T) {
 				GroupId: testEntityID,
 				Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 					Project: testKeyProjectID,
-					Data: map[string]string{
-						testKeyName: testValue,
+					Data: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							testKeyName: structpb.NewStringValue(testValue),
+						},
 					},
 				},
 			},
 			setup: func(ctx context.Context, ss *mocks.ServiceDataService, gs *mocks.GroupService) context.Context {
 				gs.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testEntityID).Return(group.Group{ID: testEntityID}, nil)
 				ss.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), testGroupServiceDataCreate).Return(servicedata.ServiceData{
-					Key:   servicedata.Key{Key: testKeyName},
+					Key:   servicedata.Key{Name: testKeyName},
 					Value: testValue,
 				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			want: &shieldv1beta1.UpsertGroupServiceDataResponse{
-				Data: map[string]string{
-					testKeyName: testValue,
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						testKeyName: structpb.NewStringValue(testValue),
+					},
 				},
 			},
 			wantErr: nil,

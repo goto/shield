@@ -2,7 +2,6 @@ package postgres
 
 import (
 	"database/sql"
-	"encoding/json"
 	"time"
 
 	"github.com/goto/shield/core/group"
@@ -20,17 +19,12 @@ type Group struct {
 }
 
 func (from Group) transformToGroup() (group.Group, error) {
-	var unmarshalledMetadata map[string]any
-	if err := json.Unmarshal(from.Metadata, &unmarshalledMetadata); err != nil {
-		return group.Group{}, err
-	}
-
 	return group.Group{
 		ID:             from.ID,
 		Name:           from.Name,
 		Slug:           from.Slug,
 		OrganizationID: from.OrgID,
-		Metadata:       unmarshalledMetadata,
+		Metadata:       nil,
 		CreatedAt:      from.CreatedAt,
 		UpdatedAt:      from.UpdatedAt,
 	}, nil

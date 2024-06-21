@@ -528,8 +528,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: "invalid-user-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})
@@ -541,8 +543,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: "invalid-project-id",
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})
@@ -554,9 +558,11 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key-1": "update value-1",
-					"update-key-2": "update value-2",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key-1": structpb.NewStringValue("update value-1"),
+						"update-key-2": structpb.NewStringValue("update value-2"),
+					},
 				},
 			},
 		})
@@ -583,8 +589,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"new-key": "new-value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"new-key": structpb.NewStringValue("new-value"),
+					},
 				},
 			},
 		})
@@ -596,8 +604,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			GroupId: "invalid-group-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})

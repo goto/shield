@@ -14,7 +14,9 @@ import (
 	"github.com/goto/shield/core/servicedata/mocks"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/logger"
+
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
@@ -30,21 +32,21 @@ var (
 	testProjectSlug = "test-project-slug"
 	testKey         = servicedata.Key{
 		ProjectID:   "test-project-slug",
-		Key:         "test-key",
+		Name:        "test-key",
 		Description: "test key no 01",
 	}
 	testCreateKey = servicedata.Key{
 		URN:         "test-project-slug:servicedata_key:test-key",
 		ProjectID:   testProjectID,
 		ProjectSlug: testProjectSlug,
-		Key:         "test-key",
+		Name:        "test-key",
 		Description: "test key no 01",
 		ResourceID:  testResourceID,
 	}
 	testCreatedKey = servicedata.Key{
 		URN:         "test-project-slug:servicedata_key:test-key",
 		ProjectID:   testProjectID,
-		Key:         "test-key",
+		Name:        "test-key",
 		Description: "test key no 01",
 		ResourceID:  testResourceID,
 	}
@@ -131,7 +133,7 @@ func TestService_CreateKey(t *testing.T) {
 			name: "CreateKeyEmpty",
 			key: servicedata.Key{
 				ProjectID:   testKey.ProjectID,
-				Key:         "",
+				Name:        "",
 				Description: testKey.Description,
 			},
 			setup: func(t *testing.T) *servicedata.Service {
@@ -183,7 +185,7 @@ func TestService_CreateKey(t *testing.T) {
 			name: "CreateKeyInvalidProjectID",
 			key: servicedata.Key{
 				ProjectID:   "invalid-test-project-slug",
-				Key:         testKey.Key,
+				Name:        testKey.Name,
 				Description: testKey.Description,
 			},
 			email: "jane.doe@gotocompany.com",
@@ -366,7 +368,7 @@ func TestService_Upsert(t *testing.T) {
 			name: "UpsertKeyEmpty",
 			data: servicedata.ServiceData{
 				Key: servicedata.Key{
-					Key: "",
+					Name: "",
 				},
 			},
 			setup: func(t *testing.T) *servicedata.Service {
@@ -402,7 +404,7 @@ func TestService_Upsert(t *testing.T) {
 			name: "UpsertInvalidProjectID",
 			data: servicedata.ServiceData{
 				Key: servicedata.Key{
-					Key:       testKey.Key,
+					Name:      testKey.Name,
 					ProjectID: "invalid-test-project-slug",
 				},
 			},
@@ -480,7 +482,7 @@ func TestService_Upsert(t *testing.T) {
 					testResourceID, action.Action{ID: "edit"}).Return(false, nil)
 				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
 			},
-			wantErr: user.ErrInvalidEmail,
+			wantErr: errorsPkg.ErrForbidden,
 		},
 		{
 			name:  "UpsertErr",

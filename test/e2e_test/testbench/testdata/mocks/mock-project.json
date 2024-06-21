@@ -10,5 +10,9 @@
                 "k2": "v2"
             }
         }
+    },
+    {
+        "name": "system",
+        "slug": "system"
     }
 ]

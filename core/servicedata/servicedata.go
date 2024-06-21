@@ -26,7 +26,7 @@ type Key struct {
 	URN         string
 	ProjectID   string
 	ProjectSlug string
-	Key         string
+	Name        string
 	Description string
 	ResourceID  string
 }
@@ -36,7 +36,7 @@ type ServiceData struct {
 	NamespaceID string
 	EntityID    string
 	Key         Key
-	Value       string
+	Value       any
 }
 
 type KeyLogData struct {
@@ -55,8 +55,8 @@ type Filter struct {
 	Project   string
 }
 
-func (key Key) CreateURN() string {
-	return fmt.Sprintf("%s:servicedata_key:%s", key.ProjectSlug, key.Key)
+func CreateURN(projectSlug, keyName string) string {
+	return fmt.Sprintf("%s:servicedata_key:%s", projectSlug, keyName)
 }
 
 func (key Key) ToKeyLogData() KeyLogData {
@@ -64,7 +64,7 @@ func (key Key) ToKeyLogData() KeyLogData {
 		Entity:      auditEntityServiceDataKey,
 		URN:         key.URN,
 		ProjectSlug: key.ProjectSlug,
-		Key:         key.Key,
+		Key:         key.Name,
 		Description: key.Description,
 	}
 }

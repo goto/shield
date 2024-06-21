@@ -1547,7 +1547,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-      The JSON representation for `NullValue` is JSON `null`.
+       The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   Organization:
@@ -1821,8 +1821,6 @@ definitions:
     properties:
       data:
         type: object
-        additionalProperties:
-          type: string
   UpsertServiceDataRequestBody:
     type: object
     properties:
@@ -1830,15 +1828,11 @@ definitions:
         type: string
       data:
         type: object
-        additionalProperties:
-          type: string
   UpsertUserServiceDataResponse:
     type: object
     properties:
       data:
         type: object
-        additionalProperties:
-          type: string
   User:
     type: object
     properties:

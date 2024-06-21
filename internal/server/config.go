@@ -13,8 +13,9 @@ type GRPCConfig struct {
 }
 
 type ServiceDataConfig struct {
-	BootstrapEnabled bool `yaml:"bootstrap_enabled" mapstructure:"bootstrap_enabled" default:"true"`
-	MaxNumUpsertData int  `yaml:"max_num_upsert_data" mapstructure:"max_num_upsert_data" default:"1"`
+	BootstrapEnabled          bool   `yaml:"bootstrap_enabled" mapstructure:"bootstrap_enabled" default:"true"`
+	MaxNumUpsertData          int    `yaml:"max_num_upsert_data" mapstructure:"max_num_upsert_data" default:"1"`
+	DefaultServiceDataProject string `yaml:"default_service_data_project" mapstructure:"default_service_data_project" default:"system"`
 }
 
 func (cfg Config) grpcAddr() string { return fmt.Sprintf("%s:%d", cfg.Host, cfg.GRPC.Port) }
