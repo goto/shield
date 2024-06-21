@@ -243,13 +243,13 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 
 	sdMap := map[string]any{}
 	for _, sd := range serviceDataModel {
-		if sd.Key != "" {
+		if sd.KeyName != "" {
 			var value any
 			err := json.Unmarshal([]byte(sd.Value.String), &value)
 			if err != nil {
 				continue
 			}
-			sdMap[sd.Key] = value
+			sdMap[sd.KeyName] = value
 		}
 	}
 

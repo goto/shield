@@ -25,14 +25,14 @@ type ServiceData struct {
 	NamespaceID string         `db:"namespace_id"`
 	EntityID    string         `db:"entity_id"`
 	Value       sql.NullString `db:"value"`
-	Key         string         `db:"key"`
+	KeyName     string         `db:"key"`
 	ProjectID   string         `db:"project_id"`
 	ResourceID  string         `db:"resource_id"`
 }
 
 func (from ServiceData) transformToServiceData() servicedata.ServiceData {
 	var value any
-	if from.Key != "" {
+	if from.KeyName != "" {
 		err := json.Unmarshal([]byte(from.Value.String), &value)
 		if err != nil {
 			return servicedata.ServiceData{}
@@ -45,7 +45,7 @@ func (from ServiceData) transformToServiceData() servicedata.ServiceData {
 		Key: servicedata.Key{
 			URN:        from.URN,
 			ProjectID:  from.ProjectID,
-			Name:       from.Key,
+			Name:       from.KeyName,
 			ResourceID: from.ResourceID,
 		},
 		Value: value,
