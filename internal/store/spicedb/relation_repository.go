@@ -231,6 +231,11 @@ func (r RelationRepository) DeleteSubjectRelations(ctx context.Context, resource
 
 func (r RelationRepository) LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error) {
 	request := &authzedpb.LookupResourcesRequest{
+		Consistency: &authzedpb.Consistency{
+			Requirement: &authzedpb.Consistency_FullyConsistent{
+				FullyConsistent: true,
+			},
+		},
 		ResourceObjectType: resourceType,
 		Permission:         permission,
 		Subject: &authzedpb.SubjectReference{
