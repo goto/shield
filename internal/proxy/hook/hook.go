@@ -23,6 +23,7 @@ const (
 	AttributeTypeQuery       AttributeType = "query"
 	AttributeTypeHeader      AttributeType = "header"
 	AttributeTypeConstant    AttributeType = "constant"
+	AttributeTypeComposite   AttributeType = "composite"
 
 	SourceRequest  AttributeType = "request"
 	SourceResponse AttributeType = "response"

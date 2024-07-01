@@ -14,6 +14,7 @@ import (
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/body_extractor"
@@ -250,6 +251,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			c.notAllowed(rw, err)
 			return
 		}
+
 		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), res, action.Action{
 			ID: permission.Name,
 		})
@@ -275,7 +277,11 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (c Authz) preparePermissionResource(ctx context.Context, perm Permission, attrs map[string]interface{}) (resource.Resource, error) {
-	resourceName := attrs[perm.Attribute].(string)
+	resourceName, ok := attrs[perm.Attribute].(string)
+	if !ok {
+		resourceName = proxy.ComposeAttribute(perm.Attribute, attrs)
+	}
+
 	res := resource.Resource{
 		Name:        resourceName,
 		NamespaceID: perm.Namespace,

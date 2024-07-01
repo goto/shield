@@ -18,6 +18,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/proxy/hook"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
@@ -217,14 +218,14 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			attributes[id] = queryAttr
 			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
-		case hook.AttributeTypeConstant:
+		case hook.AttributeTypeConstant, hook.AttributeTypeComposite:
 			if attr.Value == "" {
-				a.log.Error("middleware: constant value empty")
+				a.log.Error("middleware:", string(attr.Type), "value empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
 			}
 
 			attributes[id] = attr.Value
-			a.log.Info("middleware: extracted", "constant_key", res, "attr", attributes[id])
+			a.log.Info("middleware: extracted", "key", res, "attr", attributes[id])
 
 		default:
 			a.log.Error("middleware: unknown attribute type", "attr", attr)
@@ -347,9 +348,11 @@ func (a Authz) createResources(permissionAttributes map[string]interface{}) ([]r
 		return nil, fmt.Errorf("namespace, resource type, projects, resource, and team are required")
 	}
 
+	resourcesName := composeResourcesName(resourceList, permissionAttributes)
+
 	// TODO(krtkvrm): needs revision
 	for _, project := range projects {
-		for _, res := range resourceList {
+		for _, res := range resourcesName {
 			resources = append(resources, resource.Resource{
 				Name:        res,
 				ProjectID:   project,
@@ -388,4 +391,12 @@ func getAttributesValues(attributes interface{}) ([]string, error) {
 		return values, fmt.Errorf("unsuported attribute type: %v", attributes)
 	}
 	return values, nil
+}
+
+func composeResourcesName(resourceList []string, permissionAttributes map[string]interface{}) []string {
+	var resourcesName []string
+	for _, res := range resourceList {
+		resourcesName = append(resourcesName, proxy.ComposeAttribute(res, permissionAttributes))
+	}
+	return resourcesName
 }

@@ -57,6 +57,8 @@ func startMockServer(ctx context.Context, logger *log.Zap, port int) {
 	router.POST("/api/resource_slug", createResourceFn)
 	router.POST("/api/resource_user_id", createResourceFn)
 	router.POST("/api/resource_user_email", createResourceFn)
+	router.POST("/api/resource_composite/:name", createResourceFn)
+	router.POST("/api/update_firehose_based_on_sink/:name", createResourceFn)
 
 	logger.Info("starting up mock server...", "port", port)
 	if err := http.ListenAndServe(fmt.Sprintf(":%d", port), router); err != nil && !errors.Is(err, http.ErrServerClosed) {
