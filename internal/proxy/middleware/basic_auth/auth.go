@@ -7,7 +7,7 @@ import (
 	"strings"
 	"text/template"
 
-	proxyattr "github.com/goto/shield/internal/proxy/attribute"
+	"github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
 	"github.com/goto/shield/pkg/httputil"
@@ -55,7 +55,7 @@ type Credentials struct {
 
 type Scope struct {
 	Action     string                         `yaml:"action" mapstructure:"action"`
-	Attributes map[string]proxyattr.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
+	Attributes map[string]attribute.Attribute `yaml:"attributes" mapstructure:"attributes"` // auth field -> Attribute
 }
 
 func New(logger log.Logger, next http.Handler) *BasicAuth {
@@ -140,7 +140,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 	for res, attr := range conf.Scope.Attributes {
 		templateMap[res] = ""
 		switch attr.Type {
-		case proxyattr.TypeGRPCPayload:
+		case attribute.TypeGRPCPayload:
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
 				w.log.Error("middleware: not a valid grpc request")
@@ -156,7 +156,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 
 			templateMap[res] = payloadField
 			w.log.Debug("middleware: extracted", "field", payloadField, "attr", attr)
-		case proxyattr.TypeJSONPayload:
+		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
 				w.log.Error("middleware: payload key field empty")
 				return false
