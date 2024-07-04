@@ -15,6 +15,7 @@ import (
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
@@ -309,7 +310,7 @@ func buildPipeline(logger log.Logger, proxy http.Handler, ruleService *rule.Serv
 
 func hookPipeline(log log.Logger) hook.Service {
 	rootHook := hook.New()
-	relationAdapter := adapter.NewRelation(&group.Service{}, &user.Service{}, &relation.Service{})
+	relationAdapter := adapter.NewRelation(&group.Service{}, &user.Service{}, &relation.Service{}, &role.Service{})
 	return authz_hook.New(log, rootHook, rootHook, &resource.Service{}, &relation.Service{}, relationAdapter, "X-Auth-Email")
 }
 

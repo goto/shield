@@ -2,30 +2,38 @@ package adapter
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"slices"
 
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
 )
 
+const WILDCARD = "*"
+
 type Relation struct {
 	groupService    *group.Service
 	userService     *user.Service
 	relationService *relation.Service
+	roleService     *role.Service
 }
 
 func NewRelation(
 	groupService *group.Service,
 	userService *user.Service,
 	relationService *relation.Service,
+	roleService *role.Service,
 ) *Relation {
 	return &Relation{
 		groupService:    groupService,
 		userService:     userService,
 		relationService: relationService,
+		roleService:     roleService,
 	}
 }
 
@@ -36,7 +44,18 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 	if rel.Subject.Namespace == schema.UserPrincipal || rel.Subject.Namespace == "user" {
 		userID := rel.Subject.ID
 
-		if !uuid.IsValid(userID) {
+		if userID == WILDCARD {
+			roleID := rel.Object.NamespaceID + ":" + rel.Subject.RoleID
+			role, err := a.roleService.Get(ctx, roleID)
+			if err != nil {
+				return relation.RelationV2{}, err
+			}
+			if !slices.Contains(role.Types, schema.UserPrincipalWildcard) {
+				return relation.RelationV2{}, errors.New("this does not allow wildcard")
+			}
+		}
+
+		if !uuid.IsValid(userID) && userID != WILDCARD {
 			fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
 			if err != nil {
 				return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrFetchingUser, err.Error())
