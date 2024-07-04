@@ -181,7 +181,7 @@ rules:
                   action: authz_action
                   attributes:
                     resource:
-                      value: '{project}-{name}'
+                      value: ${project}-${name}
                       type: composite
                     project:
                       key: project
@@ -216,4 +216,4 @@ rules:
                   permissions:
                     - name: owner
                       namespace: entropy/firehose
-                      attribute: '{project}-{name}'
+                      attribute: ${project}-${name}

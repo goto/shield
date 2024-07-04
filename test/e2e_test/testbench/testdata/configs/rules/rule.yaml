@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:58420"
+        target: "http://localhost:56945"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -181,7 +181,7 @@ rules:
                   action: authz_action
                   attributes:
                     resource:
-                      value: '{project}-{name}'
+                      value: ${project}-${name}
                       type: composite
                     project:
                       key: project
@@ -216,4 +216,4 @@ rules:
                   permissions:
                     - name: owner
                       namespace: entropy/firehose
-                      attribute: '{project}-{name}'
+                      attribute: ${project}-${name}
