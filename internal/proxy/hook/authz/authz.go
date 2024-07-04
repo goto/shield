@@ -18,7 +18,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
-	"github.com/goto/shield/internal/proxy"
+	proxyattr "github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/hook"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
@@ -93,9 +93,9 @@ type Relation struct {
 }
 
 type Config struct {
-	Action     string                    `yaml:"action" mapstructure:"action"`
-	Attributes map[string]hook.Attribute `yaml:"attributes" mapstructure:"attributes"`
-	Relations  []Relation                `yaml:"relations" mapstructure:"relations"`
+	Action     string                         `yaml:"action" mapstructure:"action"`
+	Attributes map[string]proxyattr.Attribute `yaml:"attributes" mapstructure:"attributes"`
+	Relations  []Relation                     `yaml:"relations" mapstructure:"relations"`
 }
 
 func (a Authz) Info() hook.Info {
@@ -152,17 +152,17 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	for id, attr := range config.Attributes {
 		bdy, _ := middleware.ExtractRequestBody(res.Request)
 		bodySource := &res.Body
-		if attr.Source == string(hook.SourceRequest) {
+		if attr.Source == string(proxyattr.SourceRequest) {
 			bodySource = &bdy
 		}
 
 		headerSource := &res.Header
-		if attr.Source == string(hook.SourceRequest) {
+		if attr.Source == string(proxyattr.SourceRequest) {
 			headerSource = &res.Request.Header
 		}
 
 		switch attr.Type {
-		case hook.AttributeTypeGRPCPayload:
+		case proxyattr.TypeGRPCPayload:
 			if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/grpc") {
 				a.log.Error("middleware: not a grpc request", "attr", attr)
 				return a.escape.ServeHook(res, fmt.Errorf("invalid header for http request: %s", res.Header.Get("Content-Type")))
@@ -176,7 +176,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			attributes[id] = payloadField
 
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-		case hook.AttributeTypeJSONPayload:
+		case proxyattr.TypeJSONPayload:
 			if attr.Key == "" {
 				a.log.Error("middleware: payload key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("payload key field empty"))
@@ -190,7 +190,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			attributes[id] = payloadField
 
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
-		case hook.AttributeTypeHeader:
+		case proxyattr.TypeHeader:
 			if attr.Key == "" {
 				a.log.Error("middleware: header key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
@@ -204,7 +204,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			attributes[id] = headerAttr
 			a.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
 
-		case hook.AttributeTypeQuery:
+		case proxyattr.TypeQuery:
 			if attr.Key == "" {
 				a.log.Error("middleware: query key field empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
@@ -218,7 +218,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			attributes[id] = queryAttr
 			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
-		case hook.AttributeTypeConstant, hook.AttributeTypeComposite:
+		case proxyattr.TypeConstant, proxyattr.TypeComposite:
 			if attr.Value == "" {
 				a.log.Error("middleware:", string(attr.Type), "value empty")
 				return a.escape.ServeHook(res, fmt.Errorf("failed to parse json payload"))
@@ -396,7 +396,7 @@ func getAttributesValues(attributes interface{}) ([]string, error) {
 func composeResourcesName(resourceList []string, permissionAttributes map[string]interface{}) []string {
 	var resourcesName []string
 	for _, res := range resourceList {
-		resourcesName = append(resourcesName, proxy.ComposeAttribute(res, permissionAttributes))
+		resourcesName = append(resourcesName, proxyattr.ComposeAttribute(res, permissionAttributes))
 	}
 	return resourcesName
 }
