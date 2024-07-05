@@ -214,6 +214,6 @@ rules:
                       type: json_payload
                       source: request
                   permissions:
-                    - name: owner
+                    - name: view
                       namespace: entropy/firehose
                       attribute: ${project}-${name}

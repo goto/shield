@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:56945"
+        target: "http://localhost:64610"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -214,6 +214,6 @@ rules:
                       type: json_payload
                       source: request
                   permissions:
-                    - name: owner
+                    - name: view
                       namespace: entropy/firehose
                       attribute: ${project}-${name}
