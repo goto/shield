@@ -31,7 +31,7 @@ type Attribute struct {
 	Value  string        `yaml:"value" mapstructure:"value"`
 }
 
-func ComposeAttribute(attribute string, attrs map[string]interface{}) string {
+func Compose(attribute string, attrs map[string]interface{}) string {
 	if strings.Contains(attribute, "${") {
 		template := fasttemplate.New(attribute, "${", "}")
 		return template.ExecuteString(attrs)

@@ -279,7 +279,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 func (c Authz) preparePermissionResource(ctx context.Context, perm Permission, attrs map[string]interface{}) (resource.Resource, error) {
 	resourceName, ok := attrs[perm.Attribute].(string)
 	if !ok {
-		resourceName = attribute.ComposeAttribute(perm.Attribute, attrs)
+		resourceName = attribute.Compose(perm.Attribute, attrs)
 	}
 
 	res := resource.Resource{

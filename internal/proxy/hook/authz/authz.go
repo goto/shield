@@ -396,7 +396,7 @@ func getAttributesValues(attributes interface{}) ([]string, error) {
 func composeResourcesName(resourceList []string, permissionAttributes map[string]interface{}) []string {
 	var resourcesName []string
 	for _, res := range resourceList {
-		resourcesName = append(resourcesName, proxyattr.ComposeAttribute(res, permissionAttributes))
+		resourcesName = append(resourcesName, proxyattr.Compose(res, permissionAttributes))
 	}
 	return resourcesName
 }
