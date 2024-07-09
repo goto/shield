@@ -69,7 +69,7 @@ func startSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Repository:   "authzed/spicedb",
 		Tag:          "v1.32.0",
-		Cmd:          []string{"serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--grpc-no-tls", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
+		Cmd:          []string{"serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
 		ExposedPorts: []string{"50051/tcp"},
 		NetworkID:    network.ID,
 	}, func(config *docker.HostConfig) {
