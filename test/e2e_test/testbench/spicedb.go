@@ -16,7 +16,7 @@ func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest
 	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "authzed/spicedb",
 		Tag:        "v1.32.0",
-		Cmd:        []string{"spicedb", "migrate", "head", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
+		Cmd:        []string{"migrate", "head", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
 		NetworkID:  network.ID,
 	}, func(config *docker.HostConfig) {
 		config.RestartPolicy = docker.RestartPolicy{
@@ -69,7 +69,7 @@ func startSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.P
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Repository:   "authzed/spicedb",
 		Tag:          "v1.32.0",
-		Cmd:          []string{"spicedb", "serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--grpc-no-tls", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
+		Cmd:          []string{"serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--grpc-no-tls", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
 		ExposedPorts: []string{"50051/tcp"},
 		NetworkID:    network.ID,
 	}, func(config *docker.HostConfig) {
