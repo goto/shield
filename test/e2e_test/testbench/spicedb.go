@@ -67,7 +67,7 @@ func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest
 
 func startSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, pgConnString string, preSharedKey string) (extPort string, res *dockertest.Resource, err error) {
 	res, err = pool.RunWithOptions(&dockertest.RunOptions{
-		Repository:   "quay.io/authzed/spicedb",
+		Repository:   "authzed/spicedb",
 		Tag:          "v1.32.0",
 		Cmd:          []string{"spicedb", "serve", "--log-level", "debug", "--grpc-preshared-key", preSharedKey, "--grpc-no-tls", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
 		ExposedPorts: []string{"50051/tcp"},
