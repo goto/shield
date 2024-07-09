@@ -2,7 +2,6 @@ package adapter
 
 import (
 	"context"
-	"errors"
 	"fmt"
 	"slices"
 
@@ -48,14 +47,12 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 			roleID := rel.Object.NamespaceID + ":" + rel.Subject.RoleID
 			role, err := a.roleService.Get(ctx, roleID)
 			if err != nil {
-				return relation.RelationV2{}, err
+				return relation.RelationV2{}, fmt.Errorf("error fetching role: %s", err.Error())
 			}
 			if !slices.Contains(role.Types, schema.UserPrincipalWildcard) {
-				return relation.RelationV2{}, errors.New("this does not allow wildcard")
+				return relation.RelationV2{}, fmt.Errorf("%s does not allow wildcard for subject %s", rlt.Object.NamespaceID, rlt.Subject.Namespace)
 			}
-		}
-
-		if !uuid.IsValid(userID) && userID != WILDCARD {
+		} else if !uuid.IsValid(userID) {
 			fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
 			if err != nil {
 				return relation.RelationV2{}, fmt.Errorf("%w: %s", relation.ErrFetchingUser, err.Error())
