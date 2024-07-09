@@ -14,8 +14,8 @@ import (
 
 func migrateSpiceDB(logger log.Logger, network *docker.Network, pool *dockertest.Pool, pgConnString string) error {
 	resource, err := pool.RunWithOptions(&dockertest.RunOptions{
-		Repository: "quay.io/authzed/spicedb",
-		Tag:        "v1.0.0",
+		Repository: "authzed/spicedb",
+		Tag:        "v1.32.0",
 		Cmd:        []string{"spicedb", "migrate", "head", "--datastore-engine", "postgres", "--datastore-conn-uri", pgConnString},
 		NetworkID:  network.ID,
 	}, func(config *docker.HostConfig) {
