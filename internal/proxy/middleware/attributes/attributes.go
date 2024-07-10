@@ -12,6 +12,7 @@ import (
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
 )
@@ -24,7 +25,7 @@ type Attributes struct {
 }
 
 type Config struct {
-	Attributes map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"`
+	Attributes map[string]attribute.Attribute `yaml:"attributes" mapstructure:"attributes"`
 }
 
 type ProjectService interface {
@@ -86,7 +87,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		_ = res
 
 		switch attr.Type {
-		case middleware.AttributeTypeGRPCPayload:
+		case attribute.TypeGRPCPayload:
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
 				a.log.Error("middleware: not a grpc request", "attr", attr)
@@ -105,7 +106,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			requestAttributes[res] = payloadField
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 
-		case middleware.AttributeTypeJSONPayload:
+		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
 				a.log.Error("middleware: payload key field empty")
 				a.notAllowed(rw)
@@ -121,7 +122,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			requestAttributes[res] = payloadField
 			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 
-		case middleware.AttributeTypeHeader:
+		case attribute.TypeHeader:
 			if attr.Key == "" {
 				a.log.Error("middleware: header key field empty")
 				a.notAllowed(rw)
@@ -137,7 +138,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			requestAttributes[res] = headerAttr
 			a.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
 
-		case middleware.AttributeTypeQuery:
+		case attribute.TypeQuery:
 			if attr.Key == "" {
 				a.log.Error("middleware: query key field empty")
 				a.notAllowed(rw)
@@ -153,7 +154,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			requestAttributes[res] = queryAttr
 			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
-		case middleware.AttributeTypeConstant:
+		case attribute.TypeConstant:
 			if attr.Value == "" {
 				a.log.Error("middleware: constant value empty")
 				a.notAllowed(rw)

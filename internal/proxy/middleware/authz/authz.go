@@ -14,6 +14,7 @@ import (
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/body_extractor"
@@ -43,9 +44,9 @@ type Authz struct {
 }
 
 type Config struct {
-	Actions     []string                        `yaml:"actions" mapstructure:"actions"`
-	Permissions []Permission                    `yaml:"permissions" mapstructure:"permissions"`
-	Attributes  map[string]middleware.Attribute `yaml:"attributes" mapstructure:"attributes"`
+	Actions     []string                       `yaml:"actions" mapstructure:"actions"`
+	Permissions []Permission                   `yaml:"permissions" mapstructure:"permissions"`
+	Attributes  map[string]attribute.Attribute `yaml:"attributes" mapstructure:"attributes"`
 }
 
 type Permission struct {
@@ -132,7 +133,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		_ = res
 
 		switch attr.Type {
-		case middleware.AttributeTypeGRPCPayload:
+		case attribute.TypeGRPCPayload:
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
 				c.log.Error("middleware: not a grpc request", "attr", attr)
@@ -150,7 +151,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 
-		case middleware.AttributeTypeJSONPayload:
+		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
 				c.log.Error("middleware: payload key field empty")
 				c.notAllowed(rw, nil)
@@ -166,7 +167,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = payloadField
 			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
 
-		case middleware.AttributeTypeHeader:
+		case attribute.TypeHeader:
 			if attr.Key == "" {
 				c.log.Error("middleware: header key field empty")
 				c.notAllowed(rw, nil)
@@ -182,7 +183,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = headerAttr
 			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
 
-		case middleware.AttributeTypeQuery:
+		case attribute.TypeQuery:
 			if attr.Key == "" {
 				c.log.Error("middleware: query key field empty")
 				c.notAllowed(rw, nil)
@@ -198,7 +199,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			permissionAttributes[res] = queryAttr
 			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
 
-		case middleware.AttributeTypeConstant:
+		case attribute.TypeConstant:
 			if attr.Value == "" {
 				c.log.Error("middleware: constant value empty")
 				c.notAllowed(rw, nil)
@@ -250,6 +251,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			c.notAllowed(rw, err)
 			return
 		}
+
 		isAuthorized, err = c.resourceService.CheckAuthz(req.Context(), res, action.Action{
 			ID: permission.Name,
 		})
@@ -275,7 +277,11 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 }
 
 func (c Authz) preparePermissionResource(ctx context.Context, perm Permission, attrs map[string]interface{}) (resource.Resource, error) {
-	resourceName := attrs[perm.Attribute].(string)
+	resourceName, ok := attrs[perm.Attribute].(string)
+	if !ok {
+		resourceName = attribute.Compose(perm.Attribute, attrs)
+	}
+
 	res := resource.Resource{
 		Name:        resourceName,
 		NamespaceID: perm.Namespace,

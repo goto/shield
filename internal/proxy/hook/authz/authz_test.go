@@ -16,6 +16,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/hook"
 	"github.com/goto/shield/internal/proxy/hook/authz/mocks"
 	shieldlogger "github.com/goto/shield/pkg/logger"
@@ -275,7 +276,7 @@ func TestServeHook(t *testing.T) {
 				rule.HookSpec{
 					Name: "authz",
 					Config: map[string]interface{}{
-						"attributes": map[string]hook.Attribute{
+						"attributes": map[string]attribute.Attribute{
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
@@ -346,7 +347,7 @@ func TestServeHook(t *testing.T) {
 				rule.HookSpec{
 					Name: "authz",
 					Config: map[string]interface{}{
-						"attributes": map[string]hook.Attribute{
+						"attributes": map[string]attribute.Attribute{
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
@@ -442,7 +443,7 @@ func TestServeHook(t *testing.T) {
 				rule.HookSpec{
 					Name: "authz",
 					Config: map[string]interface{}{
-						"attributes": map[string]hook.Attribute{
+						"attributes": map[string]attribute.Attribute{
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
@@ -541,7 +542,7 @@ func TestServeHook(t *testing.T) {
 				rule.HookSpec{
 					Name: "authz",
 					Config: map[string]interface{}{
-						"attributes": map[string]hook.Attribute{
+						"attributes": map[string]attribute.Attribute{
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),
@@ -641,7 +642,7 @@ func TestServeHook(t *testing.T) {
 				rule.HookSpec{
 					Name: "authz",
 					Config: map[string]interface{}{
-						"attributes": map[string]hook.Attribute{
+						"attributes": map[string]attribute.Attribute{
 							"project": {
 								Type:  "constant",
 								Value: testPermissionAttributesMap["project"].(string),

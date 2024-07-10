@@ -441,6 +441,80 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		}
 		s.Assert().Equal(s.userID, subjectID)
 	})
+	s.Run("resource created on echo server should persist in shieldDB when using composite variable", func() {
+		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		s.Require().NoError(err)
+
+		url := fmt.Sprintf("http://localhost:%d/api/resource_composite/test-name", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]string{
+			"project":    s.projID,
+			"user_email": userDetail.GetUser().GetEmail(),
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, "member2-group1@gotocompany.com")
+		req.Header.Set("X-Shield-Org", s.orgID)
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+
+		s.Assert().Equal(200, res.StatusCode)
+
+		resourceSelectQuery := "SELECT name FROM resources"
+		resources, err := s.dbClient.Query(resourceSelectQuery)
+		s.Require().NoError(err)
+		defer resources.Close()
+
+		resourceName := ""
+		for resources.Next() {
+			if err := resources.Scan(&resourceName); err != nil {
+				s.Require().NoError(err)
+			}
+		}
+		s.Assert().Equal(fmt.Sprintf("%s-test-name", s.projID), resourceName)
+
+		relationSelectQuery := "SELECT subject_id FROM relations ORDER BY created_at DESC LIMIT 1"
+		relations, err := s.dbClient.Query(relationSelectQuery)
+		s.Require().NoError(err)
+		defer resources.Close()
+
+		subjectID := ""
+		for relations.Next() {
+			if err := relations.Scan(&subjectID); err != nil {
+				s.Require().NoError(err)
+			}
+		}
+		s.Assert().Equal(s.userID, subjectID)
+	})
+	s.Run("permission expression: permission resource can be composed using multiple variable", func() {
+		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		s.Require().NoError(err)
+
+		url := fmt.Sprintf("http://localhost:%d/api/update_firehose_based_on_sink/test-name", s.appConfig.Proxy.Services[0].Port)
+		reqBodyMap := map[string]any{
+			"organization": s.orgSlug,
+			"project":      s.projID,
+		}
+		reqBodyBytes, err := json.Marshal(reqBodyMap)
+		s.Require().NoError(err)
+
+		req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(reqBodyBytes))
+		s.Require().NoError(err)
+
+		req.Header.Set(testbench.IdentityHeader, userDetail.GetUser().GetEmail())
+
+		res, err := http.DefaultClient.Do(req)
+		s.Require().NoError(err)
+
+		defer res.Body.Close()
+		s.Assert().Equal(200, res.StatusCode)
+	})
 }
 
 func TestEndToEndProxySmokeTestSuite(t *testing.T) {

@@ -17,27 +17,6 @@ type Info struct {
 	Description string
 }
 
-const (
-	AttributeTypeJSONPayload AttributeType = "json_payload"
-	AttributeTypeGRPCPayload AttributeType = "grpc_payload"
-	AttributeTypeQuery       AttributeType = "query"
-	AttributeTypeHeader      AttributeType = "header"
-	AttributeTypeConstant    AttributeType = "constant"
-
-	SourceRequest  AttributeType = "request"
-	SourceResponse AttributeType = "response"
-)
-
-type AttributeType string
-
-type Attribute struct {
-	Key    string        `yaml:"key" mapstructure:"key"`
-	Type   AttributeType `yaml:"type" mapstructure:"type"`
-	Index  string        `yaml:"index" mapstructure:"index"` // proto index
-	Source string        `yaml:"source" mapstructure:"source"`
-	Value  string        `yaml:"value" mapstructure:"value"`
-}
-
 func ExtractHook(r *http.Request, name string) (rule.HookSpec, bool) {
 	rl, ok := ExtractRule(r)
 	if !ok {

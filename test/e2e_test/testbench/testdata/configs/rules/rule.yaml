@@ -1,7 +1,7 @@
 rules:
   - backends:
       - name: entropy
-        target: "http://localhost:55702"
+        target: "http://localhost:64610"
         frontends:
           - name: ping
             path: "/api/ping"
@@ -172,3 +172,48 @@ rules:
                     - role: owner
                       subject_principal: shield/user
                       subject_id_attribute: user
+          - name: create_resource_composite
+            path: /api/resource_composite/{name}
+            method: "POST"
+            hooks:
+              - name: authz
+                config:
+                  action: authz_action
+                  attributes:
+                    resource:
+                      value: ${project}-${name}
+                      type: composite
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                    user:
+                      key: user_email
+                      type: json_payload
+                      source: request
+                    organization:
+                      key: X-Shield-Org
+                      type: header
+                      source: request
+                    resource_type:
+                      value: "firehose"
+                      type: constant
+                  relations:
+                    - role: owner
+                      subject_principal: shield/user
+                      subject_id_attribute: user
+          - name: update_firehose_based_on_sink_composite
+            path: /api/update_firehose_based_on_sink/{name}
+            method: "POST"
+            middlewares:
+              - name: authz
+                config:
+                  attributes:
+                    project:
+                      key: project
+                      type: json_payload
+                      source: request
+                  permissions:
+                    - name: view
+                      namespace: entropy/firehose
+                      attribute: ${project}-${name}
