@@ -26,11 +26,14 @@ type EndToEndAPIRegressionTestSuite struct {
 
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	ctx := context.Background()
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	s.client, s.serviceDataClient, s.appConfig, s.cancelClient, s.cancelServiceDataClient, _ = testbench.SetupTests(s.T())
 
 	// validate
 	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup
-	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	uRes, err := s.client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(10, len(uRes.GetUsers()))
 
@@ -40,15 +43,15 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
+	s.Require().Equal(2, len(pRes.GetProjects()))
 
-	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+	gRes, err := s.client.ListGroups(ctxOrgAdminAuth, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
 
 	rRes, err := s.client.ListResources(ctx, &shieldv1beta1.ListResourcesRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(2, len(rRes.GetResources()))
+	s.Require().Equal(5, len(rRes.GetResources()))
 }
 
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
@@ -463,7 +466,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	s.Require().Greater(len(res.GetProjects()), 0)
 	myProject := res.GetProjects()[0]
 
-	usr, err := s.client.ListUsers(context.Background(), &shieldv1beta1.ListUsersRequest{})
+	usr, err := s.client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{})
 	s.Require().NoError(err)
 	s.Require().Greater(len(usr.GetUsers()), 0)
 	myUser := usr.GetUsers()[0]
