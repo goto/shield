@@ -44,13 +44,9 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 		userID := rel.Subject.ID
 
 		if userID == WILDCARD {
-			roleID := rel.Object.NamespaceID + ":" + rel.Subject.RoleID
-			role, err := a.roleService.Get(ctx, roleID)
+			err := a.isWildCardAllowed(ctx, rel)
 			if err != nil {
-				return relation.RelationV2{}, fmt.Errorf("error fetching role: %s", err.Error())
-			}
-			if !slices.Contains(role.Types, schema.UserPrincipalWildcard) {
-				return relation.RelationV2{}, fmt.Errorf("%s does not allow wildcard for subject %s", rlt.Object.NamespaceID, rlt.Subject.Namespace)
+				return relation.RelationV2{}, err
 			}
 		} else if !uuid.IsValid(userID) {
 			fetchedUser, err := a.userService.GetByEmail(ctx, rel.Subject.ID)
@@ -94,4 +90,17 @@ func (a Relation) TransformRelation(ctx context.Context, rlt relation.RelationV2
 	}
 
 	return rel, nil
+}
+
+func (a Relation) isWildCardAllowed(ctx context.Context, rlt relation.RelationV2) error {
+	roleID := rlt.Object.NamespaceID + ":" + rlt.Subject.RoleID
+	role, err := a.roleService.Get(ctx, roleID)
+	if err != nil {
+		return fmt.Errorf("error fetching role: %s", err.Error())
+	}
+	if !slices.Contains(role.Types, schema.UserPrincipalWildcard) {
+		return fmt.Errorf("%s does not allow wildcard for subject %s", rlt.Object.NamespaceID, rlt.Subject.Namespace)
+	}
+
+	return nil
 }
