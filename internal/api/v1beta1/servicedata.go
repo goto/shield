@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	errPkg "github.com/goto/shield/pkg/errors"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"golang.org/x/exp/maps"
@@ -128,6 +129,8 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 			switch {
 			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 				return nil, grpcUnauthenticated
+			case errors.Is(err, errPkg.ErrForbidden):
+				return nil, grpcPermissionDenied
 			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
 				return nil, grpcBadBodyError

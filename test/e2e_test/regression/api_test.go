@@ -599,7 +599,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 				},
 			},
 		})
-		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
 	})
 
 	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
