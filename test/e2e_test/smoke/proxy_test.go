@@ -442,7 +442,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(s.userID, subjectID)
 	})
 	s.Run("resource created on echo server should persist in shieldDB when using composite variable", func() {
-		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		ctx := context.Background()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		userDetail, err := s.client.GetUser(ctx, &shieldv1beta1.GetUserRequest{Id: s.userID})
 		s.Require().NoError(err)
 
 		url := fmt.Sprintf("http://localhost:%d/api/resource_composite/test-name", s.appConfig.Proxy.Services[0].Port)
@@ -493,7 +497,11 @@ func (s *EndToEndProxySmokeTestSuite) TestProxyToEchoServer() {
 		s.Assert().Equal(s.userID, subjectID)
 	})
 	s.Run("permission expression: permission resource can be composed using multiple variable", func() {
-		userDetail, err := s.client.GetUser(context.Background(), &shieldv1beta1.GetUserRequest{Id: s.userID})
+		ctx := context.Background()
+		ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+			testbench.IdentityHeader: testbench.OrgAdminEmail,
+		}))
+		userDetail, err := s.client.GetUser(ctx, &shieldv1beta1.GetUserRequest{Id: s.userID})
 		s.Require().NoError(err)
 
 		url := fmt.Sprintf("http://localhost:%d/api/update_firehose_based_on_sink/test-name", s.appConfig.Proxy.Services[0].Port)
