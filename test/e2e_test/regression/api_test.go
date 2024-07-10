@@ -335,7 +335,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -349,7 +349,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -365,7 +365,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -384,7 +384,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -399,7 +399,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
