@@ -33,5 +33,5 @@ func TestPredefinedSchema(t *testing.T) {
 	schema.PreDefinedSystemNamespaceConfig[schema.ServiceDataKeyNamespace] = schema.ServiceDataKeyConfig
 	actualPredefinedConfigs := makeDefnMap(GenerateSchema(schema.PreDefinedSystemNamespaceConfig))
 	expectedPredefinedConfigs := makeDefnMap(strings.Split(string(content), "\n--\n"))
-	assert.Equal(t, actualPredefinedConfigs, expectedPredefinedConfigs)
+	assert.Equal(t, expectedPredefinedConfigs, actualPredefinedConfigs)
 }

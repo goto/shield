@@ -116,7 +116,8 @@ func (r RoleRepository) Upsert(ctx context.Context, rl role.Role) (string, error
 			"metadata":     goqu.L("$5"),
 		}).OnConflict(
 		goqu.DoUpdate("id", goqu.Record{
-			"name": goqu.L("$2"),
+			"types":    goqu.L("$3"),
+			"metadata": goqu.L("$5"),
 		},
 		)).Returning("id").ToSQL()
 	if err != nil {

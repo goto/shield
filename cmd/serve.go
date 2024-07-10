@@ -243,7 +243,7 @@ func BuildAPIDependencies(
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
 	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
 
-	relationAdapter := adapter.NewRelation(groupService, userService, relationService)
+	relationAdapter := adapter.NewRelation(groupService, userService, relationService, roleService)
 
 	dependencies := api.Deps{
 		OrgService:         organizationService,
