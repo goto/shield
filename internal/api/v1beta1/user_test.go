@@ -519,7 +519,7 @@ func TestGetCurrentUser(t *testing.T) {
 	email := "user@gotocompany.com"
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		setup  func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context
 		header string
 		want   *shieldv1beta1.GetCurrentUserResponse
 		err    error
@@ -531,7 +531,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, user.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -540,7 +540,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -549,8 +549,9 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().GetByEmail(ctx, email).Return(
 					user.User{
 						ID:        "user-id-1",
 						Name:      "some user",
@@ -558,14 +559,31 @@ func TestGetCurrentUser(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+
+				sd.EXPECT().Get(ctx, servicedata.Filter{
+					ID:        "user-id-1",
+					Namespace: userNamespaceID,
+					Entities: maps.Values(map[string]string{
+						"user": userNamespaceID,
+					}),
+				}).Return([]servicedata.ServiceData{
+					{
+						Key: servicedata.Key{
+							Name: "foo",
+						},
+						Value: "bar",
+					},
+				}, nil)
+				return ctx
 			},
 			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
 				Name:  "some user",
 				Email: "someuser@test.com",
 				Metadata: &structpb.Struct{
-					Fields: map[string]*structpb.Value{},
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
 				},
 				CreatedAt: timestamppb.New(time.Time{}),
 				UpdatedAt: timestamppb.New(time.Time{}),
@@ -577,11 +595,12 @@ func TestGetCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSrv := new(mocks.ServiceDataService)
 			ctx := context.TODO()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockServiceDataSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, serviceDataService: mockServiceDataSrv}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)

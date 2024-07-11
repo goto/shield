@@ -309,6 +309,31 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		}
 	}
 
+	filter := servicedata.Filter{
+		ID:        fetchedUser.ID,
+		Namespace: userNamespaceID,
+		Entities: maps.Values(map[string]string{
+			"user": userNamespaceID,
+		}),
+	}
+
+	userSD, err := h.serviceDataService.Get(ctx, filter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			break
+		default:
+			return nil, grpcInternalServerError
+		}
+	} else {
+		metadata := map[string]any{}
+		for _, sd := range userSD {
+			metadata[sd.Key.Name] = sd.Value
+		}
+		fetchedUser.Metadata = metadata
+	}
+
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
 		logger.Error(err.Error())
