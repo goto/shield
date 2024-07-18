@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/goto/shield/config"
+	"github.com/goto/shield/internal/schema"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/goto/shield/test/e2e_test/testbench"
 	"github.com/stretchr/testify/suite"
@@ -24,6 +25,10 @@ type EndToEndAPISmokeTestSuite struct {
 
 func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 	ctx := context.Background()
+	ctx = metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
 	s.client, _, s.appConfig, s.cancelClient, _, _ = testbench.SetupTests(s.T())
 
 	// validate
@@ -39,11 +44,15 @@ func (s *EndToEndAPISmokeTestSuite) SetupTest() {
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
+	s.Require().Equal(2, len(pRes.GetProjects()))
 
 	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
+
+	rRes, err := s.client.ListResources(ctx, &shieldv1beta1.ListResourcesRequest{})
+	s.Require().NoError(err)
+	s.Require().Equal(5, len(rRes.GetResources()))
 }
 
 func (s *EndToEndAPISmokeTestSuite) TearDownTest() {
@@ -79,6 +88,42 @@ func (s *EndToEndAPISmokeTestSuite) TestUserAPI() {
 			cmpopts.IgnoreUnexported(shieldv1beta1.User{}),
 			cmpopts.IgnoreFields(shieldv1beta1.User{}, "Metadata", "CreatedAt", "UpdatedAt"),
 		))
+		s.Assert().NoError(err)
+	})
+}
+
+func (s *EndToEndAPISmokeTestSuite) TestRelationsAPI() {
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
+
+	s.Run("1. should fail when trying to create wildcard relation", func() {
+		oRes, err := s.client.ListOrganizations(ctxOrgAdminAuth, &shieldv1beta1.ListOrganizationsRequest{})
+		s.Require().NoError(err)
+
+		_, err = s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        oRes.Organizations[0].Id,
+				ObjectNamespace: schema.OrganizationNamespace,
+				Subject:         schema.UserPrincipalWildcard,
+				RoleName:        schema.OwnerRole,
+			},
+		})
+		s.Assert().Error(err)
+	})
+
+	s.Run("2. should allow relation creation with wildcard", func() {
+		res, err := s.client.ListResources(ctxOrgAdminAuth, &shieldv1beta1.ListResourcesRequest{})
+		s.Require().NoError(err)
+
+		_, err = s.client.CreateRelation(ctxOrgAdminAuth, &shieldv1beta1.CreateRelationRequest{
+			Body: &shieldv1beta1.RelationRequestBody{
+				ObjectId:        res.Resources[0].Id,
+				ObjectNamespace: schema.ServiceDataKeyNamespace,
+				Subject:         schema.UserPrincipalWildcard,
+				RoleName:        schema.ViewerRole,
+			},
+		})
 		s.Assert().NoError(err)
 	})
 }

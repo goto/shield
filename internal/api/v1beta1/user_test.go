@@ -6,11 +6,18 @@ import (
 	"testing"
 	"time"
 
+	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/internal/schema"
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/metadata"
 	"github.com/goto/shield/pkg/uuid"
+	"golang.org/x/exp/maps"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -44,14 +51,22 @@ var (
 func TestListUsers(t *testing.T) {
 	table := []struct {
 		title string
-		setup func(us *mocks.UserService)
+		setup func(us *mocks.UserService, rs *mocks.RelationService, ps *mocks.ProjectService)
 		req   *shieldv1beta1.ListUsersRequest
 		want  *shieldv1beta1.ListUsersResponse
 		err   error
 	}{
 		{
 			title: "should return internal error in if user service return some error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, rs *mocks.RelationService, ps *mocks.ProjectService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
+				}, nil)
+
+				rs.EXPECT().LookupResources(mock.AnythingOfType("context.todoCtx"), schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, "083a77a2-ab14-40d2-a06d-f6d9f80c6378").Return([]string{}, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(project.Project{
+					ID: "11a58737-f366-4d05-b925-6f7bded29257",
+				}, nil)
 				us.EXPECT().List(mock.Anything, mock.Anything).Return(user.PagedUsers{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.ListUsersRequest{
@@ -63,11 +78,19 @@ func TestListUsers(t *testing.T) {
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
 		}, {
 			title: "should return all users if user service return all users",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, rs *mocks.RelationService, ps *mocks.ProjectService) {
 				var testUserList []user.User
 				for _, u := range testUserMap {
 					testUserList = append(testUserList, u)
 				}
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
+				}, nil)
+
+				rs.EXPECT().LookupResources(mock.AnythingOfType("context.todoCtx"), schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, "083a77a2-ab14-40d2-a06d-f6d9f80c6378").Return([]string{}, nil)
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(project.Project{
+					ID: "11a58737-f366-4d05-b925-6f7bded29257",
+				}, nil)
 				us.EXPECT().List(mock.Anything, mock.Anything).Return(
 					user.PagedUsers{
 						Users: testUserList,
@@ -105,10 +128,16 @@ func TestListUsers(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockRelationSrv := new(mocks.RelationService)
+			mockProjectSvc := new(mocks.ProjectService)
 			if tt.setup != nil {
-				tt.setup(mockUserSrv)
+				tt.setup(mockUserSrv, mockRelationSrv, mockProjectSvc)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{
+				userService:     mockUserSrv,
+				relationService: mockRelationSrv,
+				projectService:  mockProjectSvc,
+			}
 			req := tt.req
 			resp, err := mockDep.ListUsers(context.TODO(), req)
 			assert.EqualValues(t, resp, tt.want)
@@ -121,13 +150,17 @@ func TestCreateUser(t *testing.T) {
 	email := "user@gotocompany.com"
 	table := []struct {
 		title string
-		setup func(ctx context.Context, us *mocks.UserService) context.Context
+		setup func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context
 		req   *shieldv1beta1.CreateUserRequest
 		want  *shieldv1beta1.CreateUserResponse
 		err   error
 	}{
 		{
 			title: "should return unauthenticated error if no auth email header in context",
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{}, user.ErrMissingEmail)
+				return ctx
+			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
 				Email:    "abc@test.com",
@@ -138,8 +171,12 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if metadata is not parsable",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				return user.SetContextWithEmail(ctx, email)
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
@@ -155,11 +192,15 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if email is empty",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name: "some user",
 				}).Return(user.User{}, user.ErrInvalidEmail)
-				return user.SetContextWithEmail(ctx, email)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
@@ -175,8 +216,15 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return invalid email error if email is invalid",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				return user.SetContextWithEmail(ctx, email)
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name: "some user",
+				}).Return(user.User{}, user.ErrInvalidEmail)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
@@ -192,13 +240,17 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return already exist error if user service return error conflict",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
+				us.EXPECT().Create(ctx, user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
-					Metadata: metadata.Metadata{},
+					Metadata: nil,
 				}).Return(user.User{}, user.ErrConflict)
-				return user.SetContextWithEmail(ctx, email)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:     "some user",
@@ -210,19 +262,41 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user email contain whitespace but still valid service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
-					Metadata: metadata.Metadata{"foo": "bar"},
+					Metadata: nil,
 				}).Return(
 					user.User{
 						ID:       "new-abc",
 						Name:     "some user",
 						Email:    "abc@test.com",
-						Metadata: metadata.Metadata{"foo": "bar"},
+						Metadata: nil,
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+				sds.EXPECT().GetKeyByURN(ctx, ":servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "8b88ed58-9fca-48fb-8dd4-aada1a06ba33",
+				}, nil)
+				rs.EXPECT().CheckPermission(ctx, user.User{Email: email}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, "8b88ed58-9fca-48fb-8dd4-aada1a06ba33", action.Action{ID: schema.EditPermission}).Return(true, nil)
+				sds.EXPECT().Upsert(ctx, servicedata.ServiceData{
+					EntityID:    "new-abc",
+					NamespaceID: schema.UserPrincipal,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
@@ -249,19 +323,42 @@ func TestCreateUser(t *testing.T) {
 		},
 		{
 			title: "should return success if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
+					Email: email,
+				}, nil)
+				sds.EXPECT().GetKeyByURN(ctx, ":servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "8b88ed58-9fca-48fb-8dd4-aada1a06ba33",
+				}, nil)
+				rs.EXPECT().CheckPermission(ctx, user.User{Email: email}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, "8b88ed58-9fca-48fb-8dd4-aada1a06ba33", action.Action{ID: schema.EditPermission}).Return(true, nil)
 				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
 					Name:     "some user",
 					Email:    "abc@test.com",
-					Metadata: metadata.Metadata{"foo": "bar"},
+					Metadata: nil,
 				}).Return(
 					user.User{
 						ID:       "new-abc",
 						Name:     "some user",
 						Email:    "abc@test.com",
-						Metadata: metadata.Metadata{"foo": "bar"},
+						Metadata: nil,
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+
+				sds.EXPECT().Upsert(ctx, servicedata.ServiceData{
+					EntityID:    "new-abc",
+					NamespaceID: schema.UserPrincipal,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
+				return ctx
 			},
 			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
 				Name:  "some user",
@@ -295,10 +392,16 @@ func TestCreateUser(t *testing.T) {
 
 			ctx := context.TODO()
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSvc := new(mocks.ServiceDataService)
+			mockRelationSvc := new(mocks.RelationService)
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockServiceDataSvc, mockRelationSvc)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{
+				userService:        mockUserSrv,
+				serviceDataService: mockServiceDataSvc,
+				relationService:    mockRelationSvc,
+			}
 			resp, err = mockDep.CreateUser(ctx, tt.req)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.err, err)
@@ -311,13 +414,14 @@ func TestGetUser(t *testing.T) {
 	table := []struct {
 		title string
 		req   *shieldv1beta1.GetUserRequest
-		setup func(us *mocks.UserService)
+		setup func(us *mocks.UserService, sd *mocks.ServiceDataService)
 		want  *shieldv1beta1.GetUserResponse
 		err   error
 	}{
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(user.User{}, user.ErrNotExist)
 			},
 			req: &shieldv1beta1.GetUserRequest{
@@ -328,7 +432,8 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user id is not uuid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "some-id").Return(user.User{}, user.ErrInvalidUUID)
 			},
 			req: &shieldv1beta1.GetUserRequest{
@@ -339,7 +444,8 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user id is invalid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), "").Return(user.User{}, user.ErrInvalidID)
 			},
 			req:  &shieldv1beta1.GetUserRequest{},
@@ -348,18 +454,31 @@ func TestGetUser(t *testing.T) {
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sd *mocks.ServiceDataService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), randomID).Return(
 					user.User{
-						ID:    randomID,
-						Name:  "some user",
-						Email: "someuser@test.com",
-						Metadata: metadata.Metadata{
-							"foo": "bar",
-						},
+						ID:        randomID,
+						Name:      "some user",
+						Email:     "someuser@test.com",
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
+
+				sd.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), servicedata.Filter{
+					ID:        randomID,
+					Namespace: userNamespaceID,
+					Entities: maps.Values(map[string]string{
+						"user": userNamespaceID,
+					}),
+				}).Return([]servicedata.ServiceData{
+					{
+						Key: servicedata.Key{
+							Name: "foo",
+						},
+						Value: "bar",
+					},
+				}, nil)
 			},
 			req: &shieldv1beta1.GetUserRequest{
 				Id: randomID,
@@ -383,10 +502,12 @@ func TestGetUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSrv := new(mocks.ServiceDataService)
+
 			if tt.setup != nil {
-				tt.setup(mockUserSrv)
+				tt.setup(mockUserSrv, mockServiceDataSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, serviceDataService: mockServiceDataSrv}
 			resp, err := mockDep.GetUser(context.TODO(), tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -398,7 +519,7 @@ func TestGetCurrentUser(t *testing.T) {
 	email := "user@gotocompany.com"
 	table := []struct {
 		title  string
-		setup  func(ctx context.Context, us *mocks.UserService) context.Context
+		setup  func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context
 		header string
 		want   *shieldv1beta1.GetCurrentUserResponse
 		err    error
@@ -410,7 +531,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if user does not exist",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, user.ErrNotExist)
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -419,7 +540,7 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return error if user service return some error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
 				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(user.User{}, errors.New("some error"))
 				return user.SetContextWithEmail(ctx, email)
 			},
@@ -428,19 +549,32 @@ func TestGetCurrentUser(t *testing.T) {
 		},
 		{
 			title: "should return user if user service return nil error",
-			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
-				us.EXPECT().GetByEmail(mock.AnythingOfType("*context.valueCtx"), email).Return(
+			setup: func(ctx context.Context, us *mocks.UserService, sd *mocks.ServiceDataService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, email)
+				us.EXPECT().GetByEmail(ctx, email).Return(
 					user.User{
-						ID:    "user-id-1",
-						Name:  "some user",
-						Email: "someuser@test.com",
-						Metadata: metadata.Metadata{
-							"foo": "bar",
-						},
+						ID:        "user-id-1",
+						Name:      "some user",
+						Email:     "someuser@test.com",
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
-				return user.SetContextWithEmail(ctx, email)
+
+				sd.EXPECT().Get(ctx, servicedata.Filter{
+					ID:        "user-id-1",
+					Namespace: userNamespaceID,
+					Entities: maps.Values(map[string]string{
+						"user": userNamespaceID,
+					}),
+				}).Return([]servicedata.ServiceData{
+					{
+						Key: servicedata.Key{
+							Name: "foo",
+						},
+						Value: "bar",
+					},
+				}, nil)
+				return ctx
 			},
 			want: &shieldv1beta1.GetCurrentUserResponse{User: &shieldv1beta1.User{
 				Id:    "user-id-1",
@@ -461,11 +595,12 @@ func TestGetCurrentUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSrv := new(mocks.ServiceDataService)
 			ctx := context.TODO()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockUserSrv)
+				ctx = tt.setup(ctx, mockUserSrv, mockServiceDataSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{userService: mockUserSrv, serviceDataService: mockServiceDataSrv}
 			resp, err := mockDep.GetCurrentUser(ctx, nil)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, err, tt.err)
@@ -477,7 +612,7 @@ func TestUpdateUser(t *testing.T) {
 	someID := uuid.NewString()
 	table := []struct {
 		title  string
-		setup  func(us *mocks.UserService)
+		setup  func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService)
 		req    *shieldv1beta1.UpdateUserRequest
 		header string
 		want   *shieldv1beta1.UpdateUserResponse
@@ -485,14 +620,23 @@ func TestUpdateUser(t *testing.T) {
 	}{
 		{
 			title: "should return internal error if user service return some error",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+				sds.EXPECT().GetKeyByURN(mock.AnythingOfType("context.todoCtx"), "system:servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
+				}, nil)
+				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
+					Email: "user2@gotocompany.com",
+				},
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
+					action.Action{ID: schema.EditPermission}).Return(true, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
 				}).Return(user.User{}, errors.New("some error"))
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
@@ -512,7 +656,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return not found error if id is invalid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
@@ -537,14 +682,23 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return already exist error if user service return error conflict",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+				sds.EXPECT().GetKeyByURN(mock.AnythingOfType("context.todoCtx"), "system:servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
+				}, nil)
+				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
+					Email: "user2@gotocompany.com",
+				},
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
+					action.Action{ID: schema.EditPermission}).Return(true, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
 				}).Return(user.User{}, user.ErrConflict)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
@@ -564,7 +718,8 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if email in request empty",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{}, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:   someID,
 					Name: "abc user",
@@ -589,7 +744,10 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return invalid email error if email is invalid",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
@@ -608,20 +766,87 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return bad request error if empty request body",
-			req:   &shieldv1beta1.UpdateUserRequest{Id: someID, Body: nil},
-			want:  nil,
-			err:   grpcBadBodyError,
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+			},
+			req:  &shieldv1beta1.UpdateUserRequest{Id: someID, Body: nil},
+			want: nil,
+			err:  grpcBadBodyError,
 		},
 		{
-			title: "should return success if user service return nil error",
-			setup: func(us *mocks.UserService) {
+			title: "should return error if servicedata service return error",
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+				sds.EXPECT().GetKeyByURN(mock.AnythingOfType("context.todoCtx"), "system:servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
+				}, nil)
+				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
+					Email: "user2@gotocompany.com",
+				},
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
+					action.Action{ID: schema.EditPermission}).Return(true, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Name:  "abc user",
 					Email: "user@gotocompany.com",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
+				}).Return(
+					user.User{
+						ID:        someID,
+						Name:      "abc user",
+						Email:     "user@gotocompany.com",
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+
+				sds.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), servicedata.ServiceData{
+					EntityID:    someID,
+					NamespaceID: userNamespaceID,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "system",
 					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{}, errorsPkg.ErrForbidden)
+			},
+			req: &shieldv1beta1.UpdateUserRequest{
+				Id: someID,
+				Body: &shieldv1beta1.UserRequestBody{
+					Name:  "abc user",
+					Email: "user@gotocompany.com",
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
+				},
+			},
+			want: nil,
+			err:  status.Error(codes.PermissionDenied, "you are not authorized to update foo key"),
+		},
+		{
+			title: "should be successful if user and servicedata service return nil error",
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+				sds.EXPECT().GetKeyByURN(mock.AnythingOfType("context.todoCtx"), "system:servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
+				}, nil)
+				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
+					Email: "user2@gotocompany.com",
+				},
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
+					action.Action{ID: schema.EditPermission}).Return(true, nil)
+				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
+					ID:    someID,
+					Name:  "abc user",
+					Email: "user@gotocompany.com",
 				}).Return(
 					user.User{
 						ID:    someID,
@@ -633,6 +858,21 @@ func TestUpdateUser(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
+
+				sds.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), servicedata.ServiceData{
+					EntityID:    someID,
+					NamespaceID: userNamespaceID,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "system",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
@@ -662,13 +902,22 @@ func TestUpdateUser(t *testing.T) {
 		},
 		{
 			title: "should return success even though name is empty",
-			setup: func(us *mocks.UserService) {
+			setup: func(us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
+				sds.EXPECT().GetKeyByURN(mock.AnythingOfType("context.todoCtx"), "system:servicedata_key:foo").Return(servicedata.Key{
+					ResourceID: "dba6ad2c-89cd-4021-bd0f-e6845637d731",
+				}, nil)
+				rs.EXPECT().CheckPermission(mock.AnythingOfType("context.todoCtx"), user.User{
+					Email: "user2@gotocompany.com",
+				},
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+					"dba6ad2c-89cd-4021-bd0f-e6845637d731",
+					action.Action{ID: schema.EditPermission}).Return(true, nil)
 				us.EXPECT().UpdateByID(mock.AnythingOfType("context.todoCtx"), user.User{
 					ID:    someID,
 					Email: "user@gotocompany.com",
-					Metadata: metadata.Metadata{
-						"foo": "bar",
-					},
 				}).Return(
 					user.User{
 						ID:    someID,
@@ -679,6 +928,21 @@ func TestUpdateUser(t *testing.T) {
 						CreatedAt: time.Time{},
 						UpdatedAt: time.Time{},
 					}, nil)
+
+				sds.EXPECT().Upsert(mock.AnythingOfType("context.todoCtx"), servicedata.ServiceData{
+					EntityID:    someID,
+					NamespaceID: userNamespaceID,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "system",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
 			},
 			req: &shieldv1beta1.UpdateUserRequest{
 				Id: someID,
@@ -709,11 +973,18 @@ func TestUpdateUser(t *testing.T) {
 	for _, tt := range table {
 		t.Run(tt.title, func(t *testing.T) {
 			mockUserSrv := new(mocks.UserService)
+			mockServiceDataSrv := new(mocks.ServiceDataService)
+			mockRelationSrv := new(mocks.RelationService)
 			ctx := context.TODO()
 			if tt.setup != nil {
-				tt.setup(mockUserSrv)
+				tt.setup(mockUserSrv, mockServiceDataSrv, mockRelationSrv)
 			}
-			mockDep := Handler{userService: mockUserSrv}
+			mockDep := Handler{
+				userService: mockUserSrv, serviceDataService: mockServiceDataSrv, serviceDataConfig: ServiceDataConfig{
+					DefaultServiceDataProject: "system",
+				},
+				relationService: mockRelationSrv,
+			}
 			resp, err := mockDep.UpdateUser(ctx, tt.req)
 			assert.EqualValues(t, resp, tt.want)
 			assert.EqualValues(t, tt.err, err)
@@ -813,6 +1084,9 @@ func TestUpdateCurrentUser(t *testing.T) {
 		{
 			title: "should return bad request error if empty request body",
 			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+					Email: "user2@gotocompany.com",
+				}, nil)
 				return user.SetContextWithEmail(ctx, email)
 			},
 			req:  &shieldv1beta1.UpdateCurrentUserRequest{Body: nil},

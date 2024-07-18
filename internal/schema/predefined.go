@@ -29,8 +29,9 @@ const (
 	MembershipPermission = "membership"
 
 	// principals
-	UserPrincipal  = "shield/user"
-	GroupPrincipal = "shield/group"
+	UserPrincipal         = "shield/user"
+	GroupPrincipal        = "shield/group"
+	UserPrincipalWildcard = "shield/user:*"
 )
 
 var InheritedRelations = map[string]bool{
@@ -131,7 +132,7 @@ var ServiceDataKeyConfig = NamespaceConfig{
 	},
 	Roles: map[string][]string{
 		EditorRole: {UserPrincipal, GroupPrincipal},
-		ViewerRole: {UserPrincipal, GroupPrincipal},
+		ViewerRole: {UserPrincipal, GroupPrincipal, UserPrincipalWildcard},
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
 	},
 	Permissions: map[string][]string{

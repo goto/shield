@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
+	errPkg "github.com/goto/shield/pkg/errors"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"golang.org/x/exp/maps"
@@ -33,6 +34,7 @@ type ServiceDataService interface {
 	CreateKey(ctx context.Context, key servicedata.Key) (servicedata.Key, error)
 	Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error)
 	Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error)
+	GetKeyByURN(ctx context.Context, urn string) (servicedata.Key, error)
 }
 
 func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta1.CreateServiceDataKeyRequest) (*shieldv1beta1.CreateServiceDataKeyResponse, error) {
@@ -45,7 +47,7 @@ func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta
 
 	keyResp, err := h.serviceDataService.CreateKey(ctx, servicedata.Key{
 		ProjectID:   requestBody.GetProject(),
-		Key:         requestBody.GetKey(),
+		Name:        requestBody.GetKey(),
 		Description: requestBody.GetDescription(),
 	})
 	if err != nil {
@@ -87,7 +89,13 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+	data := requestBody.GetData()
+	if data == nil {
+		return nil, grpcBadBodyError
+	}
+	sdMap := data.AsMap()
+
+	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
 
@@ -104,13 +112,13 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 			return nil, grpcInternalServerError
 		}
 	}
-	serviceDataMap := map[string]string{}
-	for k, v := range requestBody.Data {
+	serviceDataMap := map[string]any{}
+	for k, v := range sdMap {
 		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
 			EntityID:    userEntity.ID,
 			NamespaceID: userNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: requestBody.Project,
 			},
 			Value: v,
@@ -121,6 +129,8 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 			switch {
 			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
 				return nil, grpcUnauthenticated
+			case errors.Is(err, errPkg.ErrForbidden):
+				return nil, grpcPermissionDenied
 			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
 				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
 				return nil, grpcBadBodyError
@@ -128,11 +138,16 @@ func (h Handler) UpsertUserServiceData(ctx context.Context, request *shieldv1bet
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
+	}
+
+	serviceDataMapPB, err := structpb.NewStruct(serviceDataMap)
+	if err != nil {
+		return nil, grpcInternalServerError
 	}
 
 	return &shieldv1beta1.UpsertUserServiceDataResponse{
-		Data: serviceDataMap,
+		Data: serviceDataMapPB,
 	}, nil
 }
 
@@ -148,7 +163,13 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 		return nil, grpcBadBodyError
 	}
 
-	if len(requestBody.Data) > h.serviceDataConfig.MaxUpsert {
+	data := requestBody.GetData()
+	if data == nil {
+		return nil, grpcBadBodyError
+	}
+	sdMap := data.AsMap()
+
+	if len(sdMap) > h.serviceDataConfig.MaxUpsert {
 		return nil, grpcBadBodyError
 	}
 
@@ -165,13 +186,13 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 			return nil, grpcInternalServerError
 		}
 	}
-	serviceDataMap := map[string]string{}
-	for k, v := range requestBody.Data {
+	serviceDataMap := map[string]any{}
+	for k, v := range sdMap {
 		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
 			EntityID:    groupEntity.ID,
 			NamespaceID: groupNamespaceID,
 			Key: servicedata.Key{
-				Key:       k,
+				Name:      k,
 				ProjectID: requestBody.Project,
 			},
 			Value: v,
@@ -189,11 +210,16 @@ func (h Handler) UpsertGroupServiceData(ctx context.Context, request *shieldv1be
 				return nil, grpcInternalServerError
 			}
 		}
-		serviceDataMap[serviceDataResp.Key.Key] = serviceDataResp.Value
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
+	}
+
+	serviceDataMapPB, err := structpb.NewStruct(serviceDataMap)
+	if err != nil {
+		return nil, grpcInternalServerError
 	}
 
 	return &shieldv1beta1.UpsertGroupServiceDataResponse{
-		Data: serviceDataMap,
+		Data: serviceDataMapPB,
 	}, nil
 }
 
@@ -313,7 +339,7 @@ func transformServiceDataKeyToPB(from servicedata.Key) (shieldv1beta1.ServiceDat
 }
 
 func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Struct, error) {
-	data := map[string]map[string]map[string]string{}
+	data := map[string]map[string]map[string]any{}
 
 	for _, sd := range from {
 		prjKey := fmt.Sprintf("%s:%s", projectNamespaceID, sd.Key.ProjectID)
@@ -322,15 +348,15 @@ func transformServiceDataListToPB(from []servicedata.ServiceData) (*structpb.Str
 		if ok {
 			ent, ok := prj[entKey]
 			if ok {
-				ent[sd.Key.Key] = sd.Value
+				ent[sd.Key.Name] = sd.Value
 			} else {
-				prj[entKey] = map[string]string{
-					sd.Key.Key: sd.Value,
+				prj[entKey] = map[string]any{
+					sd.Key.Name: sd.Value,
 				}
 			}
 		} else {
-			kv := map[string]string{sd.Key.Key: sd.Value}
-			data[prjKey] = map[string]map[string]string{
+			kv := map[string]any{sd.Key.Name: sd.Value}
+			data[prjKey] = map[string]map[string]any{
 				entKey: kv,
 			}
 		}

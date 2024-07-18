@@ -3,18 +3,27 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/mail"
 	"strings"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
+	"golang.org/x/exp/maps"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/relation"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/metadata"
 
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 )
@@ -37,10 +46,30 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	logger := grpczap.Extract(ctx)
 	var users []*shieldv1beta1.User
 
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
+	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	prj, err := h.projectService.Get(ctx, h.serviceDataConfig.DefaultServiceDataProject)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
 	userResp, err := h.userService.List(ctx, user.Filter{
-		Limit:   request.GetPageSize(),
-		Page:    request.GetPageNum(),
-		Keyword: request.GetKeyword(),
+		Limit:                     request.GetPageSize(),
+		Page:                      request.GetPageNum(),
+		Keyword:                   request.GetKeyword(),
+		ProjectID:                 prj.ID,
+		ServiceDataKeyResourceIds: servicedataKeyResourceIds,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -67,14 +96,9 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUserRequest) (*shieldv1beta1.CreateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	currentUserEmail, ok := user.GetEmailFromContext(ctx)
-	if !ok {
-		return nil, grpcUnauthenticated
-	}
-
-	currentUserEmail = strings.TrimSpace(currentUserEmail)
-	if currentUserEmail == "" {
-		logger.Error(ErrEmptyEmailID.Error())
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
 		return nil, grpcUnauthenticated
 	}
 
@@ -84,9 +108,8 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
-		email = currentUserEmail
+		return nil, grpcBadBodyError
 	}
-
 	if !isValidEmail(email) {
 		return nil, user.ErrInvalidEmail
 	}
@@ -97,11 +120,27 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
+	for k := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
+	}
+
 	// TODO might need to check the valid email form
 	newUser, err := h.userService.Create(ctx, user.User{
 		Name:     request.GetBody().GetName(),
 		Email:    email,
-		Metadata: metaDataMap,
+		Metadata: nil,
 	})
 	if err != nil {
 		logger.Error(err.Error())
@@ -118,20 +157,45 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		}
 	}
 
-	metaData, err := newUser.Metadata.ToStructPB()
-	if err != nil {
-		logger.Error(err.Error())
-		return nil, grpcInternalServerError
+	serviceDataMap := map[string]any{}
+	for k, v := range metaDataMap {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    newUser.ID,
+			NamespaceID: userNamespaceID,
+			Key: servicedata.Key{
+				Name:      k,
+				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			case errors.Is(err, errorsPkg.ErrForbidden):
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
 	}
 
-	return &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
-		Id:        newUser.ID,
-		Name:      newUser.Name,
-		Email:     newUser.Email,
-		Metadata:  metaData,
-		CreatedAt: timestamppb.New(newUser.CreatedAt),
-		UpdatedAt: timestamppb.New(newUser.UpdatedAt),
-	}}, nil
+	// TODO: use serviceDataMap
+	newUser.Metadata = metaDataMap
+
+	userPB, err := transformUserToPB(newUser)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, ErrInternalServer
+	}
+
+	return &shieldv1beta1.CreateUserResponse{User: &userPB}, nil
 }
 
 func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.CreateMetadataKeyRequest) (*shieldv1beta1.CreateMetadataKeyResponse, error) {
@@ -167,6 +231,12 @@ func (h Handler) CreateMetadataKey(ctx context.Context, request *shieldv1beta1.C
 func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequest) (*shieldv1beta1.GetUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 
+	_, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
 	fetchedUser, err := h.userService.Get(ctx, request.GetId())
 	if err != nil {
 		logger.Error(err.Error())
@@ -176,6 +246,31 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 		default:
 			return nil, grpcInternalServerError
 		}
+	}
+
+	filter := servicedata.Filter{
+		ID:        fetchedUser.ID,
+		Namespace: userNamespaceID,
+		Entities: maps.Values(map[string]string{
+			"user": userNamespaceID,
+		}),
+	}
+
+	userSD, err := h.serviceDataService.Get(ctx, filter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			break
+		default:
+			return nil, grpcInternalServerError
+		}
+	} else {
+		metadata := map[string]any{}
+		for _, sd := range userSD {
+			metadata[sd.Key.Name] = sd.Value
+		}
+		fetchedUser.Metadata = metadata
 	}
 
 	userPB, err := transformUserToPB(fetchedUser)
@@ -214,6 +309,31 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 		}
 	}
 
+	filter := servicedata.Filter{
+		ID:        fetchedUser.ID,
+		Namespace: userNamespaceID,
+		Entities: maps.Values(map[string]string{
+			"user": userNamespaceID,
+		}),
+	}
+
+	userSD, err := h.serviceDataService.Get(ctx, filter)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			break
+		default:
+			return nil, grpcInternalServerError
+		}
+	} else {
+		metadata := map[string]any{}
+		for _, sd := range userSD {
+			metadata[sd.Key.Name] = sd.Value
+		}
+		fetchedUser.Metadata = metadata
+	}
+
 	userPB, err := transformUserToPB(fetchedUser)
 	if err != nil {
 		logger.Error(err.Error())
@@ -228,6 +348,12 @@ func (h Handler) GetCurrentUser(ctx context.Context, request *shieldv1beta1.GetC
 func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUserRequest) (*shieldv1beta1.UpdateUserResponse, error) {
 	logger := grpczap.Extract(ctx)
 	var updatedUser user.User
+
+	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
 
 	if strings.TrimSpace(request.GetId()) == "" {
 		return nil, grpcUserNotFoundError
@@ -251,13 +377,29 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		return nil, grpcBadBodyError
 	}
 
+	for k := range metaDataMap {
+		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
+		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
+		if err != nil {
+			return nil, err
+		}
+
+		permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+		if err != nil {
+			return nil, err
+		}
+		if !permission {
+			return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+		}
+	}
+
 	id := request.GetId()
 	if uuid.IsValid(id) {
 		updatedUser, err = h.userService.UpdateByID(ctx, user.User{
 			ID:       id,
 			Name:     request.GetBody().GetName(),
 			Email:    email,
-			Metadata: metaDataMap,
+			Metadata: nil,
 		})
 		if err != nil {
 			logger.Error(err.Error())
@@ -292,13 +434,57 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 		updatedUser, err = h.userService.UpdateByEmail(ctx, user.User{
 			Name:     request.GetBody().GetName(),
 			Email:    email,
-			Metadata: metaDataMap,
+			Metadata: nil,
 		})
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			switch {
+			case errors.Is(err, user.ErrNotExist), errors.Is(err, user.ErrInvalidID), errors.Is(err, user.ErrInvalidUUID):
+				return nil, grpcUserNotFoundError
+			case errors.Is(err, user.ErrInvalidEmail):
+				return nil, grpcBadBodyError
+			case errors.Is(err, user.ErrConflict):
+				return nil, grpcConflictError
+			case errors.Is(err, user.ErrInvalidEmail),
+				errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			default:
+				return nil, grpcInternalServerError
+			}
 		}
 	}
+
+	serviceDataMap := map[string]any{}
+	for k, v := range metaDataMap {
+		serviceDataResp, err := h.serviceDataService.Upsert(ctx, servicedata.ServiceData{
+			EntityID:    updatedUser.ID,
+			NamespaceID: userNamespaceID,
+			Key: servicedata.Key{
+				Name:      k,
+				ProjectID: h.serviceDataConfig.DefaultServiceDataProject,
+			},
+			Value: v,
+		})
+		if err != nil {
+			logger.Error(err.Error())
+
+			switch {
+			case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+				return nil, grpcUnauthenticated
+			case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrInvalidDetail),
+				errors.Is(err, relation.ErrInvalidDetail), errors.Is(err, servicedata.ErrNotExist):
+				return nil, grpcBadBodyError
+			case errors.Is(err, errorsPkg.ErrForbidden):
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", k))
+			default:
+				return nil, grpcInternalServerError
+			}
+		}
+		serviceDataMap[serviceDataResp.Key.Name] = serviceDataResp.Value
+	}
+
+	// Note: this would return only the keys that are updated in the current request
+	updatedUser.Metadata = metaDataMap
 
 	userPB, err := transformUserToPB(updatedUser)
 	if err != nil {

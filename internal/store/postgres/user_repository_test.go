@@ -10,14 +10,16 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/google/go-cmp/cmp/cmpopts"
 	"github.com/google/uuid"
-	"github.com/goto/salt/log"
 	"github.com/ory/dockertest"
 	"github.com/stretchr/testify/suite"
 
+	"github.com/goto/salt/log"
+	"github.com/goto/shield/core/project"
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
-	"github.com/goto/shield/pkg/metadata"
 )
 
 type UserRepositoryTestSuite struct {
@@ -27,6 +29,10 @@ type UserRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.UserRepository
+	keys       []servicedata.Key
+	projects   []project.Project
+	resources  []resource.Resource
+	data       []servicedata.ServiceData
 	users      []user.User
 }
 
@@ -54,6 +60,41 @@ func (s *UserRepositoryTestSuite) SetupTest() {
 	if err != nil {
 		s.T().Fatal(err)
 	}
+
+	namespaces, err := bootstrapNamespace(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	_, err = bootstrapMetadataKeys(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	organizations, err := bootstrapOrganization(s.client)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.projects, err = bootstrapProject(s.client, organizations)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.resources, err = bootstrapResource(s.client, s.projects, organizations, namespaces, s.users)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.keys, err = bootstrapServiceDataKey(s.client, s.resources, s.projects)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.data, err = bootstrapServiceData(s.client, s.users, s.keys)
+	if err != nil {
+		s.T().Fatal(err)
+	}
 }
 
 func (s *UserRepositoryTestSuite) TearDownSuite() {
@@ -74,6 +115,11 @@ func (s *UserRepositoryTestSuite) cleanup() error {
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_USERS),
 		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_METADATA_KEYS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_SERVICE_DATA_KEYS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_SERVICE_DATA),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_ORGANIZATIONS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_PROJECTS),
+		fmt.Sprintf("TRUNCATE TABLE %s RESTART IDENTITY CASCADE", postgres.TABLE_RESOURCES),
 	}
 	return execQueries(context.TODO(), s.client, queries)
 }
@@ -282,8 +328,8 @@ func (s *UserRepositoryTestSuite) TestList() {
 			},
 			ExpectedUsers: []user.User{
 				{
-					Name:  s.users[3].Name,
-					Email: s.users[3].Email,
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
 				},
 			},
 		},
@@ -421,16 +467,10 @@ func (s *UserRepositoryTestSuite) TestUpdateByEmail() {
 			UserToUpdate: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k1": "v1",
-				},
 			},
 			ExpectedUser: user.User{
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k1": "v1",
-				},
 			},
 		},
 		{
@@ -481,17 +521,11 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
 			},
 			ExpectedUser: user.User{
 				ID:    s.users[0].ID,
 				Name:  "Doe John",
 				Email: s.users[0].Email,
-				Metadata: metadata.Metadata{
-					"k2": "v2",
-				},
 			},
 		},
 		{

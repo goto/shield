@@ -528,7 +528,7 @@ func bootstrapServiceDataKey(client *db.Client, resources []resource.Resource, p
 	for i, d := range data {
 		d.ProjectID = projects[i].ID
 		d.ResourceID = resources[i].Idxa
-		d.URN = d.CreateURN()
+		d.URN = servicedata.CreateURN(d.ProjectSlug, d.Name)
 
 		insertedKey, err := serviceDataRepository.CreateKey(context.Background(), d)
 		if err != nil {

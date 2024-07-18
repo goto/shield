@@ -49,7 +49,8 @@ func GenerateSchema(namespaceConfig schema.NamespaceConfigMapType) []string {
 
 func processPrincipal(s string) string {
 	return map[string]string{
-		"shield/group": "shield/group#membership",
-		"shield/user":  "shield/user",
+		"shield/group":  "shield/group#membership",
+		"shield/user":   "shield/user",
+		"shield/user:*": "shield/user:*",
 	}[s]
 }

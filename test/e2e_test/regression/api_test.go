@@ -26,11 +26,14 @@ type EndToEndAPIRegressionTestSuite struct {
 
 func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 	ctx := context.Background()
+	ctxOrgAdminAuth := metadata.NewOutgoingContext(ctx, metadata.New(map[string]string{
+		testbench.IdentityHeader: testbench.OrgAdminEmail,
+	}))
 	s.client, s.serviceDataClient, s.appConfig, s.cancelClient, s.cancelServiceDataClient, _ = testbench.SetupTests(s.T())
 
 	// validate
 	// list user length is 10 because there are 8 mock data, 1 system email, and 1 admin email created in test setup
-	uRes, err := s.client.ListUsers(ctx, &shieldv1beta1.ListUsersRequest{})
+	uRes, err := s.client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(10, len(uRes.GetUsers()))
 
@@ -40,15 +43,15 @@ func (s *EndToEndAPIRegressionTestSuite) SetupTest() {
 
 	pRes, err := s.client.ListProjects(ctx, &shieldv1beta1.ListProjectsRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(1, len(pRes.GetProjects()))
+	s.Require().Equal(2, len(pRes.GetProjects()))
 
-	gRes, err := s.client.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
+	gRes, err := s.client.ListGroups(ctxOrgAdminAuth, &shieldv1beta1.ListGroupsRequest{})
 	s.Require().NoError(err)
 	s.Require().Equal(3, len(gRes.GetGroups()))
 
 	rRes, err := s.client.ListResources(ctx, &shieldv1beta1.ListResourcesRequest{})
 	s.Require().NoError(err)
-	s.Require().Equal(2, len(rRes.GetResources()))
+	s.Require().Equal(5, len(rRes.GetResources()))
 }
 
 func (s *EndToEndAPIRegressionTestSuite) TearDownTest() {
@@ -332,7 +335,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -346,7 +349,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "new-user-a@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -362,7 +365,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -381,7 +384,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -396,7 +399,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestUserAPI() {
 				Email: "admin1-group1-org1@gotocompany.com",
 				Metadata: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
-						"foo": structpb.NewBoolValue(true),
+						"test-key-01": structpb.NewBoolValue(true),
 					},
 				},
 			},
@@ -463,7 +466,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	s.Require().Greater(len(res.GetProjects()), 0)
 	myProject := res.GetProjects()[0]
 
-	usr, err := s.client.ListUsers(context.Background(), &shieldv1beta1.ListUsersRequest{})
+	usr, err := s.client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{})
 	s.Require().NoError(err)
 	s.Require().Greater(len(usr.GetUsers()), 0)
 	myUser := usr.GetUsers()[0]
@@ -528,8 +531,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: "invalid-user-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})
@@ -541,8 +546,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: "invalid-project-id",
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})
@@ -554,9 +561,11 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key-1": "update value-1",
-					"update-key-2": "update value-2",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key-1": structpb.NewStringValue("update value-1"),
+						"update-key-2": structpb.NewStringValue("update value-2"),
+					},
 				},
 			},
 		})
@@ -583,12 +592,14 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			UserId: testbench.OrgAdminEmail,
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"new-key": "new-value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"new-key": structpb.NewStringValue("new-value"),
+					},
 				},
 			},
 		})
-		s.Assert().Equal(codes.Unauthenticated, status.Convert(err).Code())
+		s.Assert().Equal(codes.PermissionDenied, status.Convert(err).Code())
 	})
 
 	s.Run("9. org admin update a group service data with invalid group id should return invalid argument error", func() {
@@ -596,8 +607,10 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 			GroupId: "invalid-group-id",
 			Body: &shieldv1beta1.UpsertServiceDataRequestBody{
 				Project: myProject.Id,
-				Data: map[string]string{
-					"update-key": "update value",
+				Data: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"update-key": structpb.NewStringValue("update value"),
+					},
 				},
 			},
 		})
