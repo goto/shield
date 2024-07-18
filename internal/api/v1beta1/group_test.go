@@ -5,7 +5,9 @@ import (
 	"testing"
 	"time"
 
+	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/group"
+	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/servicedata"
@@ -266,14 +268,14 @@ func TestHandler_CreateGroup(t *testing.T) {
 	someGroupID := uuid.NewString()
 	tests := []struct {
 		name    string
-		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context
+		setup   func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context
 		request *shieldv1beta1.CreateGroupRequest
 		want    *shieldv1beta1.CreateGroupResponse
 		wantErr error
 	}{
 		{
 			name: "should return unauthenticated error if auth email in context is empty and group service return invalid user email",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
 				}, nil)
@@ -296,7 +298,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return internal error if group service return some error",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
@@ -320,7 +322,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return already exist error if group service return error conflict",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
@@ -345,7 +347,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if name empty",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
@@ -368,7 +370,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id is not uuid",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
@@ -392,7 +394,7 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return bad request error if org id not exist",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
@@ -423,11 +425,18 @@ func TestHandler_CreateGroup(t *testing.T) {
 		},
 		{
 			name: "should return success if group service return nil",
-			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService) context.Context {
+			setup: func(ctx context.Context, gs *mocks.GroupService, us *mocks.UserService, rs *mocks.RelationService, sds *mocks.ServiceDataService) context.Context {
 				ctx = user.SetContextWithEmail(ctx, email)
 				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
 				}, nil)
+				sds.EXPECT().GetKeyByURN(ctx, servicedata.CreateURN("system", "foo")).Return(servicedata.Key{
+					ResourceID: "724bed16-b971-499d-99d7-cf742484eafe",
+				}, nil)
+				rs.EXPECT().CheckPermission(ctx, user.User{
+					ID: "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
+				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, "724bed16-b971-499d-99d7-cf742484eafe", action.Action{ID: schema.EditPermission}).Return(
+					true, nil)
 				gs.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), group.Group{
 					Name: "some group",
 					Slug: "some-group",
@@ -442,12 +451,30 @@ func TestHandler_CreateGroup(t *testing.T) {
 					OrganizationID: someOrgID,
 					Metadata:       metadata.Metadata{},
 				}, nil)
+				sds.EXPECT().Upsert(ctx, servicedata.ServiceData{
+					EntityID:    someGroupID,
+					NamespaceID: groupNamespaceID,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "system",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
 				return ctx
 			},
 			request: &shieldv1beta1.CreateGroupRequest{Body: &shieldv1beta1.GroupRequestBody{
-				Name:     "some group",
-				OrgId:    someOrgID,
-				Metadata: &structpb.Struct{},
+				Name:  "some group",
+				OrgId: someOrgID,
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						"foo": structpb.NewStringValue("bar"),
+					},
+				},
 			}},
 			want: &shieldv1beta1.CreateGroupResponse{
 				Group: &shieldv1beta1.Group{
@@ -456,7 +483,9 @@ func TestHandler_CreateGroup(t *testing.T) {
 					Slug:  "some-group",
 					OrgId: someOrgID,
 					Metadata: &structpb.Struct{
-						Fields: make(map[string]*structpb.Value),
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
 					},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
@@ -469,13 +498,20 @@ func TestHandler_CreateGroup(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			mockGroupSvc := new(mocks.GroupService)
 			mockUserSvc := new(mocks.UserService)
+			mockRelationSrv := new(mocks.RelationService)
+			mockServiceDataSvc := new(mocks.ServiceDataService)
 			ctx := context.TODO()
 			if tt.setup != nil {
-				ctx = tt.setup(ctx, mockGroupSvc, mockUserSvc)
+				ctx = tt.setup(ctx, mockGroupSvc, mockUserSvc, mockRelationSrv, mockServiceDataSvc)
 			}
 			h := Handler{
-				groupService: mockGroupSvc,
-				userService:  mockUserSvc,
+				serviceDataConfig: ServiceDataConfig{
+					DefaultServiceDataProject: "system",
+				},
+				groupService:       mockGroupSvc,
+				userService:        mockUserSvc,
+				serviceDataService: mockServiceDataSvc,
+				relationService:    mockRelationSrv,
 			}
 			got, err := h.CreateGroup(ctx, tt.request)
 			assert.EqualValues(t, got, tt.want)
