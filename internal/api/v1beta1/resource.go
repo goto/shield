@@ -23,6 +23,7 @@ type ResourceService interface {
 	Upsert(ctx context.Context, resource resource.Resource) (resource.Resource, error)
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
+	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")

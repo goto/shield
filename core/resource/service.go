@@ -28,6 +28,7 @@ type RelationService interface {
 	Create(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	Delete(ctx context.Context, rel relation.Relation) error
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	BulkCheckPermission(ctx context.Context, rels []relation.Relation, acts []action.Action) ([]relation.Permission, error)
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 }
 
@@ -325,4 +326,60 @@ func (s Service) CheckAuthz(ctx context.Context, res Resource, act action.Action
 	}
 	fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
 	return s.relationService.CheckPermission(ctx, currentUser, fetchedResourceNS, fetchedResource.Idxa, act)
+}
+
+func (s Service) BulkCheckAuthz(ctx context.Context, resources []Resource, actions []action.Action) ([]relation.Permission, error) {
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []relation.Permission{}, err
+	}
+
+	var relations []relation.Relation
+	for _, res := range resources {
+		isSystemNS := namespace.IsSystemNamespaceID(res.NamespaceID)
+		fetchedResource := res
+
+		if isSystemNS {
+			if !uuid.IsValid(res.Name) {
+				switch res.NamespaceID {
+				case namespace.DefinitionProject.ID:
+					project, err := s.projectService.Get(ctx, res.Name)
+					if err != nil {
+						return []relation.Permission{}, err
+					}
+					res.Name = project.ID
+				case namespace.DefinitionOrg.ID:
+					organization, err := s.organizationService.Get(ctx, res.Name)
+					if err != nil {
+						return []relation.Permission{}, err
+					}
+					res.Name = organization.ID
+				case namespace.DefinitionTeam.ID:
+					group, err := s.groupService.GetBySlug(ctx, res.Name)
+					if err != nil {
+						return []relation.Permission{}, err
+					}
+					res.Name = group.ID
+				}
+			}
+			fetchedResource.Idxa = res.Name
+		} else {
+			fetchedResource, err = s.repository.GetByNamespace(ctx, res.Name, res.NamespaceID)
+			if err != nil {
+				fetchedResource, err = s.repository.GetByID(ctx, res.Name)
+				if err != nil {
+					return []relation.Permission{}, ErrNotExist
+				}
+			}
+		}
+		fetchedResourceNS := namespace.Namespace{ID: fetchedResource.NamespaceID}
+
+		relations = append(relations, relation.Relation{
+			SubjectID:        currentUser.ID,
+			SubjectNamespace: namespace.DefinitionUser,
+			ObjectID:         fetchedResource.Idxa,
+			ObjectNamespace:  fetchedResourceNS,
+		})
+	}
+	return s.relationService.BulkCheckPermission(ctx, relations, actions)
 }

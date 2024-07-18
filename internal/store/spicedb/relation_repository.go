@@ -137,6 +137,72 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
+func (r RelationRepository) BulkCheck(ctx context.Context, rels []relation.Relation, acts []action.Action) ([]relation.Permission, error) {
+	var requestItems []*authzedpb.CheckBulkPermissionsRequestItem
+
+	if len(rels) != len(acts) {
+		return []relation.Permission{}, relation.ErrInvalidDetail
+	}
+
+	for i, rel := range rels {
+		relationship, err := schema_generator.TransformCheckRelation(rel)
+		if err != nil {
+			return []relation.Permission{}, err
+		}
+		requestItems = append(requestItems, &authzedpb.CheckBulkPermissionsRequestItem{
+			Resource:   relationship.Resource,
+			Subject:    relationship.Subject,
+			Permission: acts[i].ID,
+		})
+	}
+
+	request := &authzedpb.CheckBulkPermissionsRequest{
+		Consistency: &authzedpb.Consistency{
+			Requirement: &authzedpb.Consistency_FullyConsistent{
+				FullyConsistent: true,
+			},
+		},
+		Items: requestItems,
+	}
+
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:   nrProductName,
+			Operation: "Bulk_Check",
+			StartTime: nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
+
+	response, err := r.spiceDB.client.CheckBulkPermissions(ctx, request)
+	if err != nil {
+		return []relation.Permission{}, err
+	}
+
+	var result []relation.Permission
+	for _, res := range response.Pairs {
+		switch res.Response.(type) {
+		case *authzedpb.CheckBulkPermissionsPair_Error:
+			result = append(result, relation.Permission{
+				ObjectID:        res.Request.Resource.ObjectId,
+				ObjectNamespace: res.Request.Resource.ObjectType,
+				Permission:      res.Request.Permission,
+				Allowed:         false,
+			})
+		case *authzedpb.CheckBulkPermissionsPair_Item:
+			result = append(result, relation.Permission{
+				ObjectID:        res.Request.Resource.ObjectId,
+				ObjectNamespace: res.Request.Resource.ObjectType,
+				Permission:      res.Request.Permission,
+				Allowed:         res.Response.(*authzedpb.CheckBulkPermissionsPair_Item).Item.Permissionship == 2,
+			})
+		}
+	}
+
+	return result, nil
+}
+
 func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
 	relationship, err := schema_generator.TransformRelation(rel)
 	if err != nil {
