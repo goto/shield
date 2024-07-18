@@ -909,10 +909,20 @@ func TestHandler_UpdateGroup(t *testing.T) {
 		{
 			name: "should return success if updated by slug and group service return nil error",
 			setup: func(gs *mocks.GroupService, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) {
-				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("context.todoCtx")).Return(user.User{
+				ctx := mock.AnythingOfType("context.todoCtx")
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{
 					Email: "user@gotocompany.com",
+					ID:    "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
 				}, nil)
-				gs.EXPECT().Update(mock.AnythingOfType("context.todoCtx"), group.Group{
+				sds.EXPECT().GetKeyByURN(ctx, servicedata.CreateURN("system", "foo")).Return(servicedata.Key{
+					ResourceID: "724bed16-b971-499d-99d7-cf742484eafe",
+				}, nil)
+				rs.EXPECT().CheckPermission(ctx, user.User{
+					Email: "user@gotocompany.com",
+					ID:    "083a77a2-ab14-40d2-a06d-f6d9f80c6378",
+				}, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, "724bed16-b971-499d-99d7-cf742484eafe", action.Action{ID: schema.EditPermission}).Return(
+					true, nil)
+				gs.EXPECT().Update(ctx, group.Group{
 					Name:           "new group",
 					Slug:           "some-slug",
 					OrganizationID: someOrgID,
@@ -926,6 +936,20 @@ func TestHandler_UpdateGroup(t *testing.T) {
 
 					Metadata: metadata.Metadata{},
 				}, nil)
+				sds.EXPECT().Upsert(ctx, servicedata.ServiceData{
+					EntityID:    someGroupID,
+					NamespaceID: groupNamespaceID,
+					Key: servicedata.Key{
+						Name:      "foo",
+						ProjectID: "system",
+					},
+					Value: "bar",
+				}).Return(servicedata.ServiceData{
+					Key: servicedata.Key{
+						Name: "foo",
+					},
+					Value: "bar",
+				}, nil)
 			},
 			request: &shieldv1beta1.UpdateGroupRequest{
 				Id: "some-slug",
@@ -933,6 +957,11 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Name:  "new group",
 					Slug:  "new-group", // will be ignored
 					OrgId: someOrgID,
+					Metadata: &structpb.Struct{
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
+					},
 				},
 			},
 			want: &shieldv1beta1.UpdateGroupResponse{
@@ -942,7 +971,9 @@ func TestHandler_UpdateGroup(t *testing.T) {
 					Slug:  "some-slug",
 					OrgId: someOrgID,
 					Metadata: &structpb.Struct{
-						Fields: make(map[string]*structpb.Value),
+						Fields: map[string]*structpb.Value{
+							"foo": structpb.NewStringValue("bar"),
+						},
 					},
 					CreatedAt: timestamppb.New(time.Time{}),
 					UpdatedAt: timestamppb.New(time.Time{}),
@@ -965,6 +996,9 @@ func TestHandler_UpdateGroup(t *testing.T) {
 				userService:        mockUserSvc,
 				serviceDataService: mockServiceDataSvc,
 				relationService:    mockRelationSvc,
+				serviceDataConfig: ServiceDataConfig{
+					DefaultServiceDataProject: "system",
+				},
 			}
 			got, err := h.UpdateGroup(context.TODO(), tt.request)
 			assert.EqualValues(t, got, tt.want)
