@@ -82,9 +82,9 @@ func (h Handler) CheckResourcePermission(ctx context.Context, req *shieldv1beta1
 	}
 
 	var responseResults []*shieldv1beta1.CheckResourcePermissionResponse_ResourcePermissionResponse
-	for _, res := range results {
+	for i, res := range results {
 		responseResults = append(responseResults, &shieldv1beta1.CheckResourcePermissionResponse_ResourcePermissionResponse{
-			ObjectId:        res.ObjectID,
+			ObjectId:        resources[i].Name,
 			ObjectNamespace: res.ObjectNamespace,
 			Permission:      res.Permission,
 			Allowed:         res.Allowed,
