@@ -31,6 +31,7 @@ type AuthzRepository interface {
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	AddV2(ctx context.Context, rel RelationV2) error
 	LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error)
+	CheckIsPublic(ctx context.Context, rel Relation, act action.Action) (bool, error)
 }
 
 type Relation struct {
