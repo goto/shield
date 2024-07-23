@@ -149,6 +149,14 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 	}, action)
 }
 
+func (s Service) CheckIsPublic(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
+	return s.authzRepository.CheckIsPublic(ctx, Relation{
+		ObjectNamespace:  resourceNS,
+		ObjectID:         resourceIdxa,
+		SubjectNamespace: namespace.DefinitionUser,
+	}, action)
+}
+
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {

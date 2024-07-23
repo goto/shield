@@ -137,6 +137,58 @@ func (r RelationRepository) Check(ctx context.Context, rel relation.Relation, ac
 	return response.Permissionship == authzedpb.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION, nil
 }
 
+func (r RelationRepository) CheckIsPublic(ctx context.Context, rel relation.Relation, act action.Action) (bool, error) {
+	relationship, err := schema_generator.TransformCheckRelation(rel)
+	if err != nil {
+		return false, err
+	}
+
+	request := &authzedpb.LookupSubjectsRequest{
+		Consistency: &authzedpb.Consistency{
+			Requirement: &authzedpb.Consistency_FullyConsistent{
+				FullyConsistent: true,
+			},
+		},
+		SubjectObjectType:     rel.SubjectNamespace.ID,
+		Resource:              relationship.Resource,
+		Permission:            act.ID,
+		OptionalConcreteLimit: 1,
+		WildcardOption:        authzedpb.LookupSubjectsRequest_WILDCARD_OPTION_INCLUDE_WILDCARDS,
+	}
+
+	nrCtx := newrelic.FromContext(ctx)
+	if nrCtx != nil {
+		nr := newrelic.DatastoreSegment{
+			Product:    nrProductName,
+			Collection: fmt.Sprintf("object:%s", request.Resource.ObjectType),
+			Operation:  "CheckIsPublic",
+			StartTime:  nrCtx.StartSegmentNow(),
+		}
+		defer nr.End()
+	}
+
+	response, err := r.spiceDB.client.LookupSubjects(ctx, request)
+	if err != nil {
+		return false, err
+	}
+
+	foundWildcard := false
+	for !foundWildcard {
+		resp, err := response.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			return false, err
+		}
+		if resp.Subject.SubjectObjectId == "*" {
+			foundWildcard = true
+		}
+	}
+
+	return foundWildcard, nil
+}
+
 func (r RelationRepository) Delete(ctx context.Context, rel relation.Relation) error {
 	relationship, err := schema_generator.TransformRelation(rel)
 	if err != nil {
