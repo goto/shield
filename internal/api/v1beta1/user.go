@@ -119,7 +119,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 
 	callerUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		logger.Error(fmt.Sprintf("error while fetching caller details: ", err.Error()))
+		logger.Error(fmt.Sprintf("error while fetching caller details: %s", err.Error()))
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			callerEmail, ok := user.GetEmailFromContext(ctx)
