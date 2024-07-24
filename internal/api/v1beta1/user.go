@@ -117,9 +117,9 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
-	currentUser, err := h.userService.FetchCurrentUser(ctx)
+	callerUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(fmt.Sprintf("error while fetching caller details: ", err.Error()))
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			callerEmail, ok := user.GetEmailFromContext(ctx)
@@ -127,12 +127,19 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 				return nil, grpcUnauthenticated
 			}
 			if callerEmail != email {
-				return nil, grpcUnauthenticated
+				return nil, grpcPermissionDenied
 			}
 			userSelfOnboard = true
-			if !h.checkIsPublicEditable(ctx, metaDataMap) {
-				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update some key"))
+
+			haveEditPermission, key, err := h.checkIsWildcardEditable(ctx, metaDataMap)
+			if err != nil {
+				return nil, status.Error(codes.Internal, fmt.Sprintf("erro while updating %s key: %s", key, err.Error()))
+
 			}
+			if !haveEditPermission {
+				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", key))
+			}
+
 			newUser, err = h.createUser(ctx, request.GetBody().GetName(), email)
 			if err != nil {
 				logger.Error(err.Error())
@@ -151,7 +158,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 				return nil, err
 			}
 
-			permission, err := h.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
+			permission, err := h.relationService.CheckPermission(ctx, callerUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
 			if err != nil {
 				return nil, err
 			}
@@ -607,23 +614,23 @@ func isValidEmail(email string) bool {
 	return err == nil
 }
 
-func (h Handler) checkIsPublicEditable(ctx context.Context, metaDataMap metadata.Metadata) bool {
+func (h Handler) checkIsWildcardEditable(ctx context.Context, metaDataMap metadata.Metadata) (bool, string, error) {
 	for k, _ := range metaDataMap {
 		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
 		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
 		if err != nil {
-			return false
+			return false, k, err
 		}
 		permission, err := h.relationService.CheckIsPublic(ctx, namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, key.ResourceID, action.Action{ID: schema.EditPermission})
 		if err != nil {
 			fmt.Println(err.Error())
-			return false
+			return false, k, err
 		}
 		if !permission {
-			return false
+			return false, k, nil
 		}
 	}
-	return true
+	return true, "", nil
 }
 
 func (h Handler) createUser(ctx context.Context, name, email string) (user.User, error) {
