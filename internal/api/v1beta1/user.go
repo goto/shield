@@ -171,7 +171,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		newUser, err = h.createUser(ctx, request.GetBody().GetName(), email)
 		if err != nil {
 			logger.Error(err.Error())
-			return nil, grpcInternalServerError
+			return nil, err
 		}
 	}
 
