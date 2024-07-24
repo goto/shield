@@ -134,7 +134,6 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 			haveEditPermission, key, err := h.checkIsWildcardEditable(ctx, metaDataMap)
 			if err != nil {
 				return nil, status.Error(codes.Internal, fmt.Sprintf("erro while updating %s key: %s", key, err.Error()))
-
 			}
 			if !haveEditPermission {
 				return nil, status.Error(codes.PermissionDenied, fmt.Sprintf("you are not authorized to update %s key", key))
@@ -615,7 +614,7 @@ func isValidEmail(email string) bool {
 }
 
 func (h Handler) checkIsWildcardEditable(ctx context.Context, metaDataMap metadata.Metadata) (bool, string, error) {
-	for k, _ := range metaDataMap {
+	for k := range metaDataMap {
 		urn := servicedata.CreateURN(h.serviceDataConfig.DefaultServiceDataProject, k)
 		key, err := h.serviceDataService.GetKeyByURN(ctx, urn)
 		if err != nil {
