@@ -29,6 +29,7 @@ type RelationService interface {
 	GetRelationByFields(ctx context.Context, rel relation.RelationV2) (relation.RelationV2, error)
 	LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error)
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
+	CheckIsPublic(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 }
 
 var grpcRelationNotFoundErr = status.Errorf(codes.NotFound, "relation doesn't exist")
