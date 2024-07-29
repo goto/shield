@@ -9,6 +9,8 @@ import (
 
 	mock "github.com/stretchr/testify/mock"
 
+	relation "github.com/goto/shield/core/relation"
+
 	resource "github.com/goto/shield/core/resource"
 )
 
@@ -23,6 +25,66 @@ type ResourceService_Expecter struct {
 
 func (_m *ResourceService) EXPECT() *ResourceService_Expecter {
 	return &ResourceService_Expecter{mock: &_m.Mock}
+}
+
+// BulkCheckAuthz provides a mock function with given fields: ctx, resources, actions
+func (_m *ResourceService) BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error) {
+	ret := _m.Called(ctx, resources, actions)
+
+	if len(ret) == 0 {
+		panic("no return value specified for BulkCheckAuthz")
+	}
+
+	var r0 []relation.Permission
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, []resource.Resource, []action.Action) ([]relation.Permission, error)); ok {
+		return rf(ctx, resources, actions)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, []resource.Resource, []action.Action) []relation.Permission); ok {
+		r0 = rf(ctx, resources, actions)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]relation.Permission)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, []resource.Resource, []action.Action) error); ok {
+		r1 = rf(ctx, resources, actions)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_BulkCheckAuthz_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'BulkCheckAuthz'
+type ResourceService_BulkCheckAuthz_Call struct {
+	*mock.Call
+}
+
+// BulkCheckAuthz is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resources []resource.Resource
+//   - actions []action.Action
+func (_e *ResourceService_Expecter) BulkCheckAuthz(ctx interface{}, resources interface{}, actions interface{}) *ResourceService_BulkCheckAuthz_Call {
+	return &ResourceService_BulkCheckAuthz_Call{Call: _e.mock.On("BulkCheckAuthz", ctx, resources, actions)}
+}
+
+func (_c *ResourceService_BulkCheckAuthz_Call) Run(run func(ctx context.Context, resources []resource.Resource, actions []action.Action)) *ResourceService_BulkCheckAuthz_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].([]resource.Resource), args[2].([]action.Action))
+	})
+	return _c
+}
+
+func (_c *ResourceService_BulkCheckAuthz_Call) Return(_a0 []relation.Permission, _a1 error) *ResourceService_BulkCheckAuthz_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_BulkCheckAuthz_Call) RunAndReturn(run func(context.Context, []resource.Resource, []action.Action) ([]relation.Permission, error)) *ResourceService_BulkCheckAuthz_Call {
+	_c.Call.Return(run)
+	return _c
 }
 
 // CheckAuthz provides a mock function with given fields: ctx, _a1, _a2

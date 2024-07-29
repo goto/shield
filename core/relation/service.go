@@ -157,6 +157,10 @@ func (s Service) CheckIsPublic(ctx context.Context, resourceNS namespace.Namespa
 	}, action)
 }
 
+func (s Service) BulkCheckPermission(ctx context.Context, rels []Relation, acts []action.Action) ([]Permission, error) {
+	return s.authzRepository.BulkCheck(ctx, rels, acts)
+}
+
 func (s Service) DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error {
 	currentUser, err := s.userService.FetchCurrentUser(ctx)
 	if err != nil {
