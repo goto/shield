@@ -26,6 +26,7 @@ type Repository interface {
 type AuthzRepository interface {
 	Add(ctx context.Context, rel Relation) error
 	Check(ctx context.Context, rel Relation, act action.Action) (bool, error)
+	BulkCheck(ctx context.Context, rels []Relation, acts []action.Action) ([]Permission, error)
 	DeleteV2(ctx context.Context, rel RelationV2) error
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
 	AddV2(ctx context.Context, rel RelationV2) error
@@ -91,6 +92,13 @@ type SubjectLogData struct {
 	Entity             string `mapstructure:"entity"`
 	ResourceType       string `mapstructure:"resource_type"`
 	OptionalResourceID string `mapstructure:"optional_resource_id"`
+}
+
+type Permission struct {
+	ObjectID        string `mapstructure:"object_id"`
+	ObjectNamespace string `mapstructure:"object_namespace"`
+	Permission      string `mapstructure:"permission"`
+	Allowed         bool   `mapstructure:"allowed"`
 }
 
 func (relation RelationV2) ToLogData() LogData {

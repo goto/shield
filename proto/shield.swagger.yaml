@@ -69,30 +69,30 @@ paths:
           in: query
           required: false
           type: string
-        - name: data[string]
+        - name: data
           description: This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
           in: query
           required: false
           type: string
-        - name: metadata[string]
+        - name: metadata
           description: This is a request variable of the map type. The query format is "map_name[key]=value", e.g. If the map name is Age, the key type is string, and the value type is integer, the query parameter is expressed as Age["bob"]=18
           in: query
           required: false
           type: string
-        - name: start_time
+        - name: startTime
           in: query
           required: false
           type: string
-        - name: end_time
+        - name: endTime
           in: query
           required: false
           type: string
-        - name: page_size
+        - name: pageSize
           in: query
           required: false
           type: integer
           format: int32
-        - name: page_num
+        - name: pageNum
           in: query
           required: false
           type: integer
@@ -134,11 +134,11 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: user_id
+        - name: userId
           in: query
           required: false
           type: string
-        - name: org_id
+        - name: orgId
           in: query
           required: false
           type: string
@@ -164,7 +164,7 @@ paths:
             $ref: '#/definitions/GroupRequestBody'
       tags:
         - Group
-  /v1beta1/groups/{group_id}/servicedata:
+  /v1beta1/groups/{groupId}/servicedata:
     get:
       summary: Get Group Service Data Key
       operationId: ServiceDataService_GetGroupServiceData
@@ -178,7 +178,7 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: group_id
+        - name: groupId
           in: path
           required: true
           type: string
@@ -201,7 +201,7 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: group_id
+        - name: groupId
           in: path
           required: true
           type: string
@@ -274,7 +274,7 @@ paths:
           in: path
           required: true
           type: string
-        - name: subject_type
+        - name: subjectType
           in: query
           required: false
           type: string
@@ -384,7 +384,7 @@ paths:
             $ref: '#/definitions/NamespaceRequestBody'
       tags:
         - Namespace
-  /v1beta1/object/{object_id}/subject/{subject_id}/role/{role}:
+  /v1beta1/object/{objectId}/subject/{subjectId}/role/{role}:
     delete:
       summary: Remove a subject having a role from an object
       operationId: ShieldService_DeleteRelation
@@ -398,11 +398,11 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: object_id
+        - name: objectId
           in: path
           required: true
           type: string
-        - name: subject_id
+        - name: subjectId
           in: path
           required: true
           type: string
@@ -714,28 +714,28 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: group_id
+        - name: groupId
           in: query
           required: false
           type: string
-        - name: project_id
+        - name: projectId
           in: query
           required: false
           type: string
-        - name: organization_id
+        - name: organizationId
           in: query
           required: false
           type: string
-        - name: namespace_id
+        - name: namespaceId
           in: query
           required: false
           type: string
-        - name: page_size
+        - name: pageSize
           in: query
           required: false
           type: integer
           format: int32
-        - name: page_num
+        - name: pageNum
           in: query
           required: false
           type: integer
@@ -876,12 +876,12 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: page_size
+        - name: pageSize
           in: query
           required: false
           type: integer
           format: int32
-        - name: page_num
+        - name: pageNum
           in: query
           required: false
           type: integer
@@ -1048,7 +1048,7 @@ paths:
           type: string
       tags:
         - User
-  /v1beta1/users/{user_id}/servicedata:
+  /v1beta1/users/{userId}/servicedata:
     get:
       summary: Get User Service Data Key
       operationId: ServiceDataService_GetUserServiceData
@@ -1062,7 +1062,7 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           required: true
           type: string
@@ -1092,7 +1092,7 @@ paths:
           schema:
             $ref: '#/definitions/Status'
       parameters:
-        - name: user_id
+        - name: userId
           in: path
           required: true
           type: string
@@ -1113,13 +1113,13 @@ definitions:
         type: string
       namespace:
         $ref: '#/definitions/Namespace'
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
-      namespace_id:
+      namespaceId:
         type: string
   ActionRequestBody:
     type: object
@@ -1128,7 +1128,7 @@ definitions:
         type: string
       name:
         type: string
-      namespace_id:
+      namespaceId:
         type: string
   Activity:
     type: object
@@ -1157,13 +1157,13 @@ definitions:
   CheckResourcePermissionRequest:
     type: object
     properties:
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       permission:
         type: string
-      resource_permissions:
+      resourcePermissions:
         type: array
         items:
           type: object
@@ -1173,7 +1173,7 @@ definitions:
     properties:
       status:
         type: boolean
-      resource_permissions:
+      resourcePermissions:
         type: array
         items:
           type: object
@@ -1181,9 +1181,9 @@ definitions:
   CheckResourcePermissionResponse.ResourcePermissionResponse:
     type: object
     properties:
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       permission:
         type: string
@@ -1192,7 +1192,7 @@ definitions:
   CheckResourceUserPermissionBody:
     type: object
     properties:
-      resource_permissions:
+      resourcePermissions:
         type: array
         items:
           type: object
@@ -1200,7 +1200,7 @@ definitions:
   CheckResourceUserPermissionResponse:
     type: object
     properties:
-      resource_permissions:
+      resourcePermissions:
         type: array
         items:
           type: object
@@ -1208,9 +1208,9 @@ definitions:
   CheckResourceUserPermissionResponse.ResourcePermissionResponse:
     type: object
     properties:
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       permission:
         type: string
@@ -1272,7 +1272,7 @@ definitions:
   CreateServiceDataKeyResponse:
     type: object
     properties:
-      service_data_key:
+      serviceDataKey:
         $ref: '#/definitions/ServiceDataKey'
   CreateUserResponse:
     type: object
@@ -1343,20 +1343,20 @@ definitions:
         type: string
       slug:
         type: string
-      org_id:
+      orgId:
         type: string
       metadata:
         type: object
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   GroupRelation:
     type: object
     properties:
-      subject_type:
+      subjectType:
         type: string
       role:
         type: string
@@ -1373,7 +1373,7 @@ definitions:
         type: string
       metadata:
         type: object
-      org_id:
+      orgId:
         type: string
   ListActionsResponse:
     type: object
@@ -1525,10 +1525,10 @@ definitions:
         type: string
       name:
         type: string
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   NamespaceRequestBody:
@@ -1547,7 +1547,7 @@ definitions:
       `NullValue` is a singleton enumeration to represent the null value for the
       `Value` type union.
 
-       The JSON representation for `NullValue` is JSON `null`.
+      The JSON representation for `NullValue` is JSON `null`.
 
        - NULL_VALUE: Null value.
   Organization:
@@ -1561,10 +1561,10 @@ definitions:
         type: string
       metadata:
         type: object
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   OrganizationRequestBody:
@@ -1587,26 +1587,26 @@ definitions:
         $ref: '#/definitions/Action'
       namespace:
         $ref: '#/definitions/Namespace'
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
-      namespace_id:
+      namespaceId:
         type: string
-      role_id:
+      roleId:
         type: string
-      action_id:
+      actionId:
         type: string
   PolicyRequestBody:
     type: object
     properties:
-      role_id:
+      roleId:
         type: string
-      action_id:
+      actionId:
         type: string
-      namespace_id:
+      namespaceId:
         type: string
   Project:
     type: object
@@ -1617,14 +1617,14 @@ definitions:
         type: string
       slug:
         type: string
-      org_id:
+      orgId:
         type: string
       metadata:
         type: object
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   ProjectRequestBody:
@@ -1636,37 +1636,37 @@ definitions:
         type: string
       metadata:
         type: object
-      org_id:
+      orgId:
         type: string
   Relation:
     type: object
     properties:
       id:
         type: string
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       subject:
         type: string
-      role_name:
+      roleName:
         type: string
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   RelationRequestBody:
     type: object
     properties:
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       subject:
         type: string
-      role_name:
+      roleName:
         type: string
   Resource:
     type: object
@@ -1681,10 +1681,10 @@ definitions:
         $ref: '#/definitions/Organization'
       namespace:
         $ref: '#/definitions/Namespace'
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
       user:
@@ -1694,9 +1694,9 @@ definitions:
   ResourcePermission:
     type: object
     properties:
-      object_id:
+      objectId:
         type: string
-      object_namespace:
+      objectNamespace:
         type: string
       permission:
         type: string
@@ -1705,9 +1705,9 @@ definitions:
     properties:
       name:
         type: string
-      project_id:
+      projectId:
         type: string
-      namespace_id:
+      namespaceId:
         type: string
       relations:
         type: array
@@ -1729,13 +1729,13 @@ definitions:
         $ref: '#/definitions/Namespace'
       metadata:
         type: object
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
-      namespace_id:
+      namespaceId:
         type: string
   RoleRequestBody:
     type: object
@@ -1748,7 +1748,7 @@ definitions:
         type: array
         items:
           type: string
-      namespace_id:
+      namespaceId:
         type: string
       metadata:
         type: object
@@ -1846,10 +1846,10 @@ definitions:
         type: string
       metadata:
         type: object
-      created_at:
+      createdAt:
         type: string
         format: date-time
-      updated_at:
+      updatedAt:
         type: string
         format: date-time
   UserRequestBody:

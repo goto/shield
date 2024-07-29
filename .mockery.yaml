@@ -141,6 +141,24 @@ packages:
       CachedRepository:
         config:
           filename: "cached_group_repository.go"
+  github.com/goto/shield/core/relation:
+    config:
+      dir: "core/relation/mocks"
+      outpkg: "mocks"
+      mockname: "{{ .InterfaceName }}"
+    interfaces:
+      UserService:
+        config:
+          filename: user_service.go
+      ActivityService:
+        config:
+          filename: activity_service.go
+      Repository:
+        config: 
+          filename: relation_repository.go
+      AuthzRepository:
+        config: 
+          filename: authz_repository.go
   github.com/goto/shield/core/servicedata:
     config:
       dir: "core/servicedata/mocks"
