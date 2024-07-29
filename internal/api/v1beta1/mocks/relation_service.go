@@ -29,6 +29,61 @@ func (_m *RelationService) EXPECT() *RelationService_Expecter {
 	return &RelationService_Expecter{mock: &_m.Mock}
 }
 
+// CheckIsPublic provides a mock function with given fields: ctx, resourceNS, resourceIdxa, _a3
+func (_m *RelationService) CheckIsPublic(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, _a3 action.Action) (bool, error) {
+	ret := _m.Called(ctx, resourceNS, resourceIdxa, _a3)
+
+	var r0 bool
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace, string, action.Action) (bool, error)); ok {
+		return rf(ctx, resourceNS, resourceIdxa, _a3)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace, string, action.Action) bool); ok {
+		r0 = rf(ctx, resourceNS, resourceIdxa, _a3)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, namespace.Namespace, string, action.Action) error); ok {
+		r1 = rf(ctx, resourceNS, resourceIdxa, _a3)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RelationService_CheckIsPublic_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'CheckIsPublic'
+type RelationService_CheckIsPublic_Call struct {
+	*mock.Call
+}
+
+// CheckIsPublic is a helper method to define mock.On call
+//   - ctx context.Context
+//   - resourceNS namespace.Namespace
+//   - resourceIdxa string
+//   - _a3 action.Action
+func (_e *RelationService_Expecter) CheckIsPublic(ctx interface{}, resourceNS interface{}, resourceIdxa interface{}, _a3 interface{}) *RelationService_CheckIsPublic_Call {
+	return &RelationService_CheckIsPublic_Call{Call: _e.mock.On("CheckIsPublic", ctx, resourceNS, resourceIdxa, _a3)}
+}
+
+func (_c *RelationService_CheckIsPublic_Call) Run(run func(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, _a3 action.Action)) *RelationService_CheckIsPublic_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(namespace.Namespace), args[2].(string), args[3].(action.Action))
+	})
+	return _c
+}
+
+func (_c *RelationService_CheckIsPublic_Call) Return(_a0 bool, _a1 error) *RelationService_CheckIsPublic_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *RelationService_CheckIsPublic_Call) RunAndReturn(run func(context.Context, namespace.Namespace, string, action.Action) (bool, error)) *RelationService_CheckIsPublic_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // CheckPermission provides a mock function with given fields: ctx, usr, resourceNS, resourceIdxa, _a4
 func (_m *RelationService) CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, _a4 action.Action) (bool, error) {
 	ret := _m.Called(ctx, usr, resourceNS, resourceIdxa, _a4)

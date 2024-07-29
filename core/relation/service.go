@@ -149,6 +149,14 @@ func (s Service) CheckPermission(ctx context.Context, usr user.User, resourceNS 
 	}, action)
 }
 
+func (s Service) CheckIsPublic(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error) {
+	return s.authzRepository.CheckIsPublic(ctx, Relation{
+		ObjectNamespace:  resourceNS,
+		ObjectID:         resourceIdxa,
+		SubjectNamespace: namespace.DefinitionUser,
+	}, action)
+}
+
 func (s Service) BulkCheckPermission(ctx context.Context, rels []Relation, acts []action.Action) ([]Permission, error) {
 	return s.authzRepository.BulkCheck(ctx, rels, acts)
 }

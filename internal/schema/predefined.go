@@ -131,7 +131,7 @@ var ServiceDataKeyConfig = NamespaceConfig{
 		},
 	},
 	Roles: map[string][]string{
-		EditorRole: {UserPrincipal, GroupPrincipal},
+		EditorRole: {UserPrincipal, GroupPrincipal, UserPrincipalWildcard},
 		ViewerRole: {UserPrincipal, GroupPrincipal, UserPrincipalWildcard},
 		OwnerRole:  {UserPrincipal, GroupPrincipal},
 	},

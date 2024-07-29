@@ -383,6 +383,40 @@ func TestCreateUser(t *testing.T) {
 			}},
 			err: nil,
 		},
+		{
+			title: "should return success if user service return nil error",
+			setup: func(ctx context.Context, us *mocks.UserService, sds *mocks.ServiceDataService, rs *mocks.RelationService) context.Context {
+				ctx = user.SetContextWithEmail(ctx, "randomuser@gotocompany.com")
+				us.EXPECT().FetchCurrentUser(ctx).Return(user.User{}, user.ErrInvalidEmail)
+				us.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), user.User{
+					Name:     "random user",
+					Email:    "randomuser@gotocompany.com",
+					Metadata: nil,
+				}).Return(
+					user.User{
+						ID:    "new-random-user",
+						Name:  "random user",
+						Email: "randomuser@gotocompany.com",
+					}, nil)
+				return ctx
+			},
+			req: &shieldv1beta1.CreateUserRequest{Body: &shieldv1beta1.UserRequestBody{
+				Name:     "random user",
+				Email:    "randomuser@gotocompany.com",
+				Metadata: &structpb.Struct{},
+			}},
+			want: &shieldv1beta1.CreateUserResponse{User: &shieldv1beta1.User{
+				Id:    "new-random-user",
+				Name:  "random user",
+				Email: "randomuser@gotocompany.com",
+				Metadata: &structpb.Struct{
+					Fields: map[string]*structpb.Value{},
+				},
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			}},
+			err: nil,
+		},
 	}
 
 	for _, tt := range table {
