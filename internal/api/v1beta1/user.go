@@ -103,9 +103,14 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 		return nil, grpcBadBodyError
 	}
 
+	currentUserEmail, ok := user.GetEmailFromContext(ctx)
+	if !ok {
+		return nil, grpcUnauthenticated
+	}
+
 	email := strings.TrimSpace(request.GetBody().GetEmail())
 	if email == "" {
-		return nil, grpcBadBodyError
+		email = currentUserEmail
 	}
 	if !isValidEmail(email) {
 		return nil, user.ErrInvalidEmail
