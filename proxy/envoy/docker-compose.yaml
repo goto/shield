@@ -1,0 +1,10 @@
+services:
+  front-envoy:
+    image: envoyproxy/envoy:v1.31.0
+    volumes:
+    - ./config-ext_proc.yaml:/etc/config.yaml
+    command:
+      -c /etc/config.yaml -l trace
+    ports:
+      - "8888:8888"
+      - "9901:9901"

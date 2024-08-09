@@ -13,7 +13,12 @@ import (
 	"github.com/goto/shield/internal/api/v1beta1"
 	"github.com/goto/shield/internal/server/grpc_interceptors"
 	"github.com/goto/shield/internal/server/health"
+	envoyauthz "github.com/goto/shield/proxy/envoy/authz"
+	envoyextproc "github.com/goto/shield/proxy/envoy/proc"
+	"github.com/goto/shield/proxy/envoy/xds"
 
+	envoy_service_auth_v3 "github.com/envoyproxy/go-control-plane/envoy/service/auth/v3"
+	envoy_service_ext_proc_v3 "github.com/envoyproxy/go-control-plane/envoy/service/ext_proc/v3"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
 	grpc_zap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap"
@@ -86,6 +91,16 @@ func Serve(
 
 	healthHandler := health.NewHandler()
 	grpc_health_v1.RegisterHealthServer(grpcServer, healthHandler)
+
+	// Envoy control plane
+	envoy_service_auth_v3.RegisterAuthorizationServer(grpcServer, envoyauthz.New(logger))
+	envoy_service_ext_proc_v3.RegisterExternalProcessorServer(grpcServer, envoyextproc.NewServer(logger))
+
+	xdsServer, err := xds.NewServer(ctx)
+	if err != nil {
+		return err
+	}
+	xdsServer.Register(grpcServer)
 
 	serviceDataConfig := v1beta1.ServiceDataConfig{MaxUpsert: cfg.ServiceData.MaxNumUpsertData, DefaultServiceDataProject: cfg.ServiceData.DefaultServiceDataProject}
 	err = v1beta1.Register(ctx, grpcServer, deps, cfg.CheckAPILimit, serviceDataConfig)
