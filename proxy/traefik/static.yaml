@@ -1,0 +1,39 @@
+# Traefik static configuration file (/etc/traefik/traefik.yml)
+# See https://doc.traefik.io/traefik/getting-started/configuration-overview/#the-static-configuration
+# and https://doc.traefik.io/traefik/reference/static-configuration/cli/
+
+api:
+  dashboard: true                             # Enable the dashboard
+  insecure: true
+  debug: true
+
+# # Certificate Resolvers are responsible for retrieving certificates from an ACME server
+# # See https://doc.traefik.io/traefik/https/acme/#certificate-resolvers
+# certificatesResolvers:
+#   letsEncrypt:
+#     acme:
+#       email: "letsEncrypt@benjaminrancourt.ca"  # Email address used for registration
+#       storage: "/etc/traefik/acme/acme.json"    # File or key used for certificates storage
+#       tlsChallenge: {}
+
+entryPoints:
+  http:
+    address: ":8888"                            # Create the HTTP entrypoint on port 80
+  #   http:
+  #     redirections:                           # HTTPS redirection (80 to 443)
+  #       entryPoint:
+  #         to: "https"                         # The target element
+  #         scheme: "https"                     # The redirection target scheme
+  # https:
+  #   address: ":443"                           # Create the HTTPS entrypoint on port 443
+  dashboard:
+    address: ":9901"
+
+
+global:
+  checknewversion: false                       # Periodically check if a new version has been released.
+  sendanonymoususage: false                    # Periodically send anonymous usage statistics.
+
+providers:
+  http:
+    endpoint: "http://host.docker.internal:8000/admin/traefikrule"

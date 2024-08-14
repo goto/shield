@@ -1,0 +1,15 @@
+services:
+  traefik-proxy:
+    # The official v3 Traefik docker image
+    image: traefik:v3.1
+    # Enables the web UI and tells Traefik to listen to docker
+    command: --configFile=/etc/config.yaml --api.insecure=true
+    ports:
+      # The HTTP port
+      - "8888:8888"
+      # The Web UI (enabled by --api.insecure=true)
+      - "9901:9901"
+      - "8889:8080"
+    volumes:
+      # So that Traefik can listen to the Docker events
+      - ./static.yaml:/etc/config.yaml

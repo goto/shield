@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/internal/api/v1beta1"
 	"github.com/goto/shield/internal/server/grpc_interceptors"
 	"github.com/goto/shield/internal/server/health"
+	"github.com/goto/shield/proxy/traefik"
 
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpc_middleware "github.com/grpc-ecosystem/go-grpc-middleware"
@@ -62,6 +63,15 @@ func Serve(
 	)
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
+	httpMux.HandleFunc("/admin/traefikrule", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(traefik.RuleYaml))
+	})
+	httpMux.HandleFunc("/admin/traefikcheck", func(w http.ResponseWriter, r *http.Request) {
+		logger.Debug(fmt.Sprintf("%v", r))
+		w.WriteHeader(http.StatusOK)
+		w.Write([]byte(""))
+	})
 
 	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err

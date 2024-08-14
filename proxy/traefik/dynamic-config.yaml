@@ -1,0 +1,49 @@
+http:
+  routers:
+    dashboard:
+      entrypoints:
+        - dashboard
+      service: api@internal
+      rule: PathPrefix(`/api`)
+    shield-route:
+      entrypoints:
+        - http
+      middlewares:
+        - "forward-auth"
+      service: shield-route
+      rule: PathPrefix(`/admin`)
+    shield-route-grpc:
+      entrypoints:
+        - http
+      middlewares:
+        - "forward-auth"
+      service: shield-route-grpc
+      rule: PathPrefix(`/gotocompany.shield.v1beta1.ShieldService`) || Path(`/grpc.reflection.v1.ServerReflection/ServerReflectionInfo`)
+    traefik-route:
+      entrypoints:
+        - http
+      service: traefik-route
+      rule: PathPrefix(`/test1`)
+
+  middlewares:
+    forward-auth:
+      forwardAuth:
+        trustForwardHeader: true
+        address: http://host.k3d.internal:8000/admin/traefikcheck
+
+  services:
+    shield-route:
+      loadBalancer:
+        servers:
+          - url: http://host.k3d.internal:8000
+        passHostHeader: false
+    shield-route-grpc:
+      loadBalancer:
+        servers:
+          - url: h2c://host.k3d.internal:8081
+        passHostHeader: false
+    traefik-route:
+      loadBalancer:
+        servers:
+          - url: https://doc.traefik.io/
+        passHostHeader: false
