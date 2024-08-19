@@ -1,0 +1,1 @@
+helm upgrade kong kong/kong -f values.yaml
