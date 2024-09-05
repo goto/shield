@@ -234,7 +234,9 @@ func (h Handler) ListResourceOfUserGlobal(ctx context.Context, request *shieldv1
 			errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidID):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, resource.ErrInvalidDetail),
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidDetail),
 			errors.Is(err, resource.ErrInvalidURN):
 			return nil, grpcBadBodyError
 		default:
@@ -279,7 +281,9 @@ func (h Handler) ListResourceOfUser(ctx context.Context, request *shieldv1beta1.
 			errors.Is(err, resource.ErrInvalidUUID),
 			errors.Is(err, resource.ErrInvalidID):
 			return nil, grpcResourceNotFoundErr
-		case errors.Is(err, resource.ErrInvalidDetail),
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidDetail),
 			errors.Is(err, resource.ErrInvalidURN):
 			return nil, grpcBadBodyError
 		default:
