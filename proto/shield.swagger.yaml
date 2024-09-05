@@ -1,8 +1,9 @@
 swagger: "2.0"
 info:
-  title: Service Data
+  title: Public
   version: 0.1.0
 tags:
+  - name: PublicService
   - name: ServiceDataService
   - name: ShieldService
 schemes:
@@ -1048,6 +1049,61 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{userId}/resources:
+    get:
+      summary: Get Resources with Authorized User Access
+      operationId: ShieldService_ListResourceOfUserGlobal
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListResourceOfUserGlobalResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          type: string
+        - name: types
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - Resource
+  /v1beta1/users/{userId}/resources/{namespace}/{type}:
+    get:
+      summary: Get Resources with Authorized User Access Under a Resource Type
+      operationId: PublicService_ListResourceOfUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListResourceOfUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          type: string
+        - name: namespace
+          in: path
+          required: true
+          type: string
+        - name: type
+          in: path
+          required: true
+          type: string
+      tags:
+        - Resource
   /v1beta1/users/{userId}/servicedata:
     get:
       summary: Get User Service Data Key
@@ -1466,6 +1522,16 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Relation'
+  ListResourceOfUserGlobalResponse:
+    type: object
+    properties:
+      resources:
+        type: object
+  ListResourceOfUserResponse:
+    type: object
+    properties:
+      resources:
+        type: object
   ListResourcesResponse:
     type: object
     properties:

@@ -78,6 +78,10 @@ func Serve(
 		return err
 	}
 
+	if err := shieldv1beta1.RegisterPublicServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
+		return err
+	}
+
 	grpcServer := grpc.NewServer(
 		grpc.StatsHandler(otelgrpc.NewServerHandler()),
 		getGRPCMiddleware(cfg, logger, nrApp),

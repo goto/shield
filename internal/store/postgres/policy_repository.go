@@ -93,9 +93,16 @@ func (r PolicyRepository) Get(ctx context.Context, id string) (policy.Policy, er
 	return transformedPolicy, nil
 }
 
-func (r PolicyRepository) List(ctx context.Context) ([]policy.Policy, error) {
+func (r PolicyRepository) List(ctx context.Context, filter policy.Filters) ([]policy.Policy, error) {
 	var fetchedPolicies []Policy
-	query, params, err := r.buildListQuery().ToSQL()
+
+	listQuery := r.buildListQuery()
+
+	if filter.NamespaceID != "" {
+		listQuery = listQuery.Where(goqu.Ex{"namespace_id": filter.NamespaceID})
+	}
+
+	query, params, err := listQuery.ToSQL()
 	if err != nil {
 		return []policy.Policy{}, fmt.Errorf("%w: %s", queryErr, err)
 	}

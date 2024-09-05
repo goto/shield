@@ -72,6 +72,11 @@ type PagedResources struct {
 	Resources []Resource
 }
 
+type ResourcePermission struct {
+	ResourceIDs []string
+	Permission  string
+}
+
 type LogData struct {
 	Entity         string `mapstructure:"entity"`
 	URN            string `mapstructure:"urn"`

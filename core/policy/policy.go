@@ -8,7 +8,7 @@ const AuditEntity = "policy"
 
 type Repository interface {
 	Get(ctx context.Context, id string) (Policy, error)
-	List(ctx context.Context) ([]Policy, error)
+	List(ctx context.Context, filter Filters) ([]Policy, error)
 	Upsert(ctx context.Context, pol *Policy) (string, error)
 	Update(ctx context.Context, pol *Policy) (string, error)
 }

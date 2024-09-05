@@ -38,7 +38,7 @@ func TestListPolicies(t *testing.T) {
 		{
 			title: "should return internal error if policy service return some error",
 			setup: func(ps *mocks.PolicyService) {
-				ps.EXPECT().List(mock.Anything).Return([]policy.Policy{}, errors.New("some error"))
+				ps.EXPECT().List(mock.Anything, policy.Filters{}).Return([]policy.Policy{}, errors.New("some error"))
 			},
 			want: nil,
 			err:  status.Errorf(codes.Internal, ErrInternalServer.Error()),
@@ -50,7 +50,7 @@ func TestListPolicies(t *testing.T) {
 				for _, p := range testPolicyMap {
 					testPoliciesList = append(testPoliciesList, p)
 				}
-				ps.EXPECT().List(mock.Anything).Return(testPoliciesList, nil)
+				ps.EXPECT().List(mock.Anything, policy.Filters{}).Return(testPoliciesList, nil)
 			},
 			want: &shieldv1beta1.ListPoliciesResponse{Policies: []*shieldv1beta1.Policy{
 				{
