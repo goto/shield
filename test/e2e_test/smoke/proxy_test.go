@@ -25,7 +25,7 @@ type EndToEndProxySmokeTestSuite struct {
 	projID                  string
 	projSlug                string
 	groupID                 string
-	client                  shieldv1beta1.ShieldServiceClient
+	client                  shieldv1beta1.AdminServiceClient
 	serviceDataClient       shieldv1beta1.ServiceDataServiceClient
 	cancelClient            func()
 	cancelServiceDataClient func()

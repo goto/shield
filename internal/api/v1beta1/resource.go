@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
@@ -25,8 +26,8 @@ type ResourceService interface {
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
-	ListResourceOfUser(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error)
-	ListResourceOfUserGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error)
+	ListUserResources(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error)
+	ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -224,20 +225,20 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}, nil
 }
 
-func (h Handler) ListResourceOfUserGlobal(ctx context.Context, request *shieldv1beta1.ListResourceOfUserGlobalRequest) (*shieldv1beta1.ListResourceOfUserGlobalResponse, error) {
+func (h Handler) ListUserResourcesGlobal(ctx context.Context, request *shieldv1beta1.ListUserResourcesGlobalRequest) (*shieldv1beta1.ListUserResourcesGlobalResponse, error) {
 	logger := grpczap.Extract(ctx)
-	resources, err := h.resourceService.ListResourceOfUserGlobal(ctx, request.UserId, request.Types)
+	resources, err := h.resourceService.ListUserResourcesGlobal(ctx, request.UserId, request.Types)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ErrNotExist),
-			errors.Is(err, resource.ErrInvalidUUID),
-			errors.Is(err, resource.ErrInvalidID):
+		case errors.Is(err, resource.ErrNotExist):
 			return nil, grpcResourceNotFoundErr
 		case errors.Is(err, user.ErrInvalidEmail),
 			errors.Is(err, user.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidDetail),
-			errors.Is(err, resource.ErrInvalidURN):
+			errors.Is(err, resource.ErrInvalidURN),
+			errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -265,26 +266,26 @@ func (h Handler) ListResourceOfUserGlobal(ctx context.Context, request *shieldv1
 		Fields: result,
 	}
 
-	return &shieldv1beta1.ListResourceOfUserGlobalResponse{
+	return &shieldv1beta1.ListUserResourcesGlobalResponse{
 		Resources: resultPB,
 	}, nil
 }
 
-func (h Handler) ListResourceOfUser(ctx context.Context, request *shieldv1beta1.ListResourceOfUserRequest) (*shieldv1beta1.ListResourceOfUserResponse, error) {
+func (h Handler) ListUserResources(ctx context.Context, request *shieldv1beta1.ListUserResourcesRequest) (*shieldv1beta1.ListUserResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	resources, err := h.resourceService.ListResourceOfUser(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type))
+	resources, err := h.resourceService.ListUserResources(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type))
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
-		case errors.Is(err, resource.ErrNotExist),
-			errors.Is(err, resource.ErrInvalidUUID),
-			errors.Is(err, resource.ErrInvalidID):
+		case errors.Is(err, resource.ErrNotExist):
 			return nil, grpcResourceNotFoundErr
 		case errors.Is(err, user.ErrInvalidEmail),
 			errors.Is(err, user.ErrNotExist),
 			errors.Is(err, resource.ErrInvalidDetail),
-			errors.Is(err, resource.ErrInvalidURN):
+			errors.Is(err, resource.ErrInvalidURN),
+			errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
@@ -297,7 +298,7 @@ func (h Handler) ListResourceOfUser(ctx context.Context, request *shieldv1beta1.
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.ListResourceOfUserResponse{
+	return &shieldv1beta1.ListUserResourcesResponse{
 		Resources: resourcesPB,
 	}, nil
 }

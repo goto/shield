@@ -19,7 +19,7 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
+func createClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func(), error) {
 	dialTimeoutCtx, dialCancel := context.WithTimeout(ctx, time.Second*2)
 	conn, err := createConnection(dialTimeoutCtx, host)
 	if err != nil {
@@ -31,7 +31,7 @@ func createClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 		conn.Close()
 	}
 
-	client := shieldv1beta1.NewShieldServiceClient(conn)
+	client := shieldv1beta1.NewAdminServiceClient(conn)
 	return client, cancel, nil
 }
 

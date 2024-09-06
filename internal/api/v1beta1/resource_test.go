@@ -3,9 +3,11 @@ package v1beta1
 import (
 	"context"
 	"errors"
+	"fmt"
 	"testing"
 	"time"
 
+	structpb "github.com/golang/protobuf/ptypes/struct"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
@@ -49,6 +51,13 @@ var (
 		CreatedAt: timestamppb.New(time.Time{}),
 		UpdatedAt: timestamppb.New(time.Time{}),
 	}
+	testUserResourcesNamespace = "entropy"
+	testUserResourcesTypes     = []string{"firehose", "dagger"}
+	testResourcePermission     = resource.ResourcePermission{
+		ResourceIDs: []string{uuid.NewString(), uuid.NewString()},
+		Permission:  "view",
+	}
+	testResourcePermissionGlobal = []resource.ResourcePermission{testResourcePermission}
 )
 
 func TestHandler_ListResources(t *testing.T) {
@@ -613,6 +622,205 @@ func TestHandler_UpdateResource(t *testing.T) {
 			}
 			mockDep := Handler{resourceService: mockResourceSrv, projectService: mockProjectSrv}
 			resp, err := mockDep.UpdateResource(context.TODO(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListUserResources(t *testing.T) {
+	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission})
+	if err != nil {
+		t.Error("failed setting up test variable")
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *shieldv1beta1.ListUserResourcesRequest
+		want    *shieldv1beta1.ListUserResourcesResponse
+		wantErr error
+	}{
+		{
+			name: "should return success if service return nil err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
+					Return([]resource.ResourcePermission{testResourcePermission}, nil)
+			},
+			request: &shieldv1beta1.ListUserResourcesRequest{
+				UserId:    testUserID,
+				Namespace: testUserResourcesNamespace,
+				Type:      testUserResourcesTypes[0],
+			},
+			want: &shieldv1beta1.ListUserResourcesResponse{
+				Resources: testResponse,
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return invalid if userID is invalid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
+					Return([]resource.ResourcePermission{}, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.ListUserResourcesRequest{
+				UserId:    testUserID,
+				Namespace: testUserResourcesNamespace,
+				Type:      testUserResourcesTypes[0],
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return resource not found if service return resource not found",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
+					Return([]resource.ResourcePermission{}, resource.ErrNotExist)
+			},
+			request: &shieldv1beta1.ListUserResourcesRequest{
+				UserId:    testUserID,
+				Namespace: testUserResourcesNamespace,
+				Type:      testUserResourcesTypes[0],
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return internal server error if service return error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
+					Return([]resource.ResourcePermission{}, relation.ErrFetchingUser)
+			},
+			request: &shieldv1beta1.ListUserResourcesRequest{
+				UserId:    testUserID,
+				Namespace: testUserResourcesNamespace,
+				Type:      testUserResourcesTypes[0],
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return no error if service return empty permission",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
+					Return([]resource.ResourcePermission{}, nil)
+			},
+			request: &shieldv1beta1.ListUserResourcesRequest{
+				UserId:    testUserID,
+				Namespace: testUserResourcesNamespace,
+				Type:      testUserResourcesTypes[0],
+			},
+			want: &shieldv1beta1.ListUserResourcesResponse{Resources: &structpb.Struct{
+				Fields: map[string]*structpb.Value{},
+			}},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			mockDep := Handler{resourceService: mockResourceSrv}
+			resp, err := mockDep.ListUserResources(context.TODO(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_ListUserResourcesGlobal(t *testing.T) {
+	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission})
+	if err != nil {
+		t.Error("failed setting up test variable")
+	}
+
+	testResourcePermissionGlobalResponse := &structpb.Value{
+		Kind: &structpb.Value_StructValue{StructValue: testResponse},
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *shieldv1beta1.ListUserResourcesGlobalRequest
+		want    *shieldv1beta1.ListUserResourcesGlobalResponse
+		wantErr error
+	}{
+		{
+			name: "should return success if service return nil err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+					Return(map[string][]resource.ResourcePermission{
+						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermissionGlobal,
+					}, nil)
+			},
+			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+				UserId: testUserID,
+				Types:  []string{},
+			},
+			want: &shieldv1beta1.ListUserResourcesGlobalResponse{
+				Resources: &structpb.Struct{
+					Fields: map[string]*structpb.Value{
+						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermissionGlobalResponse,
+					},
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return invalid if userID is invalid",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+					Return(nil, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+				UserId: testUserID,
+				Types:  []string{},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return resource not found if service return resource not found",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+					Return(nil, resource.ErrNotExist)
+			},
+			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+				UserId: testUserID,
+				Types:  []string{},
+			},
+			want:    nil,
+			wantErr: grpcResourceNotFoundErr,
+		},
+		{
+			name: "should return internal server error if service return error",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+					Return(nil, relation.ErrFetchingUser)
+			},
+			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+				UserId: testUserID,
+				Types:  []string{},
+			},
+			want:    nil,
+			wantErr: grpcInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			mockDep := Handler{resourceService: mockResourceSrv}
+			resp, err := mockDep.ListUserResourcesGlobal(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

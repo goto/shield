@@ -49,7 +49,7 @@ func createConnection(ctx context.Context, host string) (*grpc.ClientConn, error
 	return grpc.DialContext(ctx, host, opts...)
 }
 
-func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldServiceClient, func(), error) {
+func CreateClient(ctx context.Context, host string) (shieldv1beta1.AdminServiceClient, func(), error) {
 	conn, err := createConnection(ctx, host)
 	if err != nil {
 		return nil, nil, err
@@ -59,7 +59,7 @@ func CreateClient(ctx context.Context, host string) (shieldv1beta1.ShieldService
 		conn.Close()
 	}
 
-	client := shieldv1beta1.NewShieldServiceClient(conn)
+	client := shieldv1beta1.NewAdminServiceClient(conn)
 	return client, cancel, nil
 }
 
@@ -77,7 +77,7 @@ func CreateServiceDataClient(ctx context.Context, host string) (shieldv1beta1.Se
 	return client, cancel, nil
 }
 
-func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapUser(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-user.json")
 	if err != nil {
 		return err
@@ -102,7 +102,7 @@ func BootstrapUser(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, cr
 	return nil
 }
 
-func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapMetadataKey(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-metadata-key.json")
 	if err != nil {
 		return err
@@ -190,7 +190,7 @@ func BootstrapUserServiceData(ctx context.Context, cl shieldv1beta1.ServiceDataS
 	return nil
 }
 
-func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-organization.json")
 	if err != nil {
 		return err
@@ -215,7 +215,7 @@ func BootstrapOrganization(ctx context.Context, cl shieldv1beta1.ShieldServiceCl
 	return nil
 }
 
-func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapProject(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-project.json")
 	if err != nil {
 		return err
@@ -252,7 +252,7 @@ func BootstrapProject(ctx context.Context, cl shieldv1beta1.ShieldServiceClient,
 	return nil
 }
 
-func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapGroup(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-group.json")
 	if err != nil {
 		return err
@@ -291,7 +291,7 @@ func BootstrapGroup(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, c
 	return nil
 }
 
-func AssignGroupManager(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string) error {
+func AssignGroupManager(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string) error {
 	groupsResp, err := cl.ListGroups(ctx, &shieldv1beta1.ListGroupsRequest{})
 	if err != nil {
 		return err
@@ -328,7 +328,7 @@ func AssignGroupManager(ctx context.Context, cl shieldv1beta1.ShieldServiceClien
 	return nil
 }
 
-func BootstrapResource(ctx context.Context, cl shieldv1beta1.ShieldServiceClient, creatorEmail string, testDataPath string) error {
+func BootstrapResource(ctx context.Context, cl shieldv1beta1.AdminServiceClient, creatorEmail string, testDataPath string) error {
 	testFixtureJSON, err := os.ReadFile(testDataPath + "/mocks/mock-resource.json")
 	if err != nil {
 		return err

@@ -21,7 +21,7 @@ type ServiceDataConfig struct {
 type Handler struct {
 	shieldv1beta1.UnimplementedShieldServiceServer
 	shieldv1beta1.UnimplementedServiceDataServiceServer
-	shieldv1beta1.UnimplementedPublicServiceServer
+	shieldv1beta1.UnimplementedAdminServiceServer
 	orgService         OrganizationService
 	projectService     ProjectService
 	groupService       GroupService
@@ -61,6 +61,6 @@ func Register(ctx context.Context, s *grpc.Server, deps api.Deps, checkAPILimit 
 	}
 	s.RegisterService(&shieldv1beta1.ShieldService_ServiceDesc, handler)
 	s.RegisterService(&shieldv1beta1.ServiceDataService_ServiceDesc, handler)
-	s.RegisterService(&shieldv1beta1.PublicService_ServiceDesc, handler)
+	s.RegisterService(&shieldv1beta1.AdminService_ServiceDesc, handler)
 	return nil
 }

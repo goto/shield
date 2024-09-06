@@ -63,7 +63,7 @@ func Serve(
 
 	httpMux.Handle("/admin/", http.StripPrefix("/admin", grpcGateway))
 
-	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+	if err := shieldv1beta1.RegisterAdminServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
 		return err
 	}
 
@@ -78,7 +78,7 @@ func Serve(
 		return err
 	}
 
-	if err := shieldv1beta1.RegisterPublicServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
+	if err := shieldv1beta1.RegisterShieldServiceHandler(ctx, grpcServiceDataGateway, grpcConn); err != nil {
 		return err
 	}
 

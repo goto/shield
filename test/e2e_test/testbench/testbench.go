@@ -140,7 +140,7 @@ func (te *TestBench) CleanUp() error {
 	return nil
 }
 
-func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.ServiceDataServiceClient, *config.Shield, func(), func(), func()) {
+func SetupTests(t *testing.T) (shieldv1beta1.AdminServiceClient, shieldv1beta1.ServiceDataServiceClient, *config.Shield, func(), func(), func()) {
 	t.Helper()
 
 	wd, err := os.Getwd()

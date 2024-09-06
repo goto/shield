@@ -259,12 +259,12 @@ func (_c *ResourceService_List_Call) RunAndReturn(run func(context.Context, reso
 	return _c
 }
 
-// ListResourceOfUser provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListResourceOfUser(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error) {
+// ListUserResources provides a mock function with given fields: ctx, userID, resourceType
+func (_m *ResourceService) ListUserResources(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error) {
 	ret := _m.Called(ctx, userID, resourceType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListResourceOfUser")
+		panic("no return value specified for ListUserResources")
 	}
 
 	var r0 []resource.ResourcePermission
@@ -289,42 +289,42 @@ func (_m *ResourceService) ListResourceOfUser(ctx context.Context, userID string
 	return r0, r1
 }
 
-// ResourceService_ListResourceOfUser_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceOfUser'
-type ResourceService_ListResourceOfUser_Call struct {
+// ResourceService_ListUserResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserResources'
+type ResourceService_ListUserResources_Call struct {
 	*mock.Call
 }
 
-// ListResourceOfUser is a helper method to define mock.On call
+// ListUserResources is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
 //   - resourceType string
-func (_e *ResourceService_Expecter) ListResourceOfUser(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListResourceOfUser_Call {
-	return &ResourceService_ListResourceOfUser_Call{Call: _e.mock.On("ListResourceOfUser", ctx, userID, resourceType)}
+func (_e *ResourceService_Expecter) ListUserResources(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListUserResources_Call {
+	return &ResourceService_ListUserResources_Call{Call: _e.mock.On("ListUserResources", ctx, userID, resourceType)}
 }
 
-func (_c *ResourceService_ListResourceOfUser_Call) Run(run func(ctx context.Context, userID string, resourceType string)) *ResourceService_ListResourceOfUser_Call {
+func (_c *ResourceService_ListUserResources_Call) Run(run func(ctx context.Context, userID string, resourceType string)) *ResourceService_ListUserResources_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *ResourceService_ListResourceOfUser_Call) Return(_a0 []resource.ResourcePermission, _a1 error) *ResourceService_ListResourceOfUser_Call {
+func (_c *ResourceService_ListUserResources_Call) Return(_a0 []resource.ResourcePermission, _a1 error) *ResourceService_ListUserResources_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_ListResourceOfUser_Call) RunAndReturn(run func(context.Context, string, string) ([]resource.ResourcePermission, error)) *ResourceService_ListResourceOfUser_Call {
+func (_c *ResourceService_ListUserResources_Call) RunAndReturn(run func(context.Context, string, string) ([]resource.ResourcePermission, error)) *ResourceService_ListUserResources_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// ListResourceOfUserGlobal provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListResourceOfUserGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error) {
+// ListUserResourcesGlobal provides a mock function with given fields: ctx, userID, resourceType
+func (_m *ResourceService) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error) {
 	ret := _m.Called(ctx, userID, resourceType)
 
 	if len(ret) == 0 {
-		panic("no return value specified for ListResourceOfUserGlobal")
+		panic("no return value specified for ListUserResourcesGlobal")
 	}
 
 	var r0 map[string][]resource.ResourcePermission
@@ -349,32 +349,32 @@ func (_m *ResourceService) ListResourceOfUserGlobal(ctx context.Context, userID 
 	return r0, r1
 }
 
-// ResourceService_ListResourceOfUserGlobal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListResourceOfUserGlobal'
-type ResourceService_ListResourceOfUserGlobal_Call struct {
+// ResourceService_ListUserResourcesGlobal_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserResourcesGlobal'
+type ResourceService_ListUserResourcesGlobal_Call struct {
 	*mock.Call
 }
 
-// ListResourceOfUserGlobal is a helper method to define mock.On call
+// ListUserResourcesGlobal is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
 //   - resourceType []string
-func (_e *ResourceService_Expecter) ListResourceOfUserGlobal(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListResourceOfUserGlobal_Call {
-	return &ResourceService_ListResourceOfUserGlobal_Call{Call: _e.mock.On("ListResourceOfUserGlobal", ctx, userID, resourceType)}
+func (_e *ResourceService_Expecter) ListUserResourcesGlobal(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListUserResourcesGlobal_Call {
+	return &ResourceService_ListUserResourcesGlobal_Call{Call: _e.mock.On("ListUserResourcesGlobal", ctx, userID, resourceType)}
 }
 
-func (_c *ResourceService_ListResourceOfUserGlobal_Call) Run(run func(ctx context.Context, userID string, resourceType []string)) *ResourceService_ListResourceOfUserGlobal_Call {
+func (_c *ResourceService_ListUserResourcesGlobal_Call) Run(run func(ctx context.Context, userID string, resourceType []string)) *ResourceService_ListUserResourcesGlobal_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].([]string))
 	})
 	return _c
 }
 
-func (_c *ResourceService_ListResourceOfUserGlobal_Call) Return(_a0 map[string][]resource.ResourcePermission, _a1 error) *ResourceService_ListResourceOfUserGlobal_Call {
+func (_c *ResourceService_ListUserResourcesGlobal_Call) Return(_a0 map[string][]resource.ResourcePermission, _a1 error) *ResourceService_ListUserResourcesGlobal_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_ListResourceOfUserGlobal_Call) RunAndReturn(run func(context.Context, string, []string) (map[string][]resource.ResourcePermission, error)) *ResourceService_ListResourceOfUserGlobal_Call {
+func (_c *ResourceService_ListUserResourcesGlobal_Call) RunAndReturn(run func(context.Context, string, []string) (map[string][]resource.ResourcePermission, error)) *ResourceService_ListUserResourcesGlobal_Call {
 	_c.Call.Return(run)
 	return _c
 }
