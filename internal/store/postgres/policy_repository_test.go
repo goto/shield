@@ -200,6 +200,7 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 	type testCase struct {
 		Description     string
 		ExpectedPolicys []policy.Policy
+		Filter          policy.Filters
 		ErrString       string
 	}
 
@@ -224,11 +225,26 @@ func (s *PolicyRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		{
+			Description: "should get all policys with filter",
+			Filter:      policy.Filters{NamespaceID: "ns2"},
+			ExpectedPolicys: []policy.Policy{
+				{
+					RoleID:      "ns2:role2",
+					NamespaceID: "ns2",
+					ActionID:    "action2",
+				},
+			},
+		},
+		{
+			Description: "should get none policys with filter",
+			Filter:      policy.Filters{NamespaceID: "ns3"},
+		},
 	}
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.List(s.ctx, policy.Filters{})
+			got, err := s.repository.List(s.ctx, tc.Filter)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
