@@ -260,23 +260,23 @@ func (_c *ResourceService_List_Call) RunAndReturn(run func(context.Context, reso
 }
 
 // ListUserResources provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListUserResources(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error) {
+func (_m *ResourceService) ListUserResources(ctx context.Context, userID string, resourceType string) (map[string][]string, error) {
 	ret := _m.Called(ctx, userID, resourceType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUserResources")
 	}
 
-	var r0 []resource.ResourcePermission
+	var r0 map[string][]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) ([]resource.ResourcePermission, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (map[string][]string, error)); ok {
 		return rf(ctx, userID, resourceType)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) []resource.ResourcePermission); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) map[string][]string); ok {
 		r0 = rf(ctx, userID, resourceType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).([]resource.ResourcePermission)
+			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 
@@ -309,34 +309,34 @@ func (_c *ResourceService_ListUserResources_Call) Run(run func(ctx context.Conte
 	return _c
 }
 
-func (_c *ResourceService_ListUserResources_Call) Return(_a0 []resource.ResourcePermission, _a1 error) *ResourceService_ListUserResources_Call {
+func (_c *ResourceService_ListUserResources_Call) Return(_a0 map[string][]string, _a1 error) *ResourceService_ListUserResources_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_ListUserResources_Call) RunAndReturn(run func(context.Context, string, string) ([]resource.ResourcePermission, error)) *ResourceService_ListUserResources_Call {
+func (_c *ResourceService_ListUserResources_Call) RunAndReturn(run func(context.Context, string, string) (map[string][]string, error)) *ResourceService_ListUserResources_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
 // ListUserResourcesGlobal provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error) {
+func (_m *ResourceService) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string]map[string][]string, error) {
 	ret := _m.Called(ctx, userID, resourceType)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUserResourcesGlobal")
 	}
 
-	var r0 map[string][]resource.ResourcePermission
+	var r0 map[string]map[string][]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (map[string][]resource.ResourcePermission, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (map[string]map[string][]string, error)); ok {
 		return rf(ctx, userID, resourceType)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) map[string][]resource.ResourcePermission); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) map[string]map[string][]string); ok {
 		r0 = rf(ctx, userID, resourceType)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]resource.ResourcePermission)
+			r0 = ret.Get(0).(map[string]map[string][]string)
 		}
 	}
 
@@ -369,12 +369,12 @@ func (_c *ResourceService_ListUserResourcesGlobal_Call) Run(run func(ctx context
 	return _c
 }
 
-func (_c *ResourceService_ListUserResourcesGlobal_Call) Return(_a0 map[string][]resource.ResourcePermission, _a1 error) *ResourceService_ListUserResourcesGlobal_Call {
+func (_c *ResourceService_ListUserResourcesGlobal_Call) Return(_a0 map[string]map[string][]string, _a1 error) *ResourceService_ListUserResourcesGlobal_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_ListUserResourcesGlobal_Call) RunAndReturn(run func(context.Context, string, []string) (map[string][]resource.ResourcePermission, error)) *ResourceService_ListUserResourcesGlobal_Call {
+func (_c *ResourceService_ListUserResourcesGlobal_Call) RunAndReturn(run func(context.Context, string, []string) (map[string]map[string][]string, error)) *ResourceService_ListUserResourcesGlobal_Call {
 	_c.Call.Return(run)
 	return _c
 }

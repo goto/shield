@@ -54,14 +54,9 @@ var (
 	testUserResourcesNamespace = "entropy"
 	testUserResourcesTypes     = []string{"firehose", "dagger"}
 	testResourcePermission     = resource.ResourcePermission{
-		ResourceIDs: []string{uuid.NewString(), uuid.NewString()},
-		Permission:  "view",
+		testResourceID:   []string{"view", "edit"},
+		uuid.NewString(): []string{"edit"},
 	}
-	testResourcePermission1 = resource.ResourcePermission{
-		ResourceIDs: []string{uuid.NewString(), uuid.NewString()},
-		Permission:  "edit",
-	}
-	testResourcePermissionGlobal = []resource.ResourcePermission{testResourcePermission, testResourcePermission1}
 )
 
 func TestHandler_ListResources(t *testing.T) {
@@ -633,7 +628,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 }
 
 func TestHandler_ListUserResources(t *testing.T) {
-	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission})
+	testResponse, err := mapToStructpb(testResourcePermission)
 	if err != nil {
 		t.Error("failed setting up test variable")
 	}
@@ -650,7 +645,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
-					Return([]resource.ResourcePermission{testResourcePermission}, nil)
+					Return(testResourcePermission, nil)
 			},
 			request: &shieldv1beta1.ListUserResourcesRequest{
 				UserId:    testUserID,
@@ -667,7 +662,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
-					Return([]resource.ResourcePermission{}, user.ErrInvalidEmail)
+					Return(resource.ResourcePermission{}, user.ErrInvalidEmail)
 			},
 			request: &shieldv1beta1.ListUserResourcesRequest{
 				UserId:    testUserID,
@@ -682,7 +677,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
-					Return([]resource.ResourcePermission{}, resource.ErrNotExist)
+					Return(resource.ResourcePermission{}, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.ListUserResourcesRequest{
 				UserId:    testUserID,
@@ -697,7 +692,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
-					Return([]resource.ResourcePermission{}, relation.ErrFetchingUser)
+					Return(resource.ResourcePermission{}, relation.ErrFetchingUser)
 			},
 			request: &shieldv1beta1.ListUserResourcesRequest{
 				UserId:    testUserID,
@@ -712,7 +707,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
-					Return([]resource.ResourcePermission{}, nil)
+					Return(resource.ResourcePermission{}, nil)
 			},
 			request: &shieldv1beta1.ListUserResourcesRequest{
 				UserId:    testUserID,
@@ -740,7 +735,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 }
 
 func TestHandler_ListUserResourcesGlobal(t *testing.T) {
-	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission, testResourcePermission1})
+	testResponse, err := mapToStructpb(testResourcePermission)
 	if err != nil {
 		t.Error("failed setting up test variable")
 	}
@@ -760,8 +755,8 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 			name: "should return success if service return nil err",
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
-					Return(map[string][]resource.ResourcePermission{
-						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermissionGlobal,
+					Return(map[string]resource.ResourcePermission{
+						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermission,
 					}, nil)
 			},
 			request: &shieldv1beta1.ListUserResourcesGlobalRequest{

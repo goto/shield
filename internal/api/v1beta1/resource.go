@@ -26,8 +26,8 @@ type ResourceService interface {
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
-	ListUserResources(ctx context.Context, userID string, resourceType string) ([]resource.ResourcePermission, error)
-	ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]resource.ResourcePermission, error)
+	ListUserResources(ctx context.Context, userID string, resourceType string) (resource.ResourcePermission, error)
+	ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string]resource.ResourcePermission, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -247,7 +247,7 @@ func (h Handler) ListUserResourcesGlobal(ctx context.Context, request *shieldv1b
 
 	result := make(map[string]*structpb.Value)
 	for key, value := range resources {
-		resourcePB, err := transformListResourcePrincipalToPB(value)
+		resourcePB, err := mapToStructpb(value)
 		if err != nil {
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
@@ -292,7 +292,7 @@ func (h Handler) ListUserResources(ctx context.Context, request *shieldv1beta1.L
 		}
 	}
 
-	resourcesPB, err := transformListResourcePrincipalToPB(resources)
+	resourcesPB, err := mapToStructpb(resources)
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError
@@ -326,29 +326,9 @@ func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, erro
 	}, nil
 }
 
-func transformListResourcePrincipalToPB(from []resource.ResourcePermission) (*structpb.Struct, error) {
-	to := make(map[string][]string)
-	for _, f := range from {
-		for _, res := range f.ResourceIDs {
-			if _, ok := to[res]; !ok {
-				to[res] = []string{f.Permission}
-			} else {
-				to[res] = append(to[res], f.Permission)
-			}
-		}
-	}
-
-	toPB, err := mapToStructpb(to)
-	if err != nil {
-		return nil, err
-	}
-
-	return toPB, nil
-}
-
-func mapToStructpb(m map[string][]string) (*structpb.Struct, error) {
+func mapToStructpb(p resource.ResourcePermission) (*structpb.Struct, error) {
 	fields := make(map[string]*structpb.Value)
-	for key, values := range m {
+	for key, values := range p {
 		listValue := &structpb.ListValue{}
 		for _, value := range values {
 			listValue.Values = append(listValue.Values, &structpb.Value{

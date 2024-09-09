@@ -401,30 +401,30 @@ func (s Service) BulkCheckAuthz(ctx context.Context, resources []Resource, actio
 	return s.relationService.BulkCheckPermission(ctx, relations, actions)
 }
 
-func (s Service) ListUserResources(ctx context.Context, userID string, resourceType string) ([]ResourcePermission, error) {
+func (s Service) ListUserResources(ctx context.Context, userID string, resourceType string) (ResourcePermission, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
-		return []ResourcePermission{}, err
+		return ResourcePermission{}, err
 	}
 
 	res, err := s.listUserResources(ctx, resourceType, user)
 	if err != nil {
-		return []ResourcePermission{}, err
+		return ResourcePermission{}, err
 	}
 
 	return res, nil
 }
 
-func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]ResourcePermission, error) {
+func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string]ResourcePermission, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
-		return map[string][]ResourcePermission{}, err
+		return map[string]ResourcePermission{}, err
 	}
 
 	if len(resourceType) == 0 {
 		namespaces, err := s.namespaceService.List(ctx)
 		if err != nil {
-			return map[string][]ResourcePermission{}, err
+			return map[string]ResourcePermission{}, err
 		}
 
 		for _, ns := range namespaces {
@@ -435,12 +435,12 @@ func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, res
 		}
 	}
 
-	result := make(map[string][]ResourcePermission)
+	result := make(map[string]ResourcePermission)
 	for _, res := range resourceType {
 		if _, ok := result[res]; !ok {
 			list, err := s.listUserResources(ctx, res, user)
 			if err != nil {
-				return map[string][]ResourcePermission{}, err
+				return map[string]ResourcePermission{}, err
 			}
 			result[res] = list
 		}
@@ -449,13 +449,13 @@ func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, res
 	return result, nil
 }
 
-func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User) ([]ResourcePermission, error) {
+func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User) (ResourcePermission, error) {
 	policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
 	if err != nil {
-		return []ResourcePermission{}, err
+		return ResourcePermission{}, err
 	}
 
-	var res []ResourcePermission
+	res := make(ResourcePermission)
 	actSet := make(map[string]bool)
 	for _, policy := range policies {
 		action := strings.Split(policy.ActionID, ".")[0]
@@ -466,13 +466,16 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 		}
 		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
 		if err != nil {
-			return []ResourcePermission{}, err
+			return ResourcePermission{}, err
 		}
 
-		res = append(res, ResourcePermission{
-			Permission:  action,
-			ResourceIDs: resources,
-		})
+		for _, r := range resources {
+			if _, ok := res[r]; !ok {
+				res[r] = []string{action}
+			} else {
+				res[r] = append(res[r], action)
+			}
+		}
 	}
 
 	return res, nil
