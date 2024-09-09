@@ -252,11 +252,6 @@ func (h Handler) ListUserResourcesGlobal(ctx context.Context, request *shieldv1b
 			logger.Error(err.Error())
 			return nil, grpcInternalServerError
 		}
-
-		if len(resourcePB.Fields) == 0 {
-			continue
-		}
-
 		result[key] = &structpb.Value{
 			Kind: &structpb.Value_StructValue{StructValue: resourcePB},
 		}

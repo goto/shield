@@ -442,7 +442,9 @@ func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, res
 			if err != nil {
 				return map[string]ResourcePermission{}, err
 			}
-			result[res] = list
+			if len(list) != 0 {
+				result[res] = list
+			}
 		}
 	}
 
