@@ -407,6 +407,49 @@ func (s Service) ListUserResources(ctx context.Context, userID string, resourceT
 		return []ResourcePermission{}, err
 	}
 
+	res, err := s.listUserResources(ctx, resourceType, user)
+	if err != nil {
+		return []ResourcePermission{}, err
+	}
+
+	return res, nil
+}
+
+func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]ResourcePermission, error) {
+	user, err := s.userService.Get(ctx, userID)
+	if err != nil {
+		return map[string][]ResourcePermission{}, err
+	}
+
+	if len(resourceType) == 0 {
+		namespaces, err := s.namespaceService.List(ctx)
+		if err != nil {
+			return map[string][]ResourcePermission{}, err
+		}
+
+		for _, ns := range namespaces {
+			if namespace.IsSystemNamespaceID(ns.ID) {
+				continue
+			}
+			resourceType = append(resourceType, ns.ID)
+		}
+	}
+
+	result := make(map[string][]ResourcePermission)
+	for _, res := range resourceType {
+		if _, ok := result[res]; !ok {
+			list, err := s.listUserResources(ctx, res, user)
+			if err != nil {
+				return map[string][]ResourcePermission{}, err
+			}
+			result[res] = list
+		}
+	}
+
+	return result, nil
+}
+
+func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User) ([]ResourcePermission, error) {
 	policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
 	if err != nil {
 		return []ResourcePermission{}, err
@@ -433,33 +476,4 @@ func (s Service) ListUserResources(ctx context.Context, userID string, resourceT
 	}
 
 	return res, nil
-}
-
-func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string][]ResourcePermission, error) {
-	if len(resourceType) == 0 {
-		namespaces, err := s.namespaceService.List(ctx)
-		if err != nil {
-			return map[string][]ResourcePermission{}, err
-		}
-
-		for _, ns := range namespaces {
-			if namespace.IsSystemNamespaceID(ns.ID) {
-				continue
-			}
-			resourceType = append(resourceType, ns.ID)
-		}
-	}
-
-	result := make(map[string][]ResourcePermission)
-	for _, res := range resourceType {
-		if _, ok := result[res]; !ok {
-			list, err := s.ListUserResources(ctx, userID, res)
-			if err != nil {
-				return map[string][]ResourcePermission{}, err
-			}
-			result[res] = list
-		}
-	}
-
-	return result, nil
 }
