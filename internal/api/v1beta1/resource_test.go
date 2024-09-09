@@ -57,7 +57,11 @@ var (
 		ResourceIDs: []string{uuid.NewString(), uuid.NewString()},
 		Permission:  "view",
 	}
-	testResourcePermissionGlobal = []resource.ResourcePermission{testResourcePermission}
+	testResourcePermission1 = resource.ResourcePermission{
+		ResourceIDs: []string{uuid.NewString(), uuid.NewString()},
+		Permission:  "edit",
+	}
+	testResourcePermissionGlobal = []resource.ResourcePermission{testResourcePermission, testResourcePermission1}
 )
 
 func TestHandler_ListResources(t *testing.T) {
@@ -736,7 +740,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 }
 
 func TestHandler_ListUserResourcesGlobal(t *testing.T) {
-	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission})
+	testResponse, err := transformListResourcePrincipalToPB([]resource.ResourcePermission{testResourcePermission, testResourcePermission1})
 	if err != nil {
 		t.Error("failed setting up test variable")
 	}
