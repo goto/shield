@@ -442,6 +442,14 @@ func TestHandler_UpdateResource(t *testing.T) {
 		wantErr error
 	}{
 		{
+			name: "should return bad body error if request body is empty",
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
 			name: "should return internal error if project service return some error",
 			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
 				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
@@ -484,6 +492,22 @@ func TestHandler_UpdateResource(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return unauthenticated error if project service return invalid email error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:        testResource.Name,
+					ProjectId:   testResource.ProjectID,
+					NamespaceId: testResource.NamespaceID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return not found error if id is empty",
