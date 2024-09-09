@@ -153,6 +153,15 @@ func TestHandler_CreateResource(t *testing.T) {
 			wantErr: grpcUnauthenticated,
 		},
 		{
+			name: "should return internal error if no request body",
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.CreateResourceRequest{},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
 			name: "should return internal error if project service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
@@ -173,6 +182,40 @@ func TestHandler_CreateResource(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: grpcInternalServerError,
+		},
+		{
+			name: "should return unauthenticated error if resource service return missing email or invalid email",
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResourceID,
+					Organization: organization.Organization{
+						ID: testResource.OrganizationID,
+					},
+				}, nil)
+
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:           testResource.Name,
+					ProjectID:      testResource.ProjectID,
+					NamespaceID:    testResource.NamespaceID,
+					OrganizationID: testResource.OrganizationID,
+				}).Return(resource.Resource{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.CreateResourceRequest{
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:        testResource.Name,
+					ProjectId:   testResource.ProjectID,
+					NamespaceId: testResource.NamespaceID,
+					Relations: []*shieldv1beta1.Relation{
+						{
+							RoleName: "owner",
+							Subject:  "user:" + testUserID,
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if resource service return some error",
