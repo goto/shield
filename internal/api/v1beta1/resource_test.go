@@ -710,7 +710,7 @@ func TestHandler_ListUserResourcesByType(t *testing.T) {
 		{
 			name: "should return success if service return nil err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+				rs.EXPECT().ListUserResourcesByType(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(testResourcePermission, nil)
 			},
@@ -727,7 +727,7 @@ func TestHandler_ListUserResourcesByType(t *testing.T) {
 		{
 			name: "should return invalid if userID is invalid",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+				rs.EXPECT().ListUserResourcesByType(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, user.ErrInvalidEmail)
 			},
@@ -742,7 +742,7 @@ func TestHandler_ListUserResourcesByType(t *testing.T) {
 		{
 			name: "should return resource not found if service return resource not found",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+				rs.EXPECT().ListUserResourcesByType(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, resource.ErrNotExist)
 			},
@@ -757,7 +757,7 @@ func TestHandler_ListUserResourcesByType(t *testing.T) {
 		{
 			name: "should return internal server error if service return error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+				rs.EXPECT().ListUserResourcesByType(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, relation.ErrFetchingUser)
 			},
@@ -772,7 +772,7 @@ func TestHandler_ListUserResourcesByType(t *testing.T) {
 		{
 			name: "should return no error if service return empty permission",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResources(mock.AnythingOfType("context.todoCtx"), testUserID,
+				rs.EXPECT().ListUserResourcesByType(mock.AnythingOfType("context.todoCtx"), testUserID,
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, nil)
 			},
@@ -821,7 +821,7 @@ func TestHandler_ListAllUserResources(t *testing.T) {
 		{
 			name: "should return success if service return nil err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+				rs.EXPECT().ListAllUserResources(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(map[string]resource.ResourcePermission{
 						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermission,
 					}, nil)
@@ -842,7 +842,7 @@ func TestHandler_ListAllUserResources(t *testing.T) {
 		{
 			name: "should return invalid if userID is invalid",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+				rs.EXPECT().ListAllUserResources(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, user.ErrInvalidEmail)
 			},
 			request: &shieldv1beta1.ListAllUserResourcesRequest{
@@ -855,7 +855,7 @@ func TestHandler_ListAllUserResources(t *testing.T) {
 		{
 			name: "should return resource not found if service return resource not found",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+				rs.EXPECT().ListAllUserResources(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, resource.ErrNotExist)
 			},
 			request: &shieldv1beta1.ListAllUserResourcesRequest{
@@ -868,7 +868,7 @@ func TestHandler_ListAllUserResources(t *testing.T) {
 		{
 			name: "should return internal server error if service return error",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
+				rs.EXPECT().ListAllUserResources(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, relation.ErrFetchingUser)
 			},
 			request: &shieldv1beta1.ListAllUserResourcesRequest{

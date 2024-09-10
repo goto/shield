@@ -401,7 +401,7 @@ func (s Service) BulkCheckAuthz(ctx context.Context, resources []Resource, actio
 	return s.relationService.BulkCheckPermission(ctx, relations, actions)
 }
 
-func (s Service) ListUserResources(ctx context.Context, userID string, resourceType string) (ResourcePermission, error) {
+func (s Service) ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (ResourcePermission, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
 		return ResourcePermission{}, err
@@ -415,7 +415,7 @@ func (s Service) ListUserResources(ctx context.Context, userID string, resourceT
 	return res, nil
 }
 
-func (s Service) ListUserResourcesGlobal(ctx context.Context, userID string, resourceType []string) (map[string]ResourcePermission, error) {
+func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceType []string) (map[string]ResourcePermission, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
 		return map[string]ResourcePermission{}, err
