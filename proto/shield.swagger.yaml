@@ -1,9 +1,9 @@
 swagger: "2.0"
 info:
-  title: Admin
-  version: 0.1.0
+  title: Shield API
+  version: 0.1.1
 tags:
-  - name: AdminService
+  - name: PublicService
   - name: ServiceDataService
   - name: ShieldService
 schemes:
@@ -16,7 +16,7 @@ paths:
   /v1beta1/actions:
     get:
       summary: Get all Actions
-      operationId: AdminService_ListActions
+      operationId: ShieldService_ListActions
       responses:
         "200":
           description: A successful response.
@@ -30,7 +30,7 @@ paths:
         - Action
     post:
       summary: Create Action
-      operationId: AdminService_CreateAction
+      operationId: ShieldService_CreateAction
       responses:
         "200":
           description: A successful response.
@@ -51,7 +51,7 @@ paths:
   /v1beta1/activities:
     get:
       summary: Get all Activities
-      operationId: AdminService_ListActivities
+      operationId: ShieldService_ListActivities
       responses:
         "200":
           description: A successful response.
@@ -103,7 +103,7 @@ paths:
   /v1beta1/check:
     post:
       summary: check permission for action on a resource by an user
-      operationId: AdminService_CheckResourcePermission
+      operationId: ShieldService_CheckResourcePermission
       responses:
         "200":
           description: A successful response.
@@ -124,7 +124,7 @@ paths:
   /v1beta1/groups:
     get:
       summary: Get all Groups
-      operationId: AdminService_ListGroups
+      operationId: ShieldService_ListGroups
       responses:
         "200":
           description: A successful response.
@@ -147,7 +147,7 @@ paths:
         - Group
     post:
       summary: Create Group
-      operationId: AdminService_CreateGroup
+      operationId: ShieldService_CreateGroup
       responses:
         "200":
           description: A successful response.
@@ -216,7 +216,7 @@ paths:
   /v1beta1/groups/{id}:
     get:
       summary: Get Group by ID
-      operationId: AdminService_GetGroup
+      operationId: ShieldService_GetGroup
       responses:
         "200":
           description: A successful response.
@@ -235,7 +235,7 @@ paths:
         - Group
     put:
       summary: Update Group by ID
-      operationId: AdminService_UpdateGroup
+      operationId: ShieldService_UpdateGroup
       responses:
         "200":
           description: A successful response.
@@ -260,7 +260,7 @@ paths:
   /v1beta1/groups/{id}/relations:
     get:
       summary: Get all relations for a group
-      operationId: AdminService_ListGroupRelations
+      operationId: ShieldService_ListGroupRelations
       responses:
         "200":
           description: A successful response.
@@ -288,7 +288,7 @@ paths:
   /v1beta1/metadatakey:
     post:
       summary: Create Metadata Key
-      operationId: AdminService_CreateMetadataKey
+      operationId: ShieldService_CreateMetadataKey
       responses:
         "200":
           description: A successful response.
@@ -309,7 +309,7 @@ paths:
   /v1beta1/namespaces:
     get:
       summary: Get all Namespaces
-      operationId: AdminService_ListNamespaces
+      operationId: ShieldService_ListNamespaces
       responses:
         "200":
           description: A successful response.
@@ -323,7 +323,7 @@ paths:
         - Namespace
     post:
       summary: Create Namespace
-      operationId: AdminService_CreateNamespace
+      operationId: ShieldService_CreateNamespace
       responses:
         "200":
           description: A successful response.
@@ -344,7 +344,7 @@ paths:
   /v1beta1/namespaces/{id}:
     get:
       summary: Get Namespace by ID
-      operationId: AdminService_GetNamespace
+      operationId: ShieldService_GetNamespace
       responses:
         "200":
           description: A successful response.
@@ -363,7 +363,7 @@ paths:
         - Namespace
     put:
       summary: Update Namespace by ID
-      operationId: AdminService_UpdateNamespace
+      operationId: ShieldService_UpdateNamespace
       responses:
         "200":
           description: A successful response.
@@ -388,7 +388,7 @@ paths:
   /v1beta1/object/{objectId}/subject/{subjectId}/role/{role}:
     delete:
       summary: Remove a subject having a role from an object
-      operationId: AdminService_DeleteRelation
+      operationId: ShieldService_DeleteRelation
       responses:
         "200":
           description: A successful response.
@@ -416,7 +416,7 @@ paths:
   /v1beta1/organizations:
     get:
       summary: Get all Organization
-      operationId: AdminService_ListOrganizations
+      operationId: ShieldService_ListOrganizations
       responses:
         "200":
           description: A successful response.
@@ -430,7 +430,7 @@ paths:
         - Organization
     post:
       summary: Create Organization
-      operationId: AdminService_CreateOrganization
+      operationId: ShieldService_CreateOrganization
       responses:
         "200":
           description: A successful response.
@@ -451,7 +451,7 @@ paths:
   /v1beta1/organizations/{id}:
     get:
       summary: Get Organization by ID
-      operationId: AdminService_GetOrganization
+      operationId: ShieldService_GetOrganization
       responses:
         "200":
           description: A successful response.
@@ -470,7 +470,7 @@ paths:
         - Organization
     put:
       summary: Update Organization by ID
-      operationId: AdminService_UpdateOrganization
+      operationId: ShieldService_UpdateOrganization
       responses:
         "200":
           description: A successful response.
@@ -495,7 +495,7 @@ paths:
   /v1beta1/organizations/{id}/admins:
     get:
       summary: Get all Admins of an Organization
-      operationId: AdminService_ListOrganizationAdmins
+      operationId: ShieldService_ListOrganizationAdmins
       responses:
         "200":
           description: A successful response.
@@ -515,7 +515,7 @@ paths:
   /v1beta1/policies:
     get:
       summary: Get all Policy
-      operationId: AdminService_ListPolicies
+      operationId: ShieldService_ListPolicies
       responses:
         "200":
           description: A successful response.
@@ -529,7 +529,7 @@ paths:
         - Policy
     post:
       summary: Create Policy
-      operationId: AdminService_CreatePolicy
+      operationId: ShieldService_CreatePolicy
       responses:
         "200":
           description: A successful response.
@@ -550,7 +550,7 @@ paths:
   /v1beta1/projects:
     get:
       summary: Get all Project
-      operationId: AdminService_ListProjects
+      operationId: ShieldService_ListProjects
       responses:
         "200":
           description: A successful response.
@@ -564,7 +564,7 @@ paths:
         - Project
     post:
       summary: Create Project
-      operationId: AdminService_CreateProject
+      operationId: ShieldService_CreateProject
       responses:
         "200":
           description: A successful response.
@@ -585,7 +585,7 @@ paths:
   /v1beta1/projects/{id}:
     get:
       summary: Get Project by ID
-      operationId: AdminService_GetProject
+      operationId: ShieldService_GetProject
       responses:
         "200":
           description: A successful response.
@@ -604,7 +604,7 @@ paths:
         - Project
     put:
       summary: Update Project by ID
-      operationId: AdminService_UpdateProject
+      operationId: ShieldService_UpdateProject
       responses:
         "200":
           description: A successful response.
@@ -629,7 +629,7 @@ paths:
   /v1beta1/projects/{id}/admins:
     get:
       summary: Get all Admins of a Project
-      operationId: AdminService_ListProjectAdmins
+      operationId: ShieldService_ListProjectAdmins
       responses:
         "200":
           description: A successful response.
@@ -649,7 +649,7 @@ paths:
   /v1beta1/relations:
     get:
       summary: Get all Relations
-      operationId: AdminService_ListRelations
+      operationId: ShieldService_ListRelations
       responses:
         "200":
           description: A successful response.
@@ -663,7 +663,7 @@ paths:
         - Relation
     post:
       summary: Create Relation
-      operationId: AdminService_CreateRelation
+      operationId: ShieldService_CreateRelation
       responses:
         "200":
           description: A successful response.
@@ -684,7 +684,7 @@ paths:
   /v1beta1/relations/{id}:
     get:
       summary: Get Relation by ID
-      operationId: AdminService_GetRelation
+      operationId: ShieldService_GetRelation
       responses:
         "200":
           description: A successful response.
@@ -704,7 +704,7 @@ paths:
   /v1beta1/resources:
     get:
       summary: Get all Resources
-      operationId: AdminService_ListResources
+      operationId: ShieldService_ListResources
       responses:
         "200":
           description: A successful response.
@@ -745,7 +745,7 @@ paths:
         - Resource
     post:
       summary: Create Resource
-      operationId: AdminService_CreateResource
+      operationId: ShieldService_CreateResource
       responses:
         "200":
           description: A successful response.
@@ -766,7 +766,7 @@ paths:
   /v1beta1/resources/{id}:
     get:
       summary: Get Resource by ID
-      operationId: AdminService_GetResource
+      operationId: ShieldService_GetResource
       responses:
         "200":
           description: A successful response.
@@ -785,7 +785,7 @@ paths:
         - Resource
     put:
       summary: Update Resource by ID
-      operationId: AdminService_UpdateResource
+      operationId: ShieldService_UpdateResource
       responses:
         "200":
           description: A successful response.
@@ -810,7 +810,7 @@ paths:
   /v1beta1/roles:
     get:
       summary: Get all Roles
-      operationId: AdminService_ListRoles
+      operationId: ShieldService_ListRoles
       responses:
         "200":
           description: A successful response.
@@ -824,7 +824,7 @@ paths:
         - Role
     post:
       summary: Create Role
-      operationId: AdminService_CreateRole
+      operationId: ShieldService_CreateRole
       responses:
         "200":
           description: A successful response.
@@ -866,7 +866,7 @@ paths:
   /v1beta1/users:
     get:
       summary: Get All Users
-      operationId: AdminService_ListUsers
+      operationId: ShieldService_ListUsers
       responses:
         "200":
           description: A successful response.
@@ -903,7 +903,7 @@ paths:
         - User
     post:
       summary: Create User
-      operationId: AdminService_CreateUser
+      operationId: ShieldService_CreateUser
       responses:
         "200":
           description: A successful response.
@@ -924,7 +924,7 @@ paths:
   /v1beta1/users/self:
     get:
       summary: Get current user
-      operationId: AdminService_GetCurrentUser
+      operationId: ShieldService_GetCurrentUser
       responses:
         "200":
           description: A successful response.
@@ -938,7 +938,7 @@ paths:
         - User
     put:
       summary: Update current User
-      operationId: AdminService_UpdateCurrentUser
+      operationId: ShieldService_UpdateCurrentUser
       responses:
         "200":
           description: A successful response.
@@ -959,7 +959,7 @@ paths:
   /v1beta1/users/{id}:
     get:
       summary: Get a User by id
-      operationId: AdminService_GetUser
+      operationId: ShieldService_GetUser
       responses:
         "200":
           description: A successful response.
@@ -978,7 +978,7 @@ paths:
         - User
     put:
       summary: Update User by ID
-      operationId: AdminService_UpdateUser
+      operationId: ShieldService_UpdateUser
       responses:
         "200":
           description: A successful response.
@@ -1003,7 +1003,7 @@ paths:
   /v1beta1/users/{id}/check:
     post:
       summary: check permission for action on a resource by an user
-      operationId: AdminService_CheckResourceUserPermission
+      operationId: ShieldService_CheckResourceUserPermission
       responses:
         "200":
           description: A successful response.
@@ -1028,7 +1028,7 @@ paths:
   /v1beta1/users/{id}/groups:
     get:
       summary: List Groups of a User
-      operationId: AdminService_ListUserGroups
+      operationId: ShieldService_ListUserGroups
       responses:
         "200":
           description: A successful response.
@@ -1051,13 +1051,13 @@ paths:
         - User
   /v1beta1/users/{userId}/resources:
     get:
-      summary: Get Resources with Authorized User Access
-      operationId: AdminService_ListUserResourcesGlobal
+      summary: Get Resources with Authorized User Access on Any Resource Type
+      operationId: ShieldService_ListAllUserResources
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/ListUserResourcesGlobalResponse'
+            $ref: '#/definitions/ListAllUserResourcesResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -1079,12 +1079,12 @@ paths:
   /v1beta1/users/{userId}/resources/{namespace}/{type}:
     get:
       summary: Get Resources with Authorized User Access Under a Resource Type
-      operationId: ShieldService_ListUserResources
+      operationId: PublicService_ListUserResourcesByType
       responses:
         "200":
           description: A successful response.
           schema:
-            $ref: '#/definitions/ListUserResourcesResponse'
+            $ref: '#/definitions/ListUserResourcesByTypeResponse'
         default:
           description: An unexpected error response.
           schema:
@@ -1450,6 +1450,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Activity'
+  ListAllUserResourcesResponse:
+    type: object
+    properties:
+      resources:
+        type: object
   ListGroupRelationsResponse:
     type: object
     properties:
@@ -1549,12 +1554,7 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Group'
-  ListUserResourcesGlobalResponse:
-    type: object
-    properties:
-      resources:
-        type: object
-  ListUserResourcesResponse:
+  ListUserResourcesByTypeResponse:
     type: object
     properties:
       resources:

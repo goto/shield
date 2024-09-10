@@ -694,7 +694,7 @@ func TestHandler_UpdateResource(t *testing.T) {
 	}
 }
 
-func TestHandler_ListUserResources(t *testing.T) {
+func TestHandler_ListUserResourcesByType(t *testing.T) {
 	testResponse, err := mapToStructpb(testResourcePermission)
 	if err != nil {
 		t.Error("failed setting up test variable")
@@ -703,8 +703,8 @@ func TestHandler_ListUserResources(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.ResourceService)
-		request *shieldv1beta1.ListUserResourcesRequest
-		want    *shieldv1beta1.ListUserResourcesResponse
+		request *shieldv1beta1.ListUserResourcesByTypeRequest
+		want    *shieldv1beta1.ListUserResourcesByTypeResponse
 		wantErr error
 	}{
 		{
@@ -714,12 +714,12 @@ func TestHandler_ListUserResources(t *testing.T) {
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(testResourcePermission, nil)
 			},
-			request: &shieldv1beta1.ListUserResourcesRequest{
+			request: &shieldv1beta1.ListUserResourcesByTypeRequest{
 				UserId:    testUserID,
 				Namespace: testUserResourcesNamespace,
 				Type:      testUserResourcesTypes[0],
 			},
-			want: &shieldv1beta1.ListUserResourcesResponse{
+			want: &shieldv1beta1.ListUserResourcesByTypeResponse{
 				Resources: testResponse,
 			},
 			wantErr: nil,
@@ -731,7 +731,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, user.ErrInvalidEmail)
 			},
-			request: &shieldv1beta1.ListUserResourcesRequest{
+			request: &shieldv1beta1.ListUserResourcesByTypeRequest{
 				UserId:    testUserID,
 				Namespace: testUserResourcesNamespace,
 				Type:      testUserResourcesTypes[0],
@@ -746,7 +746,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, resource.ErrNotExist)
 			},
-			request: &shieldv1beta1.ListUserResourcesRequest{
+			request: &shieldv1beta1.ListUserResourcesByTypeRequest{
 				UserId:    testUserID,
 				Namespace: testUserResourcesNamespace,
 				Type:      testUserResourcesTypes[0],
@@ -761,7 +761,7 @@ func TestHandler_ListUserResources(t *testing.T) {
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, relation.ErrFetchingUser)
 			},
-			request: &shieldv1beta1.ListUserResourcesRequest{
+			request: &shieldv1beta1.ListUserResourcesByTypeRequest{
 				UserId:    testUserID,
 				Namespace: testUserResourcesNamespace,
 				Type:      testUserResourcesTypes[0],
@@ -776,12 +776,12 @@ func TestHandler_ListUserResources(t *testing.T) {
 					fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0])).
 					Return(resource.ResourcePermission{}, nil)
 			},
-			request: &shieldv1beta1.ListUserResourcesRequest{
+			request: &shieldv1beta1.ListUserResourcesByTypeRequest{
 				UserId:    testUserID,
 				Namespace: testUserResourcesNamespace,
 				Type:      testUserResourcesTypes[0],
 			},
-			want: &shieldv1beta1.ListUserResourcesResponse{Resources: &structpb.Struct{
+			want: &shieldv1beta1.ListUserResourcesByTypeResponse{Resources: &structpb.Struct{
 				Fields: map[string]*structpb.Value{},
 			}},
 			wantErr: nil,
@@ -794,14 +794,14 @@ func TestHandler_ListUserResources(t *testing.T) {
 				tt.setup(mockResourceSrv)
 			}
 			mockDep := Handler{resourceService: mockResourceSrv}
-			resp, err := mockDep.ListUserResources(context.TODO(), tt.request)
+			resp, err := mockDep.ListUserResourcesByType(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})
 	}
 }
 
-func TestHandler_ListUserResourcesGlobal(t *testing.T) {
+func TestHandler_ListAllUserResources(t *testing.T) {
 	testResponse, err := mapToStructpb(testResourcePermission)
 	if err != nil {
 		t.Error("failed setting up test variable")
@@ -814,8 +814,8 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 	tests := []struct {
 		name    string
 		setup   func(rs *mocks.ResourceService)
-		request *shieldv1beta1.ListUserResourcesGlobalRequest
-		want    *shieldv1beta1.ListUserResourcesGlobalResponse
+		request *shieldv1beta1.ListAllUserResourcesRequest
+		want    *shieldv1beta1.ListAllUserResourcesResponse
 		wantErr error
 	}{
 		{
@@ -826,11 +826,11 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermission,
 					}, nil)
 			},
-			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+			request: &shieldv1beta1.ListAllUserResourcesRequest{
 				UserId: testUserID,
 				Types:  []string{},
 			},
-			want: &shieldv1beta1.ListUserResourcesGlobalResponse{
+			want: &shieldv1beta1.ListAllUserResourcesResponse{
 				Resources: &structpb.Struct{
 					Fields: map[string]*structpb.Value{
 						fmt.Sprintf("%s/%s", testUserResourcesNamespace, testUserResourcesTypes[0]): testResourcePermissionGlobalResponse,
@@ -845,7 +845,7 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, user.ErrInvalidEmail)
 			},
-			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+			request: &shieldv1beta1.ListAllUserResourcesRequest{
 				UserId: testUserID,
 				Types:  []string{},
 			},
@@ -858,7 +858,7 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, resource.ErrNotExist)
 			},
-			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+			request: &shieldv1beta1.ListAllUserResourcesRequest{
 				UserId: testUserID,
 				Types:  []string{},
 			},
@@ -871,7 +871,7 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 				rs.EXPECT().ListUserResourcesGlobal(mock.AnythingOfType("context.todoCtx"), testUserID, []string{}).
 					Return(nil, relation.ErrFetchingUser)
 			},
-			request: &shieldv1beta1.ListUserResourcesGlobalRequest{
+			request: &shieldv1beta1.ListAllUserResourcesRequest{
 				UserId: testUserID,
 				Types:  []string{},
 			},
@@ -886,7 +886,7 @@ func TestHandler_ListUserResourcesGlobal(t *testing.T) {
 				tt.setup(mockResourceSrv)
 			}
 			mockDep := Handler{resourceService: mockResourceSrv}
-			resp, err := mockDep.ListUserResourcesGlobal(context.TODO(), tt.request)
+			resp, err := mockDep.ListAllUserResources(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

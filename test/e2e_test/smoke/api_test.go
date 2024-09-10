@@ -16,7 +16,7 @@ import (
 
 type EndToEndAPISmokeTestSuite struct {
 	suite.Suite
-	client       shieldv1beta1.AdminServiceClient
+	client       shieldv1beta1.ShieldServiceClient
 	cancelClient func()
 	testBench    *testbench.TestBench
 	appConfig    *config.Shield

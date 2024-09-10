@@ -225,7 +225,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}, nil
 }
 
-func (h Handler) ListUserResourcesGlobal(ctx context.Context, request *shieldv1beta1.ListUserResourcesGlobalRequest) (*shieldv1beta1.ListUserResourcesGlobalResponse, error) {
+func (h Handler) ListAllUserResources(ctx context.Context, request *shieldv1beta1.ListAllUserResourcesRequest) (*shieldv1beta1.ListAllUserResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
 	resources, err := h.resourceService.ListUserResourcesGlobal(ctx, request.UserId, request.Types)
 	if err != nil {
@@ -261,12 +261,12 @@ func (h Handler) ListUserResourcesGlobal(ctx context.Context, request *shieldv1b
 		Fields: result,
 	}
 
-	return &shieldv1beta1.ListUserResourcesGlobalResponse{
+	return &shieldv1beta1.ListAllUserResourcesResponse{
 		Resources: resultPB,
 	}, nil
 }
 
-func (h Handler) ListUserResources(ctx context.Context, request *shieldv1beta1.ListUserResourcesRequest) (*shieldv1beta1.ListUserResourcesResponse, error) {
+func (h Handler) ListUserResourcesByType(ctx context.Context, request *shieldv1beta1.ListUserResourcesByTypeRequest) (*shieldv1beta1.ListUserResourcesByTypeResponse, error) {
 	logger := grpczap.Extract(ctx)
 
 	resources, err := h.resourceService.ListUserResources(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type))
@@ -293,7 +293,7 @@ func (h Handler) ListUserResources(ctx context.Context, request *shieldv1beta1.L
 		return nil, grpcInternalServerError
 	}
 
-	return &shieldv1beta1.ListUserResourcesResponse{
+	return &shieldv1beta1.ListUserResourcesByTypeResponse{
 		Resources: resourcesPB,
 	}, nil
 }
