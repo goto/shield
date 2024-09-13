@@ -26,8 +26,8 @@ type ResourceService interface {
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
-	ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (resource.ResourcePermission, error)
-	ListAllUserResources(ctx context.Context, userID string, resourceType []string) (map[string]resource.ResourcePermission, error)
+	ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (resource.ResourcePermissions, error)
+	ListAllUserResources(ctx context.Context, userID string, resourceTypes []string) (map[string]resource.ResourcePermissions, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -321,7 +321,7 @@ func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, erro
 	}, nil
 }
 
-func mapToStructpb(p resource.ResourcePermission) (*structpb.Struct, error) {
+func mapToStructpb(p resource.ResourcePermissions) (*structpb.Struct, error) {
 	fields := make(map[string]*structpb.Value)
 	for key, values := range p {
 		listValue := &structpb.ListValue{}

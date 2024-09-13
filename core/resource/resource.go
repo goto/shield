@@ -72,7 +72,7 @@ type PagedResources struct {
 	Resources []Resource
 }
 
-type ResourcePermission = map[string][]string
+type ResourcePermissions = map[string][]string
 
 type LogData struct {
 	Entity         string `mapstructure:"entity"`
