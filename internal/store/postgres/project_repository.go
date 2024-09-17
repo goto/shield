@@ -12,8 +12,8 @@ import (
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
 	"github.com/goto/shield/core/project"
-	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	newrelic "github.com/newrelic/go-agent/v3/newrelic"
 	"go.nhat.io/otelsql"
@@ -412,7 +412,7 @@ func (r ProjectRepository) ListAdmins(ctx context.Context, projectID string) ([]
 			goqu.I("u.id").Cast("VARCHAR").Eq(goqu.I("r.subject_id")),
 		)).Where(goqu.Ex{
 		"r.object_id":            projectID,
-		"r.role_id":              role.DefinitionProjectAdmin.ID,
+		"r.role_id":              schema.GetRoleID(schema.ProjectNamespace, schema.OwnerRole),
 		"r.subject_namespace_id": namespace.DefinitionUser.ID,
 		"r.object_namespace_id":  namespace.DefinitionProject.ID,
 	}).ToSQL()
