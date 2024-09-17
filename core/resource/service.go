@@ -11,6 +11,7 @@ import (
 	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/organization"
+	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
@@ -22,6 +23,8 @@ import (
 const (
 	auditKeyResourceCreate = "resource.create"
 	auditKeyResourceUpdate = "resource.update"
+
+	userNamespace = schema.UserPrincipal
 )
 
 type RelationService interface {
@@ -30,10 +33,12 @@ type RelationService interface {
 	CheckPermission(ctx context.Context, usr user.User, resourceNS namespace.Namespace, resourceIdxa string, action action.Action) (bool, error)
 	BulkCheckPermission(ctx context.Context, rels []relation.Relation, acts []action.Action) ([]relation.Permission, error)
 	DeleteSubjectRelations(ctx context.Context, resourceType, optionalResourceID string) error
+	LookupResources(ctx context.Context, resourceType, permission, subjectType, subjectID string) ([]string, error)
 }
 
 type UserService interface {
 	FetchCurrentUser(ctx context.Context) (user.User, error)
+	Get(ctx context.Context, userID string) (user.User, error)
 }
 
 type ProjectService interface {
@@ -52,6 +57,14 @@ type ActivityService interface {
 	Log(ctx context.Context, action string, actor activity.Actor, data any) error
 }
 
+type PolicyService interface {
+	List(ctx context.Context, filter policy.Filters) ([]policy.Policy, error)
+}
+
+type NamespaceService interface {
+	List(ctx context.Context) ([]namespace.Namespace, error)
+}
+
 type Service struct {
 	logger              log.Logger
 	repository          Repository
@@ -61,10 +74,12 @@ type Service struct {
 	projectService      ProjectService
 	organizationService OrganizationService
 	groupService        GroupService
+	policyService       PolicyService
+	namespaceService    NamespaceService
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
 		repository:          repository,
@@ -74,6 +89,8 @@ func NewService(logger log.Logger, repository Repository, configRepository Confi
 		projectService:      projectService,
 		organizationService: organizationService,
 		groupService:        groupService,
+		policyService:       policyService,
+		namespaceService:    namespaceService,
 		activityService:     activityService,
 	}
 }
@@ -382,4 +399,85 @@ func (s Service) BulkCheckAuthz(ctx context.Context, resources []Resource, actio
 		})
 	}
 	return s.relationService.BulkCheckPermission(ctx, relations, actions)
+}
+
+func (s Service) ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (ResourcePermissions, error) {
+	user, err := s.userService.Get(ctx, userID)
+	if err != nil {
+		return ResourcePermissions{}, err
+	}
+
+	res, err := s.listUserResources(ctx, resourceType, user)
+	if err != nil {
+		return ResourcePermissions{}, err
+	}
+
+	return res, nil
+}
+
+func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string) (map[string]ResourcePermissions, error) {
+	user, err := s.userService.Get(ctx, userID)
+	if err != nil {
+		return map[string]ResourcePermissions{}, err
+	}
+
+	if len(resourceTypes) == 0 {
+		namespaces, err := s.namespaceService.List(ctx)
+		if err != nil {
+			return map[string]ResourcePermissions{}, err
+		}
+
+		for _, ns := range namespaces {
+			if namespace.IsSystemNamespaceID(ns.ID) {
+				continue
+			}
+			resourceTypes = append(resourceTypes, ns.ID)
+		}
+	}
+
+	result := make(map[string]ResourcePermissions)
+	for _, res := range resourceTypes {
+		if _, ok := result[res]; !ok {
+			list, err := s.listUserResources(ctx, res, user)
+			if err != nil {
+				return map[string]ResourcePermissions{}, err
+			}
+			if len(list) != 0 {
+				result[res] = list
+			}
+		}
+	}
+
+	return result, nil
+}
+
+func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User) (ResourcePermissions, error) {
+	policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
+	if err != nil {
+		return ResourcePermissions{}, err
+	}
+
+	resPermissionsMap := make(ResourcePermissions)
+	actMap := make(map[string]bool)
+	for _, policy := range policies {
+		action := strings.Split(policy.ActionID, ".")[0]
+		if _, ok := actMap[action]; ok {
+			continue
+		}
+		actMap[action] = true
+		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
+		if err != nil {
+			return ResourcePermissions{}, err
+		}
+
+		for _, r := range resources {
+			if _, ok := resPermissionsMap[r]; !ok {
+				resPermissionsMap[r] = []string{action}
+			} else {
+				resPermissionsMap[r] = append(resPermissionsMap[r], action)
+			}
+		}
+	}
+
+	return resPermissionsMap, nil
 }

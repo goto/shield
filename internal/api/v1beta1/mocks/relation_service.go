@@ -33,6 +33,10 @@ func (_m *RelationService) EXPECT() *RelationService_Expecter {
 func (_m *RelationService) CheckIsPublic(ctx context.Context, resourceNS namespace.Namespace, resourceIdxa string, _a3 action.Action) (bool, error) {
 	ret := _m.Called(ctx, resourceNS, resourceIdxa, _a3)
 
+	if len(ret) == 0 {
+		panic("no return value specified for CheckIsPublic")
+	}
+
 	var r0 bool
 	var r1 error
 	if rf, ok := ret.Get(0).(func(context.Context, namespace.Namespace, string, action.Action) (bool, error)); ok {

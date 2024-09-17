@@ -1,8 +1,9 @@
 swagger: "2.0"
 info:
-  title: Service Data
-  version: 0.1.0
+  title: Shield API
+  version: 0.1.1
 tags:
+  - name: PublicService
   - name: ServiceDataService
   - name: ShieldService
 schemes:
@@ -1048,6 +1049,61 @@ paths:
           type: string
       tags:
         - User
+  /v1beta1/users/{userId}/resources:
+    get:
+      summary: Get Resources with Authorized User Access on Any Resource Type
+      operationId: ShieldService_ListAllUserResources
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListAllUserResourcesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          type: string
+        - name: types
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+      tags:
+        - Resource
+  /v1beta1/users/{userId}/resources/{namespace}/{type}:
+    get:
+      summary: Get Resources with Authorized User Access Under a Resource Type
+      operationId: PublicService_ListUserResourcesByType
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/ListUserResourcesByTypeResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          type: string
+        - name: namespace
+          in: path
+          required: true
+          type: string
+        - name: type
+          in: path
+          required: true
+          type: string
+      tags:
+        - Resource
   /v1beta1/users/{userId}/servicedata:
     get:
       summary: Get User Service Data Key
@@ -1394,6 +1450,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Activity'
+  ListAllUserResourcesResponse:
+    type: object
+    properties:
+      resources:
+        type: object
   ListGroupRelationsResponse:
     type: object
     properties:
@@ -1493,6 +1554,11 @@ definitions:
         items:
           type: object
           $ref: '#/definitions/Group'
+  ListUserResourcesByTypeResponse:
+    type: object
+    properties:
+      resources:
+        type: object
   ListUsersResponse:
     type: object
     properties:

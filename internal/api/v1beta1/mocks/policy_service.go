@@ -79,9 +79,9 @@ func (_c *PolicyService_Get_Call) RunAndReturn(run func(context.Context, string)
 	return _c
 }
 
-// List provides a mock function with given fields: ctx
-func (_m *PolicyService) List(ctx context.Context) ([]policy.Policy, error) {
-	ret := _m.Called(ctx)
+// List provides a mock function with given fields: ctx, filter
+func (_m *PolicyService) List(ctx context.Context, filter policy.Filters) ([]policy.Policy, error) {
+	ret := _m.Called(ctx, filter)
 
 	if len(ret) == 0 {
 		panic("no return value specified for List")
@@ -89,19 +89,19 @@ func (_m *PolicyService) List(ctx context.Context) ([]policy.Policy, error) {
 
 	var r0 []policy.Policy
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context) ([]policy.Policy, error)); ok {
-		return rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filters) ([]policy.Policy, error)); ok {
+		return rf(ctx, filter)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context) []policy.Policy); ok {
-		r0 = rf(ctx)
+	if rf, ok := ret.Get(0).(func(context.Context, policy.Filters) []policy.Policy); ok {
+		r0 = rf(ctx, filter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]policy.Policy)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context) error); ok {
-		r1 = rf(ctx)
+	if rf, ok := ret.Get(1).(func(context.Context, policy.Filters) error); ok {
+		r1 = rf(ctx, filter)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -116,13 +116,14 @@ type PolicyService_List_Call struct {
 
 // List is a helper method to define mock.On call
 //   - ctx context.Context
-func (_e *PolicyService_Expecter) List(ctx interface{}) *PolicyService_List_Call {
-	return &PolicyService_List_Call{Call: _e.mock.On("List", ctx)}
+//   - filter policy.Filters
+func (_e *PolicyService_Expecter) List(ctx interface{}, filter interface{}) *PolicyService_List_Call {
+	return &PolicyService_List_Call{Call: _e.mock.On("List", ctx, filter)}
 }
 
-func (_c *PolicyService_List_Call) Run(run func(ctx context.Context)) *PolicyService_List_Call {
+func (_c *PolicyService_List_Call) Run(run func(ctx context.Context, filter policy.Filters)) *PolicyService_List_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context))
+		run(args[0].(context.Context), args[1].(policy.Filters))
 	})
 	return _c
 }
@@ -132,7 +133,7 @@ func (_c *PolicyService_List_Call) Return(_a0 []policy.Policy, _a1 error) *Polic
 	return _c
 }
 
-func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context) ([]policy.Policy, error)) *PolicyService_List_Call {
+func (_c *PolicyService_List_Call) RunAndReturn(run func(context.Context, policy.Filters) ([]policy.Policy, error)) *PolicyService_List_Call {
 	_c.Call.Return(run)
 	return _c
 }

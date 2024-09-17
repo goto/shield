@@ -259,6 +259,126 @@ func (_c *ResourceService_List_Call) RunAndReturn(run func(context.Context, reso
 	return _c
 }
 
+// ListAllUserResources provides a mock function with given fields: ctx, userID, resourceType
+func (_m *ResourceService) ListAllUserResources(ctx context.Context, userID string, resourceType []string) (map[string]map[string][]string, error) {
+	ret := _m.Called(ctx, userID, resourceType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListAllUserResources")
+	}
+
+	var r0 map[string]map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (map[string]map[string][]string, error)); ok {
+		return rf(ctx, userID, resourceType)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string) map[string]map[string][]string); ok {
+		r0 = rf(ctx, userID, resourceType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string]map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
+		r1 = rf(ctx, userID, resourceType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_ListAllUserResources_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListAllUserResources'
+type ResourceService_ListAllUserResources_Call struct {
+	*mock.Call
+}
+
+// ListAllUserResources is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - resourceType []string
+func (_e *ResourceService_Expecter) ListAllUserResources(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListAllUserResources_Call {
+	return &ResourceService_ListAllUserResources_Call{Call: _e.mock.On("ListAllUserResources", ctx, userID, resourceType)}
+}
+
+func (_c *ResourceService_ListAllUserResources_Call) Run(run func(ctx context.Context, userID string, resourceType []string)) *ResourceService_ListAllUserResources_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+	})
+	return _c
+}
+
+func (_c *ResourceService_ListAllUserResources_Call) Return(_a0 map[string]map[string][]string, _a1 error) *ResourceService_ListAllUserResources_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_ListAllUserResources_Call) RunAndReturn(run func(context.Context, string, []string) (map[string]map[string][]string, error)) *ResourceService_ListAllUserResources_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// ListUserResourcesByType provides a mock function with given fields: ctx, userID, resourceType
+func (_m *ResourceService) ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (map[string][]string, error) {
+	ret := _m.Called(ctx, userID, resourceType)
+
+	if len(ret) == 0 {
+		panic("no return value specified for ListUserResourcesByType")
+	}
+
+	var r0 map[string][]string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (map[string][]string, error)); ok {
+		return rf(ctx, userID, resourceType)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) map[string][]string); ok {
+		r0 = rf(ctx, userID, resourceType)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(map[string][]string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, userID, resourceType)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_ListUserResourcesByType_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'ListUserResourcesByType'
+type ResourceService_ListUserResourcesByType_Call struct {
+	*mock.Call
+}
+
+// ListUserResourcesByType is a helper method to define mock.On call
+//   - ctx context.Context
+//   - userID string
+//   - resourceType string
+func (_e *ResourceService_Expecter) ListUserResourcesByType(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListUserResourcesByType_Call {
+	return &ResourceService_ListUserResourcesByType_Call{Call: _e.mock.On("ListUserResourcesByType", ctx, userID, resourceType)}
+}
+
+func (_c *ResourceService_ListUserResourcesByType_Call) Run(run func(ctx context.Context, userID string, resourceType string)) *ResourceService_ListUserResourcesByType_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ResourceService_ListUserResourcesByType_Call) Return(_a0 map[string][]string, _a1 error) *ResourceService_ListUserResourcesByType_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_ListUserResourcesByType_Call) RunAndReturn(run func(context.Context, string, string) (map[string][]string, error)) *ResourceService_ListUserResourcesByType_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // Update provides a mock function with given fields: ctx, id, _a2
 func (_m *ResourceService) Update(ctx context.Context, id string, _a2 resource.Resource) (resource.Resource, error) {
 	ret := _m.Called(ctx, id, _a2)

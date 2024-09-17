@@ -42,8 +42,8 @@ func (s Service) Get(ctx context.Context, id string) (Policy, error) {
 	return s.repository.Get(ctx, id)
 }
 
-func (s Service) List(ctx context.Context) ([]Policy, error) {
-	return s.repository.List(ctx)
+func (s Service) List(ctx context.Context, filter Filters) ([]Policy, error) {
+	return s.repository.List(ctx, filter)
 }
 
 func (s Service) Upsert(ctx context.Context, pol *Policy) ([]Policy, error) {
@@ -58,7 +58,7 @@ func (s Service) Upsert(ctx context.Context, pol *Policy) ([]Policy, error) {
 	}
 	pol.ID = policyID
 
-	policies, err := s.repository.List(ctx)
+	policies, err := s.repository.List(ctx, Filters{})
 	if err != nil {
 		return []Policy{}, err
 	}
@@ -87,7 +87,7 @@ func (s Service) Update(ctx context.Context, pol *Policy) ([]Policy, error) {
 	}
 	pol.ID = policyID
 
-	policies, err := s.repository.List(ctx)
+	policies, err := s.repository.List(ctx, Filters{})
 	if err != nil {
 		return []Policy{}, err
 	}

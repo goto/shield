@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
@@ -14,6 +15,7 @@ import (
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -24,6 +26,8 @@ type ResourceService interface {
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
+	ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (resource.ResourcePermissions, error)
+	ListAllUserResources(ctx context.Context, userID string, resourceTypes []string) (map[string]resource.ResourcePermissions, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -221,6 +225,79 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}, nil
 }
 
+func (h Handler) ListAllUserResources(ctx context.Context, request *shieldv1beta1.ListAllUserResourcesRequest) (*shieldv1beta1.ListAllUserResourcesResponse, error) {
+	logger := grpczap.Extract(ctx)
+	resources, err := h.resourceService.ListAllUserResources(ctx, request.UserId, request.Types)
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, resource.ErrNotExist):
+			return nil, grpcResourceNotFoundErr
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidDetail),
+			errors.Is(err, resource.ErrInvalidURN),
+			errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, relation.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	result := make(map[string]*structpb.Value)
+	for key, value := range resources {
+		resourcePB, err := mapToStructpb(value)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		result[key] = &structpb.Value{
+			Kind: &structpb.Value_StructValue{StructValue: resourcePB},
+		}
+	}
+
+	resultPB := &structpb.Struct{
+		Fields: result,
+	}
+
+	return &shieldv1beta1.ListAllUserResourcesResponse{
+		Resources: resultPB,
+	}, nil
+}
+
+func (h Handler) ListUserResourcesByType(ctx context.Context, request *shieldv1beta1.ListUserResourcesByTypeRequest) (*shieldv1beta1.ListUserResourcesByTypeResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	resources, err := h.resourceService.ListUserResourcesByType(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type))
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, resource.ErrNotExist):
+			return nil, grpcResourceNotFoundErr
+		case errors.Is(err, user.ErrInvalidEmail),
+			errors.Is(err, user.ErrNotExist),
+			errors.Is(err, resource.ErrInvalidDetail),
+			errors.Is(err, resource.ErrInvalidURN),
+			errors.Is(err, policy.ErrInvalidDetail),
+			errors.Is(err, relation.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	resourcesPB, err := mapToStructpb(resources)
+	if err != nil {
+		logger.Error(err.Error())
+		return nil, grpcInternalServerError
+	}
+
+	return &shieldv1beta1.ListUserResourcesByTypeResponse{
+		Resources: resourcesPB,
+	}, nil
+}
+
 func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, error) {
 	// TODO(krtkvrm): will be replaced with IDs
 	return shieldv1beta1.Resource{
@@ -242,4 +319,22 @@ func transformResourceToPB(from resource.Resource) (shieldv1beta1.Resource, erro
 		CreatedAt: timestamppb.New(from.CreatedAt),
 		UpdatedAt: timestamppb.New(from.UpdatedAt),
 	}, nil
+}
+
+func mapToStructpb(p resource.ResourcePermissions) (*structpb.Struct, error) {
+	fields := make(map[string]*structpb.Value)
+	for key, values := range p {
+		listValue := &structpb.ListValue{}
+		for _, value := range values {
+			listValue.Values = append(listValue.Values, &structpb.Value{
+				Kind: &structpb.Value_StringValue{StringValue: value},
+			})
+		}
+
+		fields[key] = &structpb.Value{
+			Kind: &structpb.Value_ListValue{ListValue: listValue},
+		}
+	}
+
+	return &structpb.Struct{Fields: fields}, nil
 }

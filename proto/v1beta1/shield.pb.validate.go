@@ -16714,6 +16714,243 @@ var _ interface {
 	ErrorName() string
 } = CheckResourceUserPermissionResponseValidationError{}
 
+// Validate checks the field values on ListAllUserResourcesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAllUserResourcesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAllUserResourcesRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAllUserResourcesRequestMultiError, or nil if none found.
+func (m *ListAllUserResourcesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAllUserResourcesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for UserId
+
+	if len(errors) > 0 {
+		return ListAllUserResourcesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListAllUserResourcesRequestMultiError is an error wrapping multiple
+// validation errors returned by ListAllUserResourcesRequest.ValidateAll() if
+// the designated constraints aren't met.
+type ListAllUserResourcesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAllUserResourcesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAllUserResourcesRequestMultiError) AllErrors() []error { return m }
+
+// ListAllUserResourcesRequestValidationError is the validation error returned
+// by ListAllUserResourcesRequest.Validate if the designated constraints
+// aren't met.
+type ListAllUserResourcesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAllUserResourcesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAllUserResourcesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAllUserResourcesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAllUserResourcesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAllUserResourcesRequestValidationError) ErrorName() string {
+	return "ListAllUserResourcesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAllUserResourcesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAllUserResourcesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAllUserResourcesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAllUserResourcesRequestValidationError{}
+
+// Validate checks the field values on ListAllUserResourcesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *ListAllUserResourcesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on ListAllUserResourcesResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// ListAllUserResourcesResponseMultiError, or nil if none found.
+func (m *ListAllUserResourcesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *ListAllUserResourcesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if all {
+		switch v := interface{}(m.GetResources()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, ListAllUserResourcesResponseValidationError{
+					field:  "Resources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, ListAllUserResourcesResponseValidationError{
+					field:  "Resources",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetResources()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return ListAllUserResourcesResponseValidationError{
+				field:  "Resources",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return ListAllUserResourcesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// ListAllUserResourcesResponseMultiError is an error wrapping multiple
+// validation errors returned by ListAllUserResourcesResponse.ValidateAll() if
+// the designated constraints aren't met.
+type ListAllUserResourcesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m ListAllUserResourcesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m ListAllUserResourcesResponseMultiError) AllErrors() []error { return m }
+
+// ListAllUserResourcesResponseValidationError is the validation error returned
+// by ListAllUserResourcesResponse.Validate if the designated constraints
+// aren't met.
+type ListAllUserResourcesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e ListAllUserResourcesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e ListAllUserResourcesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e ListAllUserResourcesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e ListAllUserResourcesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e ListAllUserResourcesResponseValidationError) ErrorName() string {
+	return "ListAllUserResourcesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e ListAllUserResourcesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sListAllUserResourcesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = ListAllUserResourcesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = ListAllUserResourcesResponseValidationError{}
+
 // Validate checks the field values on Activity with the rules defined in the
 // proto definition for this message. If any rules are violated, the first
 // error encountered is returned, or nil if there are no violations.

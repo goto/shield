@@ -16,7 +16,7 @@ import (
 
 type PolicyService interface {
 	Get(ctx context.Context, id string) (policy.Policy, error)
-	List(ctx context.Context) ([]policy.Policy, error)
+	List(ctx context.Context, filter policy.Filters) ([]policy.Policy, error)
 	Upsert(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error)
 	Update(ctx context.Context, pol *policy.Policy) ([]policy.Policy, error)
 }
@@ -27,7 +27,7 @@ func (h Handler) ListPolicies(ctx context.Context, request *shieldv1beta1.ListPo
 	logger := grpczap.Extract(ctx)
 	var policies []*shieldv1beta1.Policy
 
-	policyList, err := h.policyService.List(ctx)
+	policyList, err := h.policyService.List(ctx, policy.Filters{})
 	if err != nil {
 		logger.Error(err.Error())
 		return nil, grpcInternalServerError

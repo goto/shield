@@ -61,6 +61,7 @@ const (
 	ShieldService_CreateResource_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/CreateResource"
 	ShieldService_GetResource_FullMethodName                 = "/gotocompany.shield.v1beta1.ShieldService/GetResource"
 	ShieldService_UpdateResource_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/UpdateResource"
+	ShieldService_ListAllUserResources_FullMethodName        = "/gotocompany.shield.v1beta1.ShieldService/ListAllUserResources"
 	ShieldService_CheckResourcePermission_FullMethodName     = "/gotocompany.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListActivities_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/ListActivities"
 )
@@ -121,6 +122,7 @@ type ShieldServiceClient interface {
 	CreateResource(ctx context.Context, in *CreateResourceRequest, opts ...grpc.CallOption) (*CreateResourceResponse, error)
 	GetResource(ctx context.Context, in *GetResourceRequest, opts ...grpc.CallOption) (*GetResourceResponse, error)
 	UpdateResource(ctx context.Context, in *UpdateResourceRequest, opts ...grpc.CallOption) (*UpdateResourceResponse, error)
+	ListAllUserResources(ctx context.Context, in *ListAllUserResourcesRequest, opts ...grpc.CallOption) (*ListAllUserResourcesResponse, error)
 	// Authz
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Activity
@@ -513,6 +515,15 @@ func (c *shieldServiceClient) UpdateResource(ctx context.Context, in *UpdateReso
 	return out, nil
 }
 
+func (c *shieldServiceClient) ListAllUserResources(ctx context.Context, in *ListAllUserResourcesRequest, opts ...grpc.CallOption) (*ListAllUserResourcesResponse, error) {
+	out := new(ListAllUserResourcesResponse)
+	err := c.cc.Invoke(ctx, ShieldService_ListAllUserResources_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 func (c *shieldServiceClient) CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error) {
 	out := new(CheckResourcePermissionResponse)
 	err := c.cc.Invoke(ctx, ShieldService_CheckResourcePermission_FullMethodName, in, out, opts...)
@@ -587,6 +598,7 @@ type ShieldServiceServer interface {
 	CreateResource(context.Context, *CreateResourceRequest) (*CreateResourceResponse, error)
 	GetResource(context.Context, *GetResourceRequest) (*GetResourceResponse, error)
 	UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error)
+	ListAllUserResources(context.Context, *ListAllUserResourcesRequest) (*ListAllUserResourcesResponse, error)
 	// Authz
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Activity
@@ -723,6 +735,9 @@ func (UnimplementedShieldServiceServer) GetResource(context.Context, *GetResourc
 }
 func (UnimplementedShieldServiceServer) UpdateResource(context.Context, *UpdateResourceRequest) (*UpdateResourceResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method UpdateResource not implemented")
+}
+func (UnimplementedShieldServiceServer) ListAllUserResources(context.Context, *ListAllUserResourcesRequest) (*ListAllUserResourcesResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method ListAllUserResources not implemented")
 }
 func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CheckResourcePermission not implemented")
@@ -1499,6 +1514,24 @@ func _ShieldService_UpdateResource_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_ListAllUserResources_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ListAllUserResourcesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).ListAllUserResources(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_ListAllUserResources_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).ListAllUserResources(ctx, req.(*ListAllUserResourcesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 func _ShieldService_CheckResourcePermission_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CheckResourcePermissionRequest)
 	if err := dec(in); err != nil {
@@ -1709,6 +1742,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "UpdateResource",
 			Handler:    _ShieldService_UpdateResource_Handler,
+		},
+		{
+			MethodName: "ListAllUserResources",
+			Handler:    _ShieldService_ListAllUserResources_Handler,
 		},
 		{
 			MethodName: "CheckResourcePermission",
