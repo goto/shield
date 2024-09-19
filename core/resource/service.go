@@ -481,6 +481,8 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 		actMap[action] = true
 		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
 		if err != nil {
+			// continue if permission under a namespace is not found
+			// https://github.com/authzed/spicedb/blob/main/internal/dispatch/graph/errors.go#L73
 			if strings.Contains(err.Error(), "not found under definition") {
 				s.logger.Warn(err.Error())
 				continue
