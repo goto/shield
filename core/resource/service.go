@@ -413,6 +413,7 @@ func (s Service) ListUserResourcesByType(ctx context.Context, userID string, res
 	if err != nil {
 		switch status.Code(err) {
 		case codes.FailedPrecondition:
+			s.logger.Warn(err.Error())
 			return ResourcePermissions{}, ErrInvalidDetail
 		default:
 			return ResourcePermissions{}, err
@@ -449,6 +450,7 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 			if err != nil {
 				switch status.Code(err) {
 				case codes.FailedPrecondition:
+					s.logger.Warn(err.Error())
 					continue
 				default:
 					return map[string]ResourcePermissions{}, err
@@ -480,6 +482,7 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
 		if err != nil {
 			if strings.Contains(err.Error(), "not found under definition") {
+				s.logger.Warn(err.Error())
 				continue
 			}
 			return ResourcePermissions{}, err
