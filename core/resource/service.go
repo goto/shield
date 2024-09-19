@@ -18,6 +18,8 @@ import (
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const (
@@ -409,7 +411,13 @@ func (s Service) ListUserResourcesByType(ctx context.Context, userID string, res
 
 	res, err := s.listUserResources(ctx, resourceType, user)
 	if err != nil {
-		return ResourcePermissions{}, err
+		switch status.Code(err) {
+		case codes.FailedPrecondition:
+			s.logger.Warn(err.Error())
+			return ResourcePermissions{}, ErrInvalidDetail
+		default:
+			return ResourcePermissions{}, err
+		}
 	}
 
 	return res, nil
@@ -440,7 +448,13 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 		if _, ok := result[res]; !ok {
 			list, err := s.listUserResources(ctx, res, user)
 			if err != nil {
-				return map[string]ResourcePermissions{}, err
+				switch status.Code(err) {
+				case codes.FailedPrecondition:
+					s.logger.Warn(err.Error())
+					continue
+				default:
+					return map[string]ResourcePermissions{}, err
+				}
 			}
 			if len(list) != 0 {
 				result[res] = list
@@ -467,6 +481,12 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 		actMap[action] = true
 		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
 		if err != nil {
+			// continue if permission under a namespace is not found
+			// https://github.com/authzed/spicedb/blob/main/internal/dispatch/graph/errors.go#L73
+			if strings.Contains(err.Error(), "not found under definition") {
+				s.logger.Warn(err.Error())
+				continue
+			}
 			return ResourcePermissions{}, err
 		}
 
