@@ -286,6 +286,61 @@ func TestHandler_CreateResource(t *testing.T) {
 			wantErr: grpcBadBodyError,
 		},
 		{
+			name: "should only log error when resource relation creation return err",
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, rt *mocks.RelationTransformer) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
+					ID: testResourceID,
+					Organization: organization.Organization{
+						ID: testResource.OrganizationID,
+					},
+				}, nil)
+
+				theRelation := relation.RelationV2{
+					Object: relation.Object{
+						ID:          testResource.Idxa,
+						NamespaceID: testResource.NamespaceID,
+					},
+					Subject: relation.Subject{
+						RoleID:    "owner",
+						Namespace: "user",
+						ID:        testUserID,
+					},
+				}
+				rt.EXPECT().TransformRelation(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(theRelation, nil)
+
+				rls.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), theRelation).Return(relation.RelationV2{}, relation.ErrCreatingRelationInStore)
+
+				rs.EXPECT().Upsert(mock.AnythingOfType("*context.valueCtx"), resource.Resource{
+					Name:           testResource.Name,
+					ProjectID:      testResource.ProjectID,
+					OrganizationID: testResource.OrganizationID,
+					NamespaceID:    testResource.NamespaceID,
+				}).Return(testResource, nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.CreateResourceRequest{
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:        testResource.Name,
+					ProjectId:   testResource.ProjectID,
+					NamespaceId: testResource.NamespaceID,
+					Relations: []*shieldv1beta1.Relation{
+						{
+							RoleName: "owner",
+							Subject:  "user:" + testUserID,
+						},
+						{
+							RoleName: "editor",
+							Subject:  testUserID,
+						},
+					},
+				},
+			},
+			want: &shieldv1beta1.CreateResourceResponse{
+				Resource: testResourcePB,
+			},
+			wantErr: nil,
+		},
+		{
 			name: "should return success if resource service return nil",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, rt *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{
