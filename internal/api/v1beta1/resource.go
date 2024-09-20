@@ -26,8 +26,8 @@ type ResourceService interface {
 	Update(ctx context.Context, id string, resource resource.Resource) (resource.Resource, error)
 	CheckAuthz(ctx context.Context, resource resource.Resource, action action.Action) (bool, error)
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
-	ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (resource.ResourcePermissions, error)
-	ListAllUserResources(ctx context.Context, userID string, resourceTypes []string) (map[string]resource.ResourcePermissions, error)
+	ListUserResourcesByType(ctx context.Context, userID string, resourceType string, permissions []string) (resource.ResourcePermissions, error)
+	ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]resource.ResourcePermissions, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -227,7 +227,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 
 func (h Handler) ListAllUserResources(ctx context.Context, request *shieldv1beta1.ListAllUserResourcesRequest) (*shieldv1beta1.ListAllUserResourcesResponse, error) {
 	logger := grpczap.Extract(ctx)
-	resources, err := h.resourceService.ListAllUserResources(ctx, request.UserId, request.Types)
+	resources, err := h.resourceService.ListAllUserResources(ctx, request.UserId, request.Types, request.Permissions)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -269,7 +269,7 @@ func (h Handler) ListAllUserResources(ctx context.Context, request *shieldv1beta
 func (h Handler) ListUserResourcesByType(ctx context.Context, request *shieldv1beta1.ListUserResourcesByTypeRequest) (*shieldv1beta1.ListUserResourcesByTypeResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	resources, err := h.resourceService.ListUserResourcesByType(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type))
+	resources, err := h.resourceService.ListUserResourcesByType(ctx, request.UserId, fmt.Sprintf("%s/%s", request.Namespace, request.Type), request.Permissions)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
