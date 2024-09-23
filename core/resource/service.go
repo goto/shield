@@ -403,13 +403,13 @@ func (s Service) BulkCheckAuthz(ctx context.Context, resources []Resource, actio
 	return s.relationService.BulkCheckPermission(ctx, relations, actions)
 }
 
-func (s Service) ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (ResourcePermissions, error) {
+func (s Service) ListUserResourcesByType(ctx context.Context, userID string, resourceType string, permissions []string) (ResourcePermissions, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
 		return ResourcePermissions{}, err
 	}
 
-	res, err := s.listUserResources(ctx, resourceType, user)
+	res, err := s.listUserResources(ctx, resourceType, user, permissions)
 	if err != nil {
 		switch status.Code(err) {
 		case codes.FailedPrecondition:
@@ -423,7 +423,7 @@ func (s Service) ListUserResourcesByType(ctx context.Context, userID string, res
 	return res, nil
 }
 
-func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string) (map[string]ResourcePermissions, error) {
+func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]ResourcePermissions, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
 		return map[string]ResourcePermissions{}, err
@@ -446,7 +446,7 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 	result := make(map[string]ResourcePermissions)
 	for _, res := range resourceTypes {
 		if _, ok := result[res]; !ok {
-			list, err := s.listUserResources(ctx, res, user)
+			list, err := s.listUserResources(ctx, res, user, permissions)
 			if err != nil {
 				switch status.Code(err) {
 				case codes.FailedPrecondition:
@@ -465,21 +465,26 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 	return result, nil
 }
 
-func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User) (ResourcePermissions, error) {
-	policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
-	if err != nil {
-		return ResourcePermissions{}, err
+func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User, permissions []string) (ResourcePermissions, error) {
+	if len(permissions) == 0 {
+		policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
+		if err != nil {
+			return ResourcePermissions{}, err
+		}
+
+		for _, p := range policies {
+			permissions = append(permissions, strings.Split(p.ActionID, ".")[0])
+		}
 	}
 
 	resPermissionsMap := make(ResourcePermissions)
 	actMap := make(map[string]bool)
-	for _, policy := range policies {
-		action := strings.Split(policy.ActionID, ".")[0]
-		if _, ok := actMap[action]; ok {
+	for _, p := range permissions {
+		if _, ok := actMap[p]; ok {
 			continue
 		}
-		actMap[action] = true
-		resources, err := s.relationService.LookupResources(ctx, resourceType, action, userNamespace, user.ID)
+		actMap[p] = true
+		resources, err := s.relationService.LookupResources(ctx, resourceType, p, userNamespace, user.ID)
 		if err != nil {
 			// continue if permission under a namespace is not found
 			// https://github.com/authzed/spicedb/blob/main/internal/dispatch/graph/errors.go#L73
@@ -492,9 +497,9 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 
 		for _, r := range resources {
 			if _, ok := resPermissionsMap[r]; !ok {
-				resPermissionsMap[r] = []string{action}
+				resPermissionsMap[r] = []string{p}
 			} else {
-				resPermissionsMap[r] = append(resPermissionsMap[r], action)
+				resPermissionsMap[r] = append(resPermissionsMap[r], p)
 			}
 		}
 	}

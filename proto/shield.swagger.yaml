@@ -1074,6 +1074,13 @@ paths:
           items:
             type: string
           collectionFormat: multi
+        - name: permissions
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Resource
   /v1beta1/users/{userId}/resources/{namespace}/{type}:
@@ -1102,6 +1109,13 @@ paths:
           in: path
           required: true
           type: string
+        - name: permissions
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Resource
   /v1beta1/users/{userId}/servicedata:

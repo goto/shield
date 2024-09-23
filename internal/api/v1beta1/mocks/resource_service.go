@@ -259,9 +259,9 @@ func (_c *ResourceService_List_Call) RunAndReturn(run func(context.Context, reso
 	return _c
 }
 
-// ListAllUserResources provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListAllUserResources(ctx context.Context, userID string, resourceType []string) (map[string]map[string][]string, error) {
-	ret := _m.Called(ctx, userID, resourceType)
+// ListAllUserResources provides a mock function with given fields: ctx, userID, resourceTypes, permissions
+func (_m *ResourceService) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]map[string][]string, error) {
+	ret := _m.Called(ctx, userID, resourceTypes, permissions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListAllUserResources")
@@ -269,19 +269,19 @@ func (_m *ResourceService) ListAllUserResources(ctx context.Context, userID stri
 
 	var r0 map[string]map[string][]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) (map[string]map[string][]string, error)); ok {
-		return rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string, []string) (map[string]map[string][]string, error)); ok {
+		return rf(ctx, userID, resourceTypes, permissions)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, []string) map[string]map[string][]string); ok {
-		r0 = rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, []string, []string) map[string]map[string][]string); ok {
+		r0 = rf(ctx, userID, resourceTypes, permissions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string]map[string][]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, []string) error); ok {
-		r1 = rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(1).(func(context.Context, string, []string, []string) error); ok {
+		r1 = rf(ctx, userID, resourceTypes, permissions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -297,14 +297,15 @@ type ResourceService_ListAllUserResources_Call struct {
 // ListAllUserResources is a helper method to define mock.On call
 //   - ctx context.Context
 //   - userID string
-//   - resourceType []string
-func (_e *ResourceService_Expecter) ListAllUserResources(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListAllUserResources_Call {
-	return &ResourceService_ListAllUserResources_Call{Call: _e.mock.On("ListAllUserResources", ctx, userID, resourceType)}
+//   - resourceTypes []string
+//   - permissions []string
+func (_e *ResourceService_Expecter) ListAllUserResources(ctx interface{}, userID interface{}, resourceTypes interface{}, permissions interface{}) *ResourceService_ListAllUserResources_Call {
+	return &ResourceService_ListAllUserResources_Call{Call: _e.mock.On("ListAllUserResources", ctx, userID, resourceTypes, permissions)}
 }
 
-func (_c *ResourceService_ListAllUserResources_Call) Run(run func(ctx context.Context, userID string, resourceType []string)) *ResourceService_ListAllUserResources_Call {
+func (_c *ResourceService_ListAllUserResources_Call) Run(run func(ctx context.Context, userID string, resourceTypes []string, permissions []string)) *ResourceService_ListAllUserResources_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].([]string))
+		run(args[0].(context.Context), args[1].(string), args[2].([]string), args[3].([]string))
 	})
 	return _c
 }
@@ -314,14 +315,14 @@ func (_c *ResourceService_ListAllUserResources_Call) Return(_a0 map[string]map[s
 	return _c
 }
 
-func (_c *ResourceService_ListAllUserResources_Call) RunAndReturn(run func(context.Context, string, []string) (map[string]map[string][]string, error)) *ResourceService_ListAllUserResources_Call {
+func (_c *ResourceService_ListAllUserResources_Call) RunAndReturn(run func(context.Context, string, []string, []string) (map[string]map[string][]string, error)) *ResourceService_ListAllUserResources_Call {
 	_c.Call.Return(run)
 	return _c
 }
 
-// ListUserResourcesByType provides a mock function with given fields: ctx, userID, resourceType
-func (_m *ResourceService) ListUserResourcesByType(ctx context.Context, userID string, resourceType string) (map[string][]string, error) {
-	ret := _m.Called(ctx, userID, resourceType)
+// ListUserResourcesByType provides a mock function with given fields: ctx, userID, resourceType, permissions
+func (_m *ResourceService) ListUserResourcesByType(ctx context.Context, userID string, resourceType string, permissions []string) (map[string][]string, error) {
+	ret := _m.Called(ctx, userID, resourceType, permissions)
 
 	if len(ret) == 0 {
 		panic("no return value specified for ListUserResourcesByType")
@@ -329,19 +330,19 @@ func (_m *ResourceService) ListUserResourcesByType(ctx context.Context, userID s
 
 	var r0 map[string][]string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (map[string][]string, error)); ok {
-		return rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) (map[string][]string, error)); ok {
+		return rf(ctx, userID, resourceType, permissions)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) map[string][]string); ok {
-		r0 = rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(0).(func(context.Context, string, string, []string) map[string][]string); ok {
+		r0 = rf(ctx, userID, resourceType, permissions)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(map[string][]string)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
-		r1 = rf(ctx, userID, resourceType)
+	if rf, ok := ret.Get(1).(func(context.Context, string, string, []string) error); ok {
+		r1 = rf(ctx, userID, resourceType, permissions)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -358,13 +359,14 @@ type ResourceService_ListUserResourcesByType_Call struct {
 //   - ctx context.Context
 //   - userID string
 //   - resourceType string
-func (_e *ResourceService_Expecter) ListUserResourcesByType(ctx interface{}, userID interface{}, resourceType interface{}) *ResourceService_ListUserResourcesByType_Call {
-	return &ResourceService_ListUserResourcesByType_Call{Call: _e.mock.On("ListUserResourcesByType", ctx, userID, resourceType)}
+//   - permissions []string
+func (_e *ResourceService_Expecter) ListUserResourcesByType(ctx interface{}, userID interface{}, resourceType interface{}, permissions interface{}) *ResourceService_ListUserResourcesByType_Call {
+	return &ResourceService_ListUserResourcesByType_Call{Call: _e.mock.On("ListUserResourcesByType", ctx, userID, resourceType, permissions)}
 }
 
-func (_c *ResourceService_ListUserResourcesByType_Call) Run(run func(ctx context.Context, userID string, resourceType string)) *ResourceService_ListUserResourcesByType_Call {
+func (_c *ResourceService_ListUserResourcesByType_Call) Run(run func(ctx context.Context, userID string, resourceType string, permissions []string)) *ResourceService_ListUserResourcesByType_Call {
 	_c.Call.Run(func(args mock.Arguments) {
-		run(args[0].(context.Context), args[1].(string), args[2].(string))
+		run(args[0].(context.Context), args[1].(string), args[2].(string), args[3].([]string))
 	})
 	return _c
 }
@@ -374,7 +376,7 @@ func (_c *ResourceService_ListUserResourcesByType_Call) Return(_a0 map[string][]
 	return _c
 }
 
-func (_c *ResourceService_ListUserResourcesByType_Call) RunAndReturn(run func(context.Context, string, string) (map[string][]string, error)) *ResourceService_ListUserResourcesByType_Call {
+func (_c *ResourceService_ListUserResourcesByType_Call) RunAndReturn(run func(context.Context, string, string, []string) (map[string][]string, error)) *ResourceService_ListUserResourcesByType_Call {
 	_c.Call.Return(run)
 	return _c
 }
