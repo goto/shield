@@ -539,7 +539,7 @@ paths:
           in: body
           required: true
           schema:
-            $ref: '#/definitions/UpdateOrganizationBody'
+            $ref: '#/definitions/OrganizationRequestBody'
       tags:
         - Organization
   /v1beta1/organizations/{id}/admins:
@@ -1926,11 +1926,6 @@ definitions:
     properties:
       namespace:
         $ref: '#/definitions/Namespace'
-  UpdateOrganizationBody:
-    type: object
-    properties:
-      body:
-        $ref: '#/definitions/OrganizationRequestBody'
   UpdateOrganizationResponse:
     type: object
     properties:
