@@ -12,45 +12,11 @@ import (
 
 	"github.com/robfig/cron/v3"
 
-	"github.com/ghodss/yaml"
 	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/core/rule/config"
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"
 )
-
-type Ruleset struct {
-	Rules []Rule `yaml:"rules"`
-}
-
-type Rule struct {
-	Backends []Backend `yaml:"backends"`
-}
-
-type Backend struct {
-	Name      string     `yaml:"name"`
-	Target    string     `yaml:"target"`
-	Methods   []string   `yaml:"methods"`
-	Frontends []Frontend `yaml:"frontends"`
-	Prefix    string     `yaml:"prefix"`
-}
-
-type Frontend struct {
-	Action      string       `yaml:"action"`
-	Path        string       `yaml:"path"`
-	Method      string       `yaml:"method"`
-	Middlewares []Middleware `yaml:"middlewares"`
-	Hooks       []Hook       `yaml:"hooks"`
-}
-
-type Middleware struct {
-	Name   string                 `yaml:"name"`
-	Config map[string]interface{} `yaml:"config"`
-}
-
-type Hook struct {
-	Name   string                 `yaml:"name"`
-	Config map[string]interface{} `yaml:"config"`
-}
 
 type RuleRepository struct {
 	log log.Logger
@@ -75,7 +41,7 @@ func (repo *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) 
 }
 
 func (repo *RuleRepository) refresh(ctx context.Context) error {
-	var ruleset []rule.Ruleset
+	var rulesets []rule.Ruleset
 
 	// get all items
 	it := repo.bucket.List(&blob.ListOptions{})
@@ -99,47 +65,15 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
 		}
 
-		var s Ruleset
-		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
+		s, err := config.ParseRulesetYaml(fileBytes)
+		if err != nil {
 			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
 		if len(s.Rules) == 0 {
 			continue
 		}
 
-		// transforming yaml parse ruleset to clean iterable ruleset in middlewares
-		targetRuleSet := rule.Ruleset{}
-		for _, theRule := range s.Rules {
-			for _, backend := range theRule.Backends {
-				for _, frontend := range backend.Frontends {
-					middlewares := rule.MiddlewareSpecs{}
-					for _, middleware := range frontend.Middlewares {
-						middlewares = append(middlewares, rule.MiddlewareSpec{
-							Name:   middleware.Name,
-							Config: middleware.Config,
-						})
-					}
-
-					hooks := rule.HookSpecs{}
-					for _, hook := range frontend.Hooks {
-						hooks = append(hooks, rule.HookSpec{
-							Name:   hook.Name,
-							Config: hook.Config,
-						})
-					}
-
-					targetRuleSet.Rules = append(targetRuleSet.Rules, rule.Rule{
-						Frontend: rule.Frontend{
-							URL:    frontend.Path,
-							Method: frontend.Method,
-						},
-						Backend:     rule.Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
-						Middlewares: middlewares,
-						Hooks:       hooks,
-					})
-				}
-			}
-		}
+		targetRuleSet := rule.YamlRulesetToRuleset(s)
 
 		// parse all urls at this time only to avoid doing it usage
 		rxParsingSuccess := true
@@ -154,14 +88,14 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 		}
 
 		if rxParsingSuccess {
-			ruleset = append(ruleset, targetRuleSet)
+			rulesets = append(rulesets, targetRuleSet)
 		} else {
 			repo.log.Warn("skipping rule set due to parsing errors", "content", string(fileBytes))
 		}
 	}
 
 	repo.mu.Lock()
-	repo.cached = ruleset
+	repo.cached = rulesets
 	repo.mu.Unlock()
 	repo.log.Debug("rule cache refreshed", "ruleset_count", len(repo.cached))
 	return nil
@@ -187,6 +121,11 @@ func (repo *RuleRepository) InitCache(ctx context.Context, refreshDelay time.Dur
 func (repo *RuleRepository) Close() error {
 	<-repo.cron.Stop().Done()
 	return repo.bucket.Close()
+}
+
+func (repo *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.RuleConfig, error) {
+	// upsert is currently not supported for BLOB rule config storage type
+	return rule.RuleConfig{}, rule.ErrUpsertConfigNotSupported
 }
 
 func NewRuleRepository(logger log.Logger, b Bucket) *RuleRepository {

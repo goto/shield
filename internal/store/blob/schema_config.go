@@ -6,38 +6,13 @@ import (
 	"io"
 	"strings"
 
+	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/resource/config"
 	"github.com/goto/shield/internal/schema"
 
 	"github.com/pkg/errors"
 	"gocloud.dev/blob"
-	"golang.org/x/exp/maps"
-	"gopkg.in/yaml.v3"
 )
-
-type RoleConfig struct {
-	Name       string   `yaml:"name" json:"name"`
-	Principals []string `yaml:"principals" json:"principals"`
-}
-
-type PermissionsConfig struct {
-	Name  string   `yaml:"name" json:"name"`
-	Roles []string `yaml:"roles" json:"roles"`
-}
-
-type ResourceTypeConfig struct {
-	Name        string              `yaml:"name" json:"name"`
-	Roles       []RoleConfig        `yaml:"roles" json:"roles"`
-	Permissions []PermissionsConfig `yaml:"permissions" json:"permissions"`
-}
-
-type Config struct {
-	Type string `yaml:"type" json:"type"`
-
-	ResourceTypes []ResourceTypeConfig `yaml:"resource_types" json:"resource_types,omitempty"`
-
-	Roles       []RoleConfig        `yaml:"roles" json:"roles,omitempty"`
-	Permissions []PermissionsConfig `yaml:"permissions" json:"permissions,omitempty"`
-}
 
 type SchemaConfig struct {
 	bucket Bucket
@@ -62,9 +37,9 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	for _, c := range configFromFiles {
 		for k, v := range c {
 			if v.Type == "resource_group" {
-				configMap = schema.MergeNamespaceConfigMap(configMap, getNamespacesForResourceGroup(k, v))
+				configMap = schema.MergeNamespaceConfigMap(configMap, config.GetNamespacesForResourceGroup(k, v))
 			} else {
-				configMap = schema.MergeNamespaceConfigMap(getNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
+				configMap = schema.MergeNamespaceConfigMap(config.GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
 			}
 		}
 	}
@@ -74,8 +49,8 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	return configMap, nil
 }
 
-func (s *SchemaConfig) readYAMLFiles(ctx context.Context) ([]map[string]Config, error) {
-	configYAMLs := make([]map[string]Config, 0)
+func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (config.ConfigYAML, error) {
+	configYAMLs := make(config.ConfigYAML, 0)
 
 	// iterate over bucket files, only read .yml & .yaml files
 	it := s.bucket.List(&blob.ListOptions{})
@@ -99,8 +74,8 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) ([]map[string]Config, 
 			return nil, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
 		}
 
-		var configYAML map[string]Config
-		if err := yaml.Unmarshal(fileBytes, &configYAML); err != nil {
+		configYAML, err := config.ParseConfigYaml(fileBytes)
+		if err != nil {
 			return nil, errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
 		if len(configYAML) == 0 {
@@ -113,36 +88,7 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) ([]map[string]Config, 
 	return configYAMLs, nil
 }
 
-func getNamespacesForResourceGroup(name string, c Config) schema.NamespaceConfigMapType {
-	namespaceConfig := schema.NamespaceConfigMapType{}
-
-	for _, v := range c.ResourceTypes {
-		maps.Copy(namespaceConfig, getNamespaceFromConfig(name, v.Roles, v.Permissions, v.Name))
-	}
-
-	return namespaceConfig
-}
-
-func getNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionConfigs []PermissionsConfig, resourceType ...string) schema.NamespaceConfigMapType {
-	tnc := schema.NamespaceConfig{
-		Roles:       make(map[string][]string),
-		Permissions: make(map[string][]string),
-	}
-
-	for _, v1 := range rolesConfigs {
-		tnc.Roles[v1.Name] = v1.Principals
-	}
-
-	for _, v2 := range permissionConfigs {
-		tnc.Permissions[v2.Name] = v2.Roles
-	}
-
-	if len(resourceType) == 0 {
-		tnc.Type = schema.SystemNamespace
-	} else {
-		tnc.Type = schema.ResourceGroupNamespace
-		name = fmt.Sprintf("%s/%s", name, resourceType[0])
-	}
-
-	return schema.NamespaceConfigMapType{name: tnc}
+func (repo *SchemaConfig) Upsert(ctx context.Context, name string, config string) (resource.ResourceConfig, error) {
+	// upsert resource config is not supported for BLOB storage type
+	return resource.ResourceConfig{}, nil
 }

@@ -173,6 +173,14 @@ func (c Client) SelectContext(ctx context.Context, dest interface{}, query strin
 	return c.db.SelectContext(ctx, dest, query, args...)
 }
 
+func (c Client) SelectContextWithTx(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	if tx := extractTransaction(ctx); tx != nil {
+		return tx.SelectContext(ctx, dest, query, args...)
+	}
+
+	return c.db.SelectContext(ctx, dest, query, args...)
+}
+
 func (c Client) Close() error {
 	return c.db.Close()
 }

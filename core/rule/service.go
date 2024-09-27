@@ -1,6 +1,11 @@
 package rule
 
-import "context"
+import (
+	"context"
+	"strings"
+
+	rulecfg "github.com/goto/shield/core/rule/config"
+)
 
 type Service struct {
 	configRepository ConfigRepository
@@ -14,4 +19,22 @@ func NewService(configRepository ConfigRepository) *Service {
 
 func (s Service) GetAllConfigs(ctx context.Context) ([]Ruleset, error) {
 	return s.configRepository.GetAll(ctx)
+}
+
+func (s Service) UpsertRulesConfigs(ctx context.Context, name string, config string) (RuleConfig, error) {
+	if strings.TrimSpace(name) == "" {
+		return RuleConfig{}, ErrInvalidRuleConfig
+	}
+
+	if strings.TrimSpace(config) == "" {
+		return RuleConfig{}, ErrInvalidRuleConfig
+	}
+
+	yamlRuleset, err := rulecfg.ParseRulesetYaml([]byte(config))
+	if err != nil {
+		return RuleConfig{}, ErrInvalidRuleConfig
+	}
+
+	targetRuleset := YamlRulesetToRuleset(yamlRuleset)
+	return s.configRepository.Upsert(ctx, name, targetRuleset)
 }

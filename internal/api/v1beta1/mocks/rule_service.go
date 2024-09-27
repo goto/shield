@@ -80,6 +80,64 @@ func (_c *RuleService_GetAllConfigs_Call) RunAndReturn(run func(context.Context)
 	return _c
 }
 
+// UpsertRulesConfigs provides a mock function with given fields: ctx, name, config
+func (_m *RuleService) UpsertRulesConfigs(ctx context.Context, name string, config string) (rule.RuleConfig, error) {
+	ret := _m.Called(ctx, name, config)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertRulesConfigs")
+	}
+
+	var r0 rule.RuleConfig
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (rule.RuleConfig, error)); ok {
+		return rf(ctx, name, config)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) rule.RuleConfig); ok {
+		r0 = rf(ctx, name, config)
+	} else {
+		r0 = ret.Get(0).(rule.RuleConfig)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, name, config)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// RuleService_UpsertRulesConfigs_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertRulesConfigs'
+type RuleService_UpsertRulesConfigs_Call struct {
+	*mock.Call
+}
+
+// UpsertRulesConfigs is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - config string
+func (_e *RuleService_Expecter) UpsertRulesConfigs(ctx interface{}, name interface{}, config interface{}) *RuleService_UpsertRulesConfigs_Call {
+	return &RuleService_UpsertRulesConfigs_Call{Call: _e.mock.On("UpsertRulesConfigs", ctx, name, config)}
+}
+
+func (_c *RuleService_UpsertRulesConfigs_Call) Run(run func(ctx context.Context, name string, config string)) *RuleService_UpsertRulesConfigs_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *RuleService_UpsertRulesConfigs_Call) Return(_a0 rule.RuleConfig, _a1 error) *RuleService_UpsertRulesConfigs_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *RuleService_UpsertRulesConfigs_Call) RunAndReturn(run func(context.Context, string, string) (rule.RuleConfig, error)) *RuleService_UpsertRulesConfigs_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewRuleService creates a new instance of RuleService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewRuleService(t interface {

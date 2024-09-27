@@ -123,13 +123,13 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		}
 	}
 
-	// setting context with predefined user email
-	ctx = user.SetContextWithEmail(ctx, defaultUser.Email)
-
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
 		return err
 	}
+
+	// setting context with predefined user email
+	ctx = user.SetContextWithEmail(ctx, defaultUser.Email)
 
 	// append service data key schema if configured to be bootstrapped automatically
 	if s.schemaMigrationConfig.BootstrapServiceDataKey {

@@ -28,6 +28,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
@@ -82,14 +83,6 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	if err != nil {
 		return err
 	}
-	resourceBlobRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
-	if err := resourceBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-		return err
-	}
-	defer func() {
-		logger.Info("cleaning up resource blob")
-		defer resourceBlobRepository.Close()
-	}()
 
 	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
 	if err != nil {
@@ -135,8 +128,16 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
 	namespaceService := namespace.NewService(logger, namespaceRepository, userService, activityService)
 
-	s := schema.NewSchemaMigrationService(
-		blob.NewSchemaConfigRepository(resourceBlobFS),
+	resourcePGRepository := postgres.NewResourceRepository(dbClient)
+	var schemaConfigRepository schema.FileService
+	if cfg.App.ResourcesStorage == "DB" {
+		schemaConfigRepository = resourcePGRepository
+	} else {
+		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
+	}
+
+	schemaMigrationService := schema.NewSchemaMigrationService(
+		schemaConfigRepository,
 		namespaceService,
 		roleService,
 		actionService,
@@ -145,19 +146,18 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		userRepository,
 		schemaMigrationConfig,
 	)
-
-	err = s.RunMigrations(ctx)
+	err = schemaMigrationService.RunMigrations(ctx)
 	if err != nil {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, schemaMigrationService, dbClient, spiceDBClient, resourceBlobFS, cfg)
 	if err != nil {
 		return err
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	cbs, cps, err := serveProxies(ctx, logger, dbClient, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, cfg.App.RulesStorage, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		return err
 	}
@@ -190,9 +190,10 @@ func BuildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
 	activityRepository activity.Repository,
-	resourceBlobRepository *blob.ResourcesRepository,
+	schemaMigrationService *schema.SchemaService,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	bucket blob.Bucket,
 	cfg *config.Shield,
 ) (api.Deps, error) {
 	cache, err := inmemory.NewCache(cfg.App.CacheConfig)
@@ -238,12 +239,20 @@ func BuildAPIDependencies(
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, activityService)
+		logger, resourcePGRepository, resourcePGRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
 	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService, roleService)
+
+	var ruleRepository rule.ConfigRepository
+	if cfg.App.RulesStorage == "DB" {
+		ruleRepository = postgres.NewRuleRepository(dbc)
+	} else {
+		ruleRepository = blob.NewRuleRepository(logger, nil)
+	}
+	ruleService := rule.NewService(ruleRepository)
 
 	dependencies := api.Deps{
 		OrgService:         organizationService,
@@ -259,6 +268,7 @@ func BuildAPIDependencies(
 		RelationAdapter:    relationAdapter,
 		ActivityService:    activityService,
 		ServiceDataService: serviceDataService,
+		RuleService:        ruleService,
 	}
 	return dependencies, nil
 }

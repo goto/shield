@@ -35,6 +35,8 @@ const (
 	TABLE_ACTIVITY          = "activities"
 	TABLE_SERVICE_DATA      = "servicedata"
 	TABLE_SERVICE_DATA_KEYS = "servicedata_keys"
+	TABLE_RULE_CONFIGS      = "rule_configs"
+	TABLE_RESOURCE_CONFIGS  = "resource_configs"
 )
 
 func checkPostgresError(err error) error {

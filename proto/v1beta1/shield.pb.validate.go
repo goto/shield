@@ -17343,6 +17343,552 @@ var _ interface {
 	ErrorName() string
 } = ListActivitiesResponseValidationError{}
 
+// Validate checks the field values on UpsertResourcesConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpsertResourcesConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpsertResourcesConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpsertResourcesConfigRequestMultiError, or nil if none found.
+func (m *UpsertResourcesConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpsertResourcesConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Config
+
+	if len(errors) > 0 {
+		return UpsertResourcesConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpsertResourcesConfigRequestMultiError is an error wrapping multiple
+// validation errors returned by UpsertResourcesConfigRequest.ValidateAll() if
+// the designated constraints aren't met.
+type UpsertResourcesConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpsertResourcesConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpsertResourcesConfigRequestMultiError) AllErrors() []error { return m }
+
+// UpsertResourcesConfigRequestValidationError is the validation error returned
+// by UpsertResourcesConfigRequest.Validate if the designated constraints
+// aren't met.
+type UpsertResourcesConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpsertResourcesConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpsertResourcesConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpsertResourcesConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpsertResourcesConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpsertResourcesConfigRequestValidationError) ErrorName() string {
+	return "UpsertResourcesConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpsertResourcesConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpsertResourcesConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpsertResourcesConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpsertResourcesConfigRequestValidationError{}
+
+// Validate checks the field values on UpsertResourcesConfigResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpsertResourcesConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpsertResourcesConfigResponse with
+// the rules defined in the proto definition for this message. If any rules
+// are violated, the result is a list of violation errors wrapped in
+// UpsertResourcesConfigResponseMultiError, or nil if none found.
+func (m *UpsertResourcesConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpsertResourcesConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Config
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpsertResourcesConfigResponseValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpsertResourcesConfigResponseValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpsertResourcesConfigResponseValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpsertResourcesConfigResponseValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpsertResourcesConfigResponseValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpsertResourcesConfigResponseValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpsertResourcesConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpsertResourcesConfigResponseMultiError is an error wrapping multiple
+// validation errors returned by UpsertResourcesConfigResponse.ValidateAll()
+// if the designated constraints aren't met.
+type UpsertResourcesConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpsertResourcesConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpsertResourcesConfigResponseMultiError) AllErrors() []error { return m }
+
+// UpsertResourcesConfigResponseValidationError is the validation error
+// returned by UpsertResourcesConfigResponse.Validate if the designated
+// constraints aren't met.
+type UpsertResourcesConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpsertResourcesConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpsertResourcesConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpsertResourcesConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpsertResourcesConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpsertResourcesConfigResponseValidationError) ErrorName() string {
+	return "UpsertResourcesConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpsertResourcesConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpsertResourcesConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpsertResourcesConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpsertResourcesConfigResponseValidationError{}
+
+// Validate checks the field values on UpsertRulesConfigRequest with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpsertRulesConfigRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpsertRulesConfigRequest with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpsertRulesConfigRequestMultiError, or nil if none found.
+func (m *UpsertRulesConfigRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpsertRulesConfigRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Name
+
+	// no validation rules for Config
+
+	if len(errors) > 0 {
+		return UpsertRulesConfigRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpsertRulesConfigRequestMultiError is an error wrapping multiple validation
+// errors returned by UpsertRulesConfigRequest.ValidateAll() if the designated
+// constraints aren't met.
+type UpsertRulesConfigRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpsertRulesConfigRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpsertRulesConfigRequestMultiError) AllErrors() []error { return m }
+
+// UpsertRulesConfigRequestValidationError is the validation error returned by
+// UpsertRulesConfigRequest.Validate if the designated constraints aren't met.
+type UpsertRulesConfigRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpsertRulesConfigRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpsertRulesConfigRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpsertRulesConfigRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpsertRulesConfigRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpsertRulesConfigRequestValidationError) ErrorName() string {
+	return "UpsertRulesConfigRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpsertRulesConfigRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpsertRulesConfigRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpsertRulesConfigRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpsertRulesConfigRequestValidationError{}
+
+// Validate checks the field values on UpsertRulesConfigResponse with the rules
+// defined in the proto definition for this message. If any rules are
+// violated, the first error encountered is returned, or nil if there are no violations.
+func (m *UpsertRulesConfigResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on UpsertRulesConfigResponse with the
+// rules defined in the proto definition for this message. If any rules are
+// violated, the result is a list of violation errors wrapped in
+// UpsertRulesConfigResponseMultiError, or nil if none found.
+func (m *UpsertRulesConfigResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *UpsertRulesConfigResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	// no validation rules for Id
+
+	// no validation rules for Name
+
+	// no validation rules for Config
+
+	if all {
+		switch v := interface{}(m.GetCreatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpsertRulesConfigResponseValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpsertRulesConfigResponseValidationError{
+					field:  "CreatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetCreatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpsertRulesConfigResponseValidationError{
+				field:  "CreatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if all {
+		switch v := interface{}(m.GetUpdatedAt()).(type) {
+		case interface{ ValidateAll() error }:
+			if err := v.ValidateAll(); err != nil {
+				errors = append(errors, UpsertRulesConfigResponseValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		case interface{ Validate() error }:
+			if err := v.Validate(); err != nil {
+				errors = append(errors, UpsertRulesConfigResponseValidationError{
+					field:  "UpdatedAt",
+					reason: "embedded message failed validation",
+					cause:  err,
+				})
+			}
+		}
+	} else if v, ok := interface{}(m.GetUpdatedAt()).(interface{ Validate() error }); ok {
+		if err := v.Validate(); err != nil {
+			return UpsertRulesConfigResponseValidationError{
+				field:  "UpdatedAt",
+				reason: "embedded message failed validation",
+				cause:  err,
+			}
+		}
+	}
+
+	if len(errors) > 0 {
+		return UpsertRulesConfigResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// UpsertRulesConfigResponseMultiError is an error wrapping multiple validation
+// errors returned by UpsertRulesConfigResponse.ValidateAll() if the
+// designated constraints aren't met.
+type UpsertRulesConfigResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m UpsertRulesConfigResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m UpsertRulesConfigResponseMultiError) AllErrors() []error { return m }
+
+// UpsertRulesConfigResponseValidationError is the validation error returned by
+// UpsertRulesConfigResponse.Validate if the designated constraints aren't met.
+type UpsertRulesConfigResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e UpsertRulesConfigResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e UpsertRulesConfigResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e UpsertRulesConfigResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e UpsertRulesConfigResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e UpsertRulesConfigResponseValidationError) ErrorName() string {
+	return "UpsertRulesConfigResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e UpsertRulesConfigResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sUpsertRulesConfigResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = UpsertRulesConfigResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = UpsertRulesConfigResponseValidationError{}
+
 // Validate checks the field values on
 // CheckResourcePermissionResponse_ResourcePermissionResponse with the rules
 // defined in the proto definition for this message. If any rules are

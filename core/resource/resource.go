@@ -2,10 +2,12 @@ package resource
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"time"
 
 	"github.com/goto/shield/core/namespace"
+	"github.com/goto/shield/internal/schema"
 )
 
 const (
@@ -15,6 +17,7 @@ const (
 )
 
 type Repository interface {
+	Transactor
 	GetByID(ctx context.Context, id string) (Resource, error)
 	GetByURN(ctx context.Context, urn string) (Resource, error)
 	Upsert(ctx context.Context, resource Resource) (Resource, error)
@@ -24,8 +27,14 @@ type Repository interface {
 	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 }
 
-type ConfigRepository interface {
-	GetAll(ctx context.Context) ([]YAML, error)
+type Transactor interface {
+	WithTransaction(ctx context.Context, txnOptions sql.TxOptions) context.Context
+	Rollback(ctx context.Context, err error) error
+	Commit(ctx context.Context) error
+}
+
+type SchemaRepository interface {
+	UpsertResourceConfigs(ctx context.Context, name string, config schema.NamespaceConfigMapType) (ResourceConfig, error)
 }
 
 type Resource struct {
@@ -73,6 +82,14 @@ type PagedResources struct {
 }
 
 type ResourcePermissions = map[string][]string
+
+type ResourceConfig struct {
+	ID        uint32
+	Name      string
+	Config    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
 
 type LogData struct {
 	Entity         string `mapstructure:"entity"`

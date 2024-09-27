@@ -496,6 +496,64 @@ func (_c *ResourceService_Upsert_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
+// UpsertResourcesConfig provides a mock function with given fields: ctx, name, config
+func (_m *ResourceService) UpsertResourcesConfig(ctx context.Context, name string, config string) (resource.ResourceConfig, error) {
+	ret := _m.Called(ctx, name, config)
+
+	if len(ret) == 0 {
+		panic("no return value specified for UpsertResourcesConfig")
+	}
+
+	var r0 resource.ResourceConfig
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (resource.ResourceConfig, error)); ok {
+		return rf(ctx, name, config)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) resource.ResourceConfig); ok {
+		r0 = rf(ctx, name, config)
+	} else {
+		r0 = ret.Get(0).(resource.ResourceConfig)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, name, config)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ResourceService_UpsertResourcesConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertResourcesConfig'
+type ResourceService_UpsertResourcesConfig_Call struct {
+	*mock.Call
+}
+
+// UpsertResourcesConfig is a helper method to define mock.On call
+//   - ctx context.Context
+//   - name string
+//   - config string
+func (_e *ResourceService_Expecter) UpsertResourcesConfig(ctx interface{}, name interface{}, config interface{}) *ResourceService_UpsertResourcesConfig_Call {
+	return &ResourceService_UpsertResourcesConfig_Call{Call: _e.mock.On("UpsertResourcesConfig", ctx, name, config)}
+}
+
+func (_c *ResourceService_UpsertResourcesConfig_Call) Run(run func(ctx context.Context, name string, config string)) *ResourceService_UpsertResourcesConfig_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *ResourceService_UpsertResourcesConfig_Call) Return(_a0 resource.ResourceConfig, _a1 error) *ResourceService_UpsertResourcesConfig_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ResourceService_UpsertResourcesConfig_Call) RunAndReturn(run func(context.Context, string, string) (resource.ResourceConfig, error)) *ResourceService_UpsertResourcesConfig_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // NewResourceService creates a new instance of ResourceService. It also registers a testing interface on the mock and a cleanup function to assert the mocks expectations.
 // The first argument is typically a *testing.T value.
 func NewResourceService(t interface {

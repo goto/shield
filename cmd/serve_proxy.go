@@ -25,14 +25,18 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware/prefix"
 	"github.com/goto/shield/internal/proxy/middleware/rulematch"
 	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/internal/store/postgres"
+	"github.com/goto/shield/pkg/db"
 )
 
 func serveProxies(
 	ctx context.Context,
 	logger *log.Zap,
+	dbClient *db.Client,
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
+	storageConfig string,
 	resourceService *resource.Service,
 	relationService *relation.Service,
 	userService *user.Service,
@@ -61,13 +65,24 @@ func serveProxies(
 			return nil, nil, err
 		}
 
-		ruleBlobRepository := blob.NewRuleRepository(logger, ruleBlobFS)
-		if err := ruleBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-			return nil, nil, err
+		var ruleRepository rule.ConfigRepository
+		switch storageConfig {
+		case "DB":
+			pgRuleRepository := postgres.NewRuleRepository(dbClient)
+			if err := pgRuleRepository.InitCache(ctx); err != nil {
+				return nil, nil, err
+			}
+			ruleRepository = pgRuleRepository
+		default:
+			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
+			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+				return nil, nil, err
+			}
+			cleanUpBlobs = append(cleanUpBlobs, blobRuleRepository.Close)
+			ruleRepository = blobRuleRepository
 		}
-		cleanUpBlobs = append(cleanUpBlobs, ruleBlobRepository.Close)
 
-		ruleService := rule.NewService(ruleBlobRepository)
+		ruleService := rule.NewService(ruleRepository)
 
 		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, groupService, ruleService, projectService)
 

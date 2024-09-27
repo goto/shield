@@ -2,6 +2,7 @@ package resource
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strings"
 
@@ -14,6 +15,7 @@ import (
 	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
+	resourcecfg "github.com/goto/shield/core/resource/config"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/db"
@@ -67,10 +69,14 @@ type NamespaceService interface {
 	List(ctx context.Context) ([]namespace.Namespace, error)
 }
 
+type SchemaService interface {
+	RunMigrations(ctx context.Context) error
+}
+
 type Service struct {
 	logger              log.Logger
 	repository          Repository
-	configRepository    ConfigRepository
+	schemaRepository    SchemaRepository
 	relationService     RelationService
 	userService         UserService
 	projectService      ProjectService
@@ -78,14 +84,15 @@ type Service struct {
 	groupService        GroupService
 	policyService       PolicyService
 	namespaceService    NamespaceService
+	schemaService       SchemaService
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
 		repository:          repository,
-		configRepository:    configRepository,
+		schemaRepository:    schemaRepository,
 		relationService:     relationService,
 		userService:         userService,
 		projectService:      projectService,
@@ -93,6 +100,7 @@ func NewService(logger log.Logger, repository Repository, configRepository Confi
 		groupService:        groupService,
 		policyService:       policyService,
 		namespaceService:    namespaceService,
+		schemaService:       schemaService,
 		activityService:     activityService,
 	}
 }
@@ -294,10 +302,6 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 		return err
 	}
 	return nil
-}
-
-func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
-	return s.configRepository.GetAll(ctx)
 }
 
 // TODO(krkvrm): Separate Authz for Resources & System Namespaces
@@ -505,4 +509,54 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 	}
 
 	return resPermissionsMap, nil
+}
+
+func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config string) (ResourceConfig, error) {
+	if strings.TrimSpace(name) == "" {
+		return ResourceConfig{}, ErrInvalidDetail
+	}
+
+	if strings.TrimSpace(config) == "" {
+		return ResourceConfig{}, ErrInvalidDetail
+	}
+
+	resourceConfig, err := resourcecfg.ParseConfigYaml([]byte(config))
+	if err != nil {
+		return ResourceConfig{}, ErrInvalidDetail
+	}
+
+	configMap := make(schema.NamespaceConfigMapType)
+	for k, v := range resourceConfig {
+		if v.Type == "resource_group" {
+			configMap = schema.MergeNamespaceConfigMap(configMap, resourcecfg.GetNamespacesForResourceGroup(k, v))
+		} else {
+			configMap = schema.MergeNamespaceConfigMap(resourcecfg.GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
+		}
+	}
+
+	ctx = s.repository.WithTransaction(ctx, sql.TxOptions{
+		Isolation: sql.LevelReadUncommitted,
+	})
+
+	res, err := s.schemaRepository.UpsertResourceConfigs(ctx, name, configMap)
+	if err != nil {
+		if txErr := s.repository.Rollback(ctx, err); txErr != nil {
+			return ResourceConfig{}, err
+		}
+		return ResourceConfig{}, err
+	}
+
+	if err := s.schemaService.RunMigrations(ctx); err != nil {
+		if txErr := s.repository.Rollback(ctx, err); txErr != nil {
+			return ResourceConfig{}, err
+		}
+		return ResourceConfig{}, err
+	}
+
+	err = s.repository.Commit(ctx)
+	if err != nil {
+		return ResourceConfig{}, err
+	}
+
+	return res, nil
 }
