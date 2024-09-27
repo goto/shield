@@ -504,7 +504,7 @@ func (r ResourceRepository) GetSchema(ctx context.Context) (schema.NamespaceConf
 			defer nr.End()
 		}
 
-		return r.dbc.SelectContextWithTx(ctx, &resourceConfigModel, query, params...)
+		return r.dbc.SelectContext(ctx, &resourceConfigModel, query, params...)
 	}); err != nil {
 		err = checkPostgresError(err)
 		if !errors.Is(err, sql.ErrNoRows) {

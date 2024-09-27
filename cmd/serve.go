@@ -130,10 +130,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	resourcePGRepository := postgres.NewResourceRepository(dbClient)
 	var schemaConfigRepository schema.FileService
-	if cfg.App.ResourcesStorage == "DB" {
+	switch cfg.App.ResourcesStorage {
+	case "DB":
 		schemaConfigRepository = resourcePGRepository
-	} else {
+	case "BLOB":
 		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
+	default:
+		return errors.New("invalid resource config storage")
 	}
 
 	schemaMigrationService := schema.NewSchemaMigrationService(
@@ -247,10 +250,13 @@ func BuildAPIDependencies(
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService, roleService)
 
 	var ruleRepository rule.ConfigRepository
-	if cfg.App.RulesStorage == "DB" {
+	switch cfg.App.RulesStorage {
+	case "DB":
 		ruleRepository = postgres.NewRuleRepository(dbc)
-	} else {
+	case "BLOB":
 		ruleRepository = blob.NewRuleRepository(logger, nil)
+	default:
+		return api.Deps{}, errors.New("invalid resource config storage")
 	}
 	ruleService := rule.NewService(ruleRepository)
 
