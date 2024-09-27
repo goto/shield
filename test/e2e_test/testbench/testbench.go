@@ -202,6 +202,8 @@ func SetupTests(t *testing.T) (shieldv1beta1.ShieldServiceClient, shieldv1beta1.
 			UserIDHeader:        userIDHeaderKey,
 			ResourcesConfigPath: fmt.Sprintf("file://%s/%s", testDataPath, "configs/resources"),
 			RulesPath:           fmt.Sprintf("file://%s/%s", testDataPath, "configs/rules"),
+			RulesStorage:        "BLOB",
+			ResourcesStorage:    "BLOB",
 			ServiceData: server.ServiceDataConfig{
 				BootstrapEnabled:          true,
 				MaxNumUpsertData:          1,
