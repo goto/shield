@@ -73,13 +73,15 @@ func serveProxies(
 				return nil, nil, err
 			}
 			ruleRepository = pgRuleRepository
-		default:
+		case "BLOB":
 			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
 			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 				return nil, nil, err
 			}
 			cleanUpBlobs = append(cleanUpBlobs, blobRuleRepository.Close)
 			ruleRepository = blobRuleRepository
+		default:
+			return nil, nil, errors.New("invalid rule config storage")
 		}
 
 		ruleService := rule.NewService(ruleRepository)

@@ -50,3 +50,12 @@ func Parse(filePath string, v interface{}) error {
 
 	return nil
 }
+
+func ReadString(filePath string) (string, error) {
+	b, err := os.ReadFile(filePath)
+	if err != nil {
+		return "", err
+	}
+
+	return string(b), nil
+}
