@@ -56,7 +56,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 			Description: "should create a resource config",
 			Name:        "test",
 			Config: rule.Ruleset{
-				Rules: []rule.Rule{rule.Rule{}},
+				Rules: []rule.Rule{{}},
 			},
 			Expected: rule.RuleConfig{
 				ID:     2,
@@ -68,7 +68,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 			Description: "should update a resource config",
 			Name:        s.ruleConfig[0].Name,
 			Config: rule.Ruleset{
-				Rules: []rule.Rule{rule.Rule{}},
+				Rules: []rule.Rule{{}},
 			},
 			Expected: rule.RuleConfig{
 				ID:     s.ruleConfig[0].ID,
