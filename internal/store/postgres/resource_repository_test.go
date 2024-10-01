@@ -2,6 +2,7 @@ package postgres_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -13,6 +14,7 @@ import (
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/store/postgres"
 	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
@@ -22,16 +24,17 @@ import (
 
 type ResourceRepositoryTestSuite struct {
 	suite.Suite
-	ctx        context.Context
-	client     *db.Client
-	pool       *dockertest.Pool
-	resource   *dockertest.Resource
-	repository *postgres.ResourceRepository
-	resources  []resource.Resource
-	projects   []project.Project
-	orgs       []organization.Organization
-	namespaces []namespace.Namespace
-	users      []user.User
+	ctx            context.Context
+	client         *db.Client
+	pool           *dockertest.Pool
+	resource       *dockertest.Resource
+	repository     *postgres.ResourceRepository
+	resources      []resource.Resource
+	projects       []project.Project
+	orgs           []organization.Organization
+	namespaces     []namespace.Namespace
+	users          []user.User
+	resourceConfig []resource.ResourceConfig
 }
 
 func (s *ResourceRepositoryTestSuite) SetupSuite() {
@@ -66,6 +69,11 @@ func (s *ResourceRepositoryTestSuite) SetupSuite() {
 	}
 
 	s.projects, err = bootstrapProject(s.client, s.orgs)
+	if err != nil {
+		s.T().Fatal(err)
+	}
+
+	s.resourceConfig, err = bootstrapResourceConfig(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -768,6 +776,107 @@ func (s *ResourceRepositoryTestSuite) TestGetByNamespace() {
 				}
 			}
 			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Resource{},
+				"CreatedAt",
+				"UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
+			}
+		})
+	}
+}
+
+func (s *ResourceRepositoryTestSuite) TestGetSchema() {
+	expected := schema.NamespaceConfigMapType{}
+	for _, rc := range s.resourceConfig {
+		var config schema.NamespaceConfigMapType
+		if err := json.Unmarshal([]byte(rc.Config), &config); err != nil {
+			s.T().Fatal(err)
+		}
+		expected = schema.MergeNamespaceConfigMap(expected, config)
+	}
+
+	type testCase struct {
+		Description string
+		Expected    schema.NamespaceConfigMapType
+		ErrString   string
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should get all resources configs",
+			Expected:    expected,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetSchema(s.ctx)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.ResourceConfig{},
+				"CreatedAt",
+				"UpdatedAt")) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
+			}
+		})
+	}
+}
+
+func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
+	type testCase struct {
+		Description string
+		Name        string
+		Config      schema.NamespaceConfigMapType
+		Expected    resource.ResourceConfig
+		ErrString   string
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should create a resource config",
+			Name:        "test",
+			Config: schema.NamespaceConfigMapType{
+				"test/resource": schema.NamespaceConfig{
+					Type:        "resource_group_namespace",
+					Roles:       map[string][]string{},
+					Permissions: map[string][]string{},
+				},
+			},
+			Expected: resource.ResourceConfig{
+				ID:     3,
+				Name:   "test",
+				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
+			},
+		},
+		{
+			Description: "should update a resource config",
+			Name:        s.resourceConfig[0].Name,
+			Config: schema.NamespaceConfigMapType{
+				"test/resource": schema.NamespaceConfig{
+					Type:        "resource_group_namespace",
+					Roles:       map[string][]string{},
+					Permissions: map[string][]string{},
+				},
+			},
+			Expected: resource.ResourceConfig{
+				ID:     s.resourceConfig[0].ID,
+				Name:   s.resourceConfig[0].Name,
+				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
+			},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.UpsertResourceConfigs(s.ctx, tc.Name, tc.Config)
+			if tc.ErrString != "" {
+				if err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
+				}
+			}
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.ResourceConfig{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)

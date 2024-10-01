@@ -570,3 +570,34 @@ func bootstrapServiceData(client *db.Client, users []user.User, keys []serviceda
 
 	return insertedData, nil
 }
+
+func bootstrapResourceConfig(client *db.Client) ([]resource.ResourceConfig, error) {
+	resourceRepository := postgres.NewResourceRepository(client)
+
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource-config.json")
+	if err != nil {
+		return nil, err
+	}
+
+	type resourceConfig struct {
+		Name   string                        `json:"name"`
+		Config schema.NamespaceConfigMapType `json:"config"`
+	}
+
+	var data []resourceConfig
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []resource.ResourceConfig
+	for _, d := range data {
+		data, err := resourceRepository.UpsertResourceConfigs(context.Background(), d.Name, d.Config)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, data)
+	}
+
+	return insertedData, nil
+}
