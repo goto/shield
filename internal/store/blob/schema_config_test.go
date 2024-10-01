@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/internal/schema"
 
 	"github.com/stretchr/testify/assert"
@@ -133,4 +134,16 @@ func TestGetSchema(t *testing.T) {
 	}
 
 	assert.Equal(t, expectedMap, config)
+}
+
+func TestUpsertResourceConfigs(t *testing.T) {
+	testBucket, err := NewStore(context.Background(), "file://testdata", "")
+	assert.NoError(t, err)
+
+	s := SchemaConfig{
+		bucket: testBucket,
+	}
+
+	_, err = s.UpsertResourceConfigs(context.Background(), "", schema.NamespaceConfigMapType{})
+	assert.Equal(t, resource.ErrUpsertConfigNotSupported, err)
 }

@@ -88,7 +88,7 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (config.ConfigYAML, er
 	return configYAMLs, nil
 }
 
-func (repo *SchemaConfig) Upsert(ctx context.Context, name string, config string) (resource.ResourceConfig, error) {
+func (repo *SchemaConfig) UpsertResourceConfigs(ctx context.Context, name string, config schema.NamespaceConfigMapType) (resource.ResourceConfig, error) {
 	// upsert resource config is not supported for BLOB storage type
-	return resource.ResourceConfig{}, nil
+	return resource.ResourceConfig{}, resource.ErrUpsertConfigNotSupported
 }
