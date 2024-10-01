@@ -1,0 +1,23 @@
+[
+    {
+        "name": "entropy",
+        "config": {
+            "Rules": [
+                {
+                    "Hooks": [],
+                    "Backend": {
+                        "URL": "http://localhost:8080",
+                        "Prefix": "",
+                        "Namespace": "entropy"
+                    },
+                    "Frontend": {
+                        "URL": "/api/ping",
+                        "URLRx": null,
+                        "Method": "GET"
+                    },
+                    "Middlewares": []
+                }
+            ]
+        }
+    }
+]

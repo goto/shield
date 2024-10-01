@@ -23,6 +23,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
@@ -592,6 +593,37 @@ func bootstrapResourceConfig(client *db.Client) ([]resource.ResourceConfig, erro
 	var insertedData []resource.ResourceConfig
 	for _, d := range data {
 		data, err := resourceRepository.UpsertResourceConfigs(context.Background(), d.Name, d.Config)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, data)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapRuleConfig(client *db.Client) ([]rule.RuleConfig, error) {
+	ruleRepository := postgres.NewRuleRepository(client)
+
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-rule-config.json")
+	if err != nil {
+		return nil, err
+	}
+
+	type ruleConfig struct {
+		Name   string       `json:"name"`
+		Config rule.Ruleset `json:"config"`
+	}
+
+	var data []ruleConfig
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []rule.RuleConfig
+	for _, d := range data {
+		data, err := ruleRepository.Upsert(context.Background(), d.Name, d.Config)
 		if err != nil {
 			return nil, err
 		}
