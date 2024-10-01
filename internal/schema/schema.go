@@ -21,7 +21,8 @@ var (
 	SystemNamespace        NamespaceType = "system_namespace"
 	ResourceGroupNamespace NamespaceType = "resource_group_namespace"
 
-	ErrMigration = errors.New("error in migrating authz schema")
+	ErrMigration     = errors.New("error in migrating authz schema")
+	ErrInvalidDetail = errors.New("error in schema config")
 )
 
 type InheritedNamespace struct {
@@ -137,7 +138,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 	}
 
 	// combining predefined and configured namespaces
-	namespaceConfigMap = MergeNamespaceConfigMap(PreDefinedSystemNamespaceConfig, namespaceConfigMap)
+	namespaceConfigMap = MergeNamespaceConfigMap(namespaceConfigMap, PreDefinedSystemNamespaceConfig)
 
 	// adding predefined roles and permissions for resource group namespaces
 	for n, nc := range namespaceConfigMap {
@@ -220,7 +221,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				}
 
 				if _, ok := namespaceConfigMap[GetNamespace(transformedRole.NamespaceID)].Roles[transformedRole.ID]; !ok {
-					return fmt.Errorf("role %s not associated with namespace: %s", transformedRole.ID, transformedRole.NamespaceID)
+					return fmt.Errorf("%w: role %s not associated with namespace: %s", ErrInvalidDetail, transformedRole.ID, transformedRole.NamespaceID)
 				}
 
 				_, err = s.policyService.Upsert(ctx, &policy.Policy{

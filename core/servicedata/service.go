@@ -14,7 +14,6 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/errors"
 )
 
@@ -149,7 +148,6 @@ func (s Service) CreateKey(ctx context.Context, key Key) (Key, error) {
 	}
 
 	go func() {
-		ctx = db.WithoutTx(ctx)
 		ctx = context.WithoutCancel(ctx)
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
 		if err := s.activityService.Log(ctx, auditKeyServiceDataKeyCreate, actor, key.ToKeyLogData()); err != nil {

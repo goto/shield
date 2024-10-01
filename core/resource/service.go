@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -18,7 +17,6 @@ import (
 	resourcecfg "github.com/goto/shield/core/resource/config"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -75,6 +73,7 @@ type SchemaService interface {
 
 type Service struct {
 	logger              log.Logger
+	appConfig           AppConfig
 	repository          Repository
 	schemaRepository    SchemaRepository
 	relationService     RelationService
@@ -88,9 +87,10 @@ type Service struct {
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, appConfig AppConfig, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
+		appConfig:           appConfig,
 		repository:          repository,
 		schemaRepository:    schemaRepository,
 		relationService:     relationService,
@@ -218,7 +218,6 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx = db.WithoutTx(ctx)
 		ctx = context.WithoutCancel(ctx)
 		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
@@ -534,9 +533,7 @@ func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config 
 		}
 	}
 
-	ctx = s.repository.WithTransaction(ctx, sql.TxOptions{
-		Isolation: sql.LevelReadUncommitted,
-	})
+	ctx = s.repository.WithTransaction(ctx)
 
 	res, err := s.schemaRepository.UpsertResourceConfigs(ctx, name, configMap)
 	if err != nil {
@@ -546,11 +543,13 @@ func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config 
 		return ResourceConfig{}, err
 	}
 
-	if err := s.schemaService.RunMigrations(ctx); err != nil {
-		if txErr := s.repository.Rollback(ctx, err); txErr != nil {
+	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_DB {
+		if err := s.schemaService.RunMigrations(ctx); err != nil {
+			if txErr := s.repository.Rollback(ctx, err); txErr != nil {
+				return ResourceConfig{}, err
+			}
 			return ResourceConfig{}, err
 		}
-		return ResourceConfig{}, err
 	}
 
 	err = s.repository.Commit(ctx)

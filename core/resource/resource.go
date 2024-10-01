@@ -2,7 +2,6 @@ package resource
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"time"
 
@@ -11,7 +10,9 @@ import (
 )
 
 const (
-	NON_RESOURCE_ID = "*"
+	NON_RESOURCE_ID               = "*"
+	RESOURCES_CONFIG_STORAGE_DB   = "db"
+	RESOURCES_CONFIG_STORAGE_BLOB = "blob"
 
 	AuditEntity = "resource"
 )
@@ -28,7 +29,7 @@ type Repository interface {
 }
 
 type Transactor interface {
-	WithTransaction(ctx context.Context, txnOptions sql.TxOptions) context.Context
+	WithTransaction(ctx context.Context) context.Context
 	Rollback(ctx context.Context, err error) error
 	Commit(ctx context.Context) error
 }
@@ -89,6 +90,10 @@ type ResourceConfig struct {
 	Config    string
 	CreatedAt time.Time
 	UpdatedAt time.Time
+}
+
+type AppConfig struct {
+	ConfigStorage string
 }
 
 type LogData struct {

@@ -130,10 +130,10 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	resourcePGRepository := postgres.NewResourceRepository(dbClient)
 	var schemaConfigRepository schema.FileService
-	switch cfg.App.ResourcesStorage {
-	case "DB":
+	switch cfg.App.ResourcesConfigStorage {
+	case resource.RESOURCES_CONFIG_STORAGE_DB:
 		schemaConfigRepository = resourcePGRepository
-	case "BLOB":
+	case resource.RESOURCES_CONFIG_STORAGE_BLOB:
 		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
 	default:
 		return errors.New("invalid resource config storage")
@@ -154,13 +154,18 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, schemaMigrationService, dbClient, spiceDBClient, resourceBlobFS, cfg)
+	pgRuleRepository := postgres.NewRuleRepository(dbClient)
+	if err := pgRuleRepository.InitCache(ctx); err != nil {
+		return err
+	}
+
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, pgRuleRepository, schemaMigrationService, dbClient, spiceDBClient, resourceBlobFS, cfg)
 	if err != nil {
 		return err
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, dbClient, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, cfg.App.RulesStorage, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, cfg.App.RulesConfigStorage, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		return err
 	}
@@ -193,6 +198,7 @@ func BuildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
 	activityRepository activity.Repository,
+	ruleRepository rule.ConfigRepository,
 	schemaMigrationService *schema.SchemaService,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
@@ -242,22 +248,14 @@ func BuildAPIDependencies(
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resourcePGRepository, resourcePGRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
+		logger, resource.AppConfig{ConfigStorage: cfg.App.ResourcesConfigStorage}, resourcePGRepository, resourcePGRepository, relationService,
+		userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
 	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService, roleService)
 
-	var ruleRepository rule.ConfigRepository
-	switch cfg.App.RulesStorage {
-	case "DB":
-		ruleRepository = postgres.NewRuleRepository(dbc)
-	case "BLOB":
-		ruleRepository = blob.NewRuleRepository(logger, nil)
-	default:
-		return api.Deps{}, errors.New("invalid resource config storage")
-	}
 	ruleService := rule.NewService(ruleRepository)
 
 	dependencies := api.Deps{

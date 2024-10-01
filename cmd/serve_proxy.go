@@ -26,17 +26,16 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware/rulematch"
 	"github.com/goto/shield/internal/store/blob"
 	"github.com/goto/shield/internal/store/postgres"
-	"github.com/goto/shield/pkg/db"
 )
 
 func serveProxies(
 	ctx context.Context,
 	logger *log.Zap,
-	dbClient *db.Client,
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
 	storageConfig string,
+	pgRuleRepository *postgres.RuleRepository,
 	resourceService *resource.Service,
 	relationService *relation.Service,
 	userService *user.Service,
@@ -67,13 +66,9 @@ func serveProxies(
 
 		var ruleRepository rule.ConfigRepository
 		switch storageConfig {
-		case "DB":
-			pgRuleRepository := postgres.NewRuleRepository(dbClient)
-			if err := pgRuleRepository.InitCache(ctx); err != nil {
-				return nil, nil, err
-			}
+		case rule.RULES_CONFIG_STORAGE_DB:
 			ruleRepository = pgRuleRepository
-		case "BLOB":
+		case rule.RULES_CONFIG_STORAGE_BLOB:
 			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
 			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 				return nil, nil, err

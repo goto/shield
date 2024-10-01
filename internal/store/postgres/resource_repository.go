@@ -528,8 +528,8 @@ func GetAll(ctx context.Context) ([]resource.YAML, error) {
 	return []resource.YAML{}, nil
 }
 
-func (r *ResourceRepository) WithTransaction(ctx context.Context, txnOptions sql.TxOptions) context.Context {
-	return r.dbc.WithTransaction(ctx, txnOptions)
+func (r *ResourceRepository) WithTransaction(ctx context.Context) context.Context {
+	return r.dbc.WithTransaction(ctx, sql.TxOptions{})
 }
 
 func (r *ResourceRepository) Rollback(ctx context.Context, err error) error {

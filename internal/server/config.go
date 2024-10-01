@@ -44,7 +44,7 @@ type Config struct {
 
 	// Type of storage to where ruleset definition is stored
 	// The value must be set to either BLOB or DB
-	RulesStorage string `yaml:"rules_storage" mapstructure:"rules_storage" default:"BLOB"`
+	RulesConfigStorage string `yaml:"rules_config_storage" mapstructure:"rules_config_storage" default:"blob"`
 
 	// TODO might not suitable here because it is also being used by proxy
 	// Headers which will have user's email id
@@ -63,7 +63,7 @@ type Config struct {
 
 	// Type of storage to where resource schema definition is stored
 	// The value must be set to either BLOB or DB
-	ResourcesStorage string `yaml:"resources_storage" mapstructure:"resources_storage" default:"BLOB"`
+	ResourcesConfigStorage string `yaml:"resources_config_storage" mapstructure:"resources_config_storage" default:"blob"`
 
 	// CheckAPILimit will have the maximum number of resource permissions that can be included
 	// in the resource permission check API. Default: 5

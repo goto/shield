@@ -7,6 +7,11 @@ import (
 	rulecfg "github.com/goto/shield/core/rule/config"
 )
 
+const (
+	RULES_CONFIG_STORAGE_DB   = "db"
+	RULES_CONFIG_STORAGE_BLOB = "blob"
+)
+
 type Service struct {
 	configRepository ConfigRepository
 }

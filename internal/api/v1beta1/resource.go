@@ -10,7 +10,9 @@ import (
 	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
+	"github.com/goto/shield/internal/schema"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"
@@ -308,7 +310,8 @@ func (h Handler) UpsertResourcesConfig(ctx context.Context, request *shieldv1bet
 		switch {
 		case errors.Is(err, resource.ErrUpsertConfigNotSupported):
 			return nil, grpcUnsupportedError
-		case errors.Is(err, resource.ErrInvalidDetail):
+		case errors.Is(err, resource.ErrInvalidDetail), errors.Is(err, role.ErrNotExist),
+			errors.Is(err, schema.ErrInvalidDetail):
 			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
