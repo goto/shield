@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/group"
@@ -34,7 +35,6 @@ func serveProxies(
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
-	storageConfig string,
 	pgRuleRepository *postgres.RuleRepository,
 	resourceService *resource.Service,
 	relationService *relation.Service,
@@ -59,16 +59,23 @@ func serveProxies(
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 
-		ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+		parsedStorageURL, err := url.Parse(svcConfig.RulesPath)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		var ruleRepository rule.ConfigRepository
-		switch storageConfig {
-		case rule.RULES_CONFIG_STORAGE_DB:
+		switch parsedStorageURL.Scheme {
+		case rule.RULES_CONFIG_STORAGE_PG:
 			ruleRepository = pgRuleRepository
-		case rule.RULES_CONFIG_STORAGE_BLOB:
+		case rule.RULES_CONFIG_STORAGE_GS,
+			rule.RULES_CONFIG_STORAGE_FILE,
+			rule.RULES_CONFIG_STORAGE_MEM:
+			ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+			if err != nil {
+				return nil, nil, err
+			}
+
 			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
 			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
 				return nil, nil, err

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -79,9 +80,17 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return errors.New("resource config path cannot be left empty")
 	}
 
-	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
+	parsedResourceStorageURL, err := url.Parse(cfg.App.ResourcesConfigPath)
 	if err != nil {
 		return err
+	}
+
+	var resourceBlobFS blob.Bucket
+	if parsedResourceStorageURL.Scheme != resource.RESOURCES_CONFIG_STORAGE_PG {
+		resourceBlobFS, err = blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
+		if err != nil {
+			return err
+		}
 	}
 
 	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
@@ -130,10 +139,12 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	resourcePGRepository := postgres.NewResourceRepository(dbClient)
 	var schemaConfigRepository schema.FileService
-	switch cfg.App.ResourcesConfigStorage {
-	case resource.RESOURCES_CONFIG_STORAGE_DB:
+	switch parsedResourceStorageURL.Scheme {
+	case resource.RESOURCES_CONFIG_STORAGE_PG:
 		schemaConfigRepository = resourcePGRepository
-	case resource.RESOURCES_CONFIG_STORAGE_BLOB:
+	case resource.RESOURCES_CONFIG_STORAGE_GS,
+		resource.RESOURCES_CONFIG_STORAGE_FILE,
+		resource.RESOURCES_CONFIG_STORAGE_MEM:
 		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
 	default:
 		return errors.New("invalid resource config storage")
@@ -165,7 +176,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, cfg.App.RulesConfigStorage, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		return err
 	}
@@ -246,9 +257,13 @@ func BuildAPIDependencies(
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(logger, policyPGRepository, userService, activityService)
 
+	parsedResourceStorageURL, err := url.Parse(cfg.App.ResourcesConfigPath)
+	if err != nil {
+		return api.Deps{}, err
+	}
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resource.AppConfig{ConfigStorage: cfg.App.ResourcesConfigStorage}, resourcePGRepository, resourcePGRepository, relationService,
+		logger, resource.AppConfig{ConfigStorage: parsedResourceStorageURL.Scheme}, resourcePGRepository, resourcePGRepository, relationService,
 		userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)

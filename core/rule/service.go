@@ -8,8 +8,10 @@ import (
 )
 
 const (
-	RULES_CONFIG_STORAGE_DB   = "db"
-	RULES_CONFIG_STORAGE_BLOB = "blob"
+	RULES_CONFIG_STORAGE_PG   = "postgresql"
+	RULES_CONFIG_STORAGE_GS   = "gs"
+	RULES_CONFIG_STORAGE_FILE = "file"
+	RULES_CONFIG_STORAGE_MEM  = "mem"
 )
 
 type Service struct {

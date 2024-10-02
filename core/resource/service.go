@@ -543,7 +543,7 @@ func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config 
 		return ResourceConfig{}, err
 	}
 
-	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_DB {
+	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_PG {
 		if err := s.schemaService.RunMigrations(ctx); err != nil {
 			if txErr := s.repository.Rollback(ctx, err); txErr != nil {
 				return ResourceConfig{}, err

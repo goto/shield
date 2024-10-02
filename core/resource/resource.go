@@ -11,8 +11,10 @@ import (
 
 const (
 	NON_RESOURCE_ID               = "*"
-	RESOURCES_CONFIG_STORAGE_DB   = "db"
-	RESOURCES_CONFIG_STORAGE_BLOB = "blob"
+	RESOURCES_CONFIG_STORAGE_PG   = "postgresql"
+	RESOURCES_CONFIG_STORAGE_GS   = "gs"
+	RESOURCES_CONFIG_STORAGE_FILE = "file"
+	RESOURCES_CONFIG_STORAGE_MEM  = "mem"
 
 	AuditEntity = "resource"
 )

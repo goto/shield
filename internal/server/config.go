@@ -42,10 +42,6 @@ type Config struct {
 	// to access RulesPath files
 	RulesPathSecret string `yaml:"ruleset_secret" mapstructure:"ruleset_secret"`
 
-	// Type of storage to where ruleset definition is stored
-	// The value must be set to either BLOB or DB
-	RulesConfigStorage string `yaml:"rules_config_storage" mapstructure:"rules_config_storage" default:"blob"`
-
 	// TODO might not suitable here because it is also being used by proxy
 	// Headers which will have user's email id
 	IdentityProxyHeader string `yaml:"identity_proxy_header" mapstructure:"identity_proxy_header" default:"X-Shield-Email"`
@@ -60,10 +56,6 @@ type Config struct {
 	// ResourcesPathSecretSecret could be a env name, file path or actual value required
 	// to access ResourcesPathSecretPath files
 	ResourcesConfigPathSecret string `yaml:"resources_config_path_secret" mapstructure:"resources_config_path_secret"`
-
-	// Type of storage to where resource schema definition is stored
-	// The value must be set to either BLOB or DB
-	ResourcesConfigStorage string `yaml:"resources_config_storage" mapstructure:"resources_config_storage" default:"blob"`
 
 	// CheckAPILimit will have the maximum number of resource permissions that can be included
 	// in the resource permission check API. Default: 5
