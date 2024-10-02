@@ -21,6 +21,8 @@ type Repository interface {
 	UpdateByID(ctx context.Context, toUpdate User) (User, error)
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)
+	DeleteByEmail(ctx context.Context, email string, emailTag string) error
+	DeleteById(ctx context.Context, id string, emailTag string) error
 }
 
 type User struct {
@@ -37,6 +39,10 @@ type UserMetadataKey struct {
 	Description string
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
+}
+
+type Config struct {
+	InactiveEmailTag string
 }
 
 type PagedUsers struct {

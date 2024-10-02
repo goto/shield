@@ -1026,6 +1026,25 @@ paths:
           type: string
       tags:
         - User
+    delete:
+      summary: Remove a user
+      operationId: ShieldService_DeleteUser
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/DeleteUserResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: id
+          in: path
+          required: true
+          type: string
+      tags:
+        - User
     put:
       summary: Update User by ID
       operationId: ShieldService_UpdateUser
@@ -1404,6 +1423,8 @@ definitions:
     properties:
       message:
         type: string
+  DeleteUserResponse:
+    type: object
   GetCurrentUserResponse:
     type: object
     properties:

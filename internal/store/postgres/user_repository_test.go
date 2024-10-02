@@ -586,6 +586,70 @@ func (s *UserRepositoryTestSuite) TestUpdateByID() {
 	}
 }
 
+func (s *UserRepositoryTestSuite) TestDeleteByEmail() {
+	emailTag := "inactive"
+	type testCase struct {
+		Description string
+		Email       string
+		Err         error
+	}
+
+	testCases := []testCase{
+		{
+			Description: "return not exist error if email not found",
+			Email:       "random-email@gotocompany.com",
+			Err:         user.ErrNotExist,
+		},
+		{
+			Description: "return no error on delete success",
+			Email:       s.users[0].Email,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.DeleteByEmail(s.ctx, tc.Email, emailTag)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+		})
+	}
+}
+
+func (s *UserRepositoryTestSuite) TestDeleteByID() {
+	emailTag := "inactive"
+	type testCase struct {
+		Description string
+		Email       string
+		Err         error
+	}
+
+	testCases := []testCase{
+		{
+			Description: "return not exist error if id not found",
+			Email:       uuid.NewString(),
+			Err:         user.ErrNotExist,
+		},
+		{
+			Description: "return no error on delete success",
+			Email:       s.users[1].ID,
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			err := s.repository.DeleteById(s.ctx, tc.Email, emailTag)
+			if tc.Err != nil && tc.Err.Error() != "" {
+				if errors.Unwrap(err) == tc.Err {
+					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)
+				}
+			}
+		})
+	}
+}
+
 func TestUserRepository(t *testing.T) {
 	suite.Run(t, new(UserRepositoryTestSuite))
 }

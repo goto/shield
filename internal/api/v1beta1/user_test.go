@@ -1321,3 +1321,61 @@ func TestCreateMetadataKey(t *testing.T) {
 		})
 	}
 }
+
+func TestDeleteUser(t *testing.T) {
+	email := "user@gotocompany.com"
+	table := []struct {
+		title string
+		setup func(ctx context.Context, us *mocks.UserService) context.Context
+		req   *shieldv1beta1.DeleteUserRequest
+		err   error
+	}{
+		{
+			title: "should return unauthorized if header email is invalid",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, user.ErrInvalidEmail)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.DeleteUserRequest{
+				Id: "test-user-id",
+			},
+			err: grpcUnauthenticated,
+		},
+		{
+			title: "should return nil error if service not returning any error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, nil)
+				us.EXPECT().Delete(mock.AnythingOfType("*context.valueCtx"), "test-user-id").Return(nil)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.DeleteUserRequest{
+				Id: "test-user-id",
+			},
+			err: nil,
+		},
+		{
+			title: "should return bad body error if service return user not exist error",
+			setup: func(ctx context.Context, us *mocks.UserService) context.Context {
+				us.EXPECT().FetchCurrentUser(mock.AnythingOfType("*context.valueCtx")).Return(user.User{}, nil)
+				us.EXPECT().Delete(mock.AnythingOfType("*context.valueCtx"), "test-user-id").Return(user.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			req: &shieldv1beta1.DeleteUserRequest{
+				Id: "test-user-id",
+			},
+			err: grpcBadBodyError,
+		},
+	}
+	for _, tt := range table {
+		t.Run(tt.title, func(t *testing.T) {
+			ctx := context.TODO()
+			mockUserSrv := new(mocks.UserService)
+			if tt.setup != nil {
+				ctx = tt.setup(ctx, mockUserSrv)
+			}
+			mockDep := Handler{userService: mockUserSrv}
+			_, err := mockDep.DeleteUser(ctx, tt.req)
+			assert.EqualValues(t, tt.err, err)
+		})
+	}
+}

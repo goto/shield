@@ -40,6 +40,7 @@ type UserService interface {
 	UpdateByEmail(ctx context.Context, toUpdate user.User) (user.User, error)
 	FetchCurrentUser(ctx context.Context) (user.User, error)
 	CreateMetadataKey(ctx context.Context, key user.UserMetadataKey) (user.UserMetadataKey, error)
+	Delete(ctx context.Context, id string) error
 }
 
 func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsersRequest) (*shieldv1beta1.ListUsersResponse, error) {
@@ -658,4 +659,25 @@ func (h Handler) createUser(ctx context.Context, name, email string) (user.User,
 	}
 
 	return createdUser, nil
+}
+
+func (h Handler) DeleteUser(ctx context.Context, request *shieldv1beta1.DeleteUserRequest) (*shieldv1beta1.DeleteUserResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if _, err := h.userService.FetchCurrentUser(ctx); err != nil {
+		logger.Error(err.Error())
+		return nil, grpcUnauthenticated
+	}
+
+	if err := h.userService.Delete(ctx, request.Id); err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrNotExist):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	return &shieldv1beta1.DeleteUserResponse{}, nil
 }

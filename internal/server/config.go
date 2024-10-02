@@ -68,4 +68,6 @@ type Config struct {
 	PublicAPIPrefix string `yaml:"public_api_prefix" mapstructure:"public_api_prefix"  default:"/shield"`
 
 	CacheConfig inmemory.Config `yaml:"cache" mapstructure:"cache"`
+
+	InactiveEmailTag string `yaml:"inactive_email_tag" mapstructure:"inactive_email_tag" default:"inactive"`
 }

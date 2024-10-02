@@ -136,6 +136,102 @@ func (_c *Repository_CreateMetadataKey_Call) RunAndReturn(run func(context.Conte
 	return _c
 }
 
+// DeleteByEmail provides a mock function with given fields: ctx, email, emailTag
+func (_m *Repository) DeleteByEmail(ctx context.Context, email string, emailTag string) error {
+	ret := _m.Called(ctx, email, emailTag)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteByEmail")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, email, emailTag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_DeleteByEmail_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByEmail'
+type Repository_DeleteByEmail_Call struct {
+	*mock.Call
+}
+
+// DeleteByEmail is a helper method to define mock.On call
+//   - ctx context.Context
+//   - email string
+//   - emailTag string
+func (_e *Repository_Expecter) DeleteByEmail(ctx interface{}, email interface{}, emailTag interface{}) *Repository_DeleteByEmail_Call {
+	return &Repository_DeleteByEmail_Call{Call: _e.mock.On("DeleteByEmail", ctx, email, emailTag)}
+}
+
+func (_c *Repository_DeleteByEmail_Call) Run(run func(ctx context.Context, email string, emailTag string)) *Repository_DeleteByEmail_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_DeleteByEmail_Call) Return(_a0 error) *Repository_DeleteByEmail_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_DeleteByEmail_Call) RunAndReturn(run func(context.Context, string, string) error) *Repository_DeleteByEmail_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
+// DeleteById provides a mock function with given fields: ctx, id, emailTag
+func (_m *Repository) DeleteById(ctx context.Context, id string, emailTag string) error {
+	ret := _m.Called(ctx, id, emailTag)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteById")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) error); ok {
+		r0 = rf(ctx, id, emailTag)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// Repository_DeleteById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteById'
+type Repository_DeleteById_Call struct {
+	*mock.Call
+}
+
+// DeleteById is a helper method to define mock.On call
+//   - ctx context.Context
+//   - id string
+//   - emailTag string
+func (_e *Repository_Expecter) DeleteById(ctx interface{}, id interface{}, emailTag interface{}) *Repository_DeleteById_Call {
+	return &Repository_DeleteById_Call{Call: _e.mock.On("DeleteById", ctx, id, emailTag)}
+}
+
+func (_c *Repository_DeleteById_Call) Run(run func(ctx context.Context, id string, emailTag string)) *Repository_DeleteById_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(string), args[2].(string))
+	})
+	return _c
+}
+
+func (_c *Repository_DeleteById_Call) Return(_a0 error) *Repository_DeleteById_Call {
+	_c.Call.Return(_a0)
+	return _c
+}
+
+func (_c *Repository_DeleteById_Call) RunAndReturn(run func(context.Context, string, string) error) *Repository_DeleteById_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // GetByEmail provides a mock function with given fields: ctx, email
 func (_m *Repository) GetByEmail(ctx context.Context, email string) (user.User, error) {
 	ret := _m.Called(ctx, email)
