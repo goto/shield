@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/goto/shield/core/namespace"
-	"github.com/goto/shield/internal/schema"
 )
 
 const (
@@ -23,10 +22,6 @@ type Repository interface {
 	List(ctx context.Context, flt Filter) ([]Resource, error)
 	Update(ctx context.Context, id string, resource Resource) (Resource, error)
 	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
-}
-
-type SchemaRepository interface {
-	UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (schema.Config, error)
 }
 
 type Resource struct {

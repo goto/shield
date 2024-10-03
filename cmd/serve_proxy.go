@@ -59,13 +59,13 @@ func serveProxies(
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 
-		parsedStorageURL, err := url.Parse(svcConfig.RulesPath)
+		parsedRuleConfigURL, err := url.Parse(svcConfig.RulesPath)
 		if err != nil {
 			return nil, nil, err
 		}
 
 		var ruleRepository rule.ConfigRepository
-		switch parsedStorageURL.Scheme {
+		switch parsedRuleConfigURL.Scheme {
 		case rule.RULES_CONFIG_STORAGE_PG:
 			ruleRepository = pgRuleRepository
 		case rule.RULES_CONFIG_STORAGE_GS,

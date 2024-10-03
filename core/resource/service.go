@@ -73,7 +73,6 @@ type SchemaService interface {
 type Service struct {
 	logger              log.Logger
 	repository          Repository
-	schemaRepository    SchemaRepository
 	relationService     RelationService
 	userService         UserService
 	projectService      ProjectService
@@ -85,11 +84,10 @@ type Service struct {
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
 		repository:          repository,
-		schemaRepository:    schemaRepository,
 		relationService:     relationService,
 		userService:         userService,
 		projectService:      projectService,

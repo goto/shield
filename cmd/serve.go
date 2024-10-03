@@ -80,13 +80,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return errors.New("resource config path cannot be left empty")
 	}
 
-	parsedResourceStorageURL, err := url.Parse(cfg.App.ResourcesConfigPath)
+	parsedResourcesConfigURL, err := url.Parse(cfg.App.ResourcesConfigPath)
 	if err != nil {
 		return err
 	}
 
 	var resourceBlobFS blob.Bucket
-	if parsedResourceStorageURL.Scheme != schema.RESOURCES_CONFIG_STORAGE_PG {
+	if parsedResourcesConfigURL.Scheme != schema.RESOURCES_CONFIG_STORAGE_PG {
 		resourceBlobFS, err = blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
 		if err != nil {
 			return err
@@ -139,7 +139,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 
 	resourcePGRepository := postgres.NewResourceRepository(dbClient)
 	var schemaConfigRepository schema.FileService
-	switch parsedResourceStorageURL.Scheme {
+	switch parsedResourcesConfigURL.Scheme {
 	case schema.RESOURCES_CONFIG_STORAGE_PG:
 		schemaConfigRepository = resourcePGRepository
 	case schema.RESOURCES_CONFIG_STORAGE_GS,
@@ -151,7 +151,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	schemaMigrationService := schema.NewSchemaMigrationService(
-		schema.AppConfig{ConfigStorage: parsedResourceStorageURL.Scheme},
+		schema.AppConfig{ConfigStorage: parsedResourcesConfigURL.Scheme},
 		schemaConfigRepository,
 		resourcePGRepository,
 		namespaceService,
@@ -261,8 +261,7 @@ func BuildAPIDependencies(
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resourcePGRepository, resourcePGRepository, relationService,
-		userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
+		logger, resourcePGRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
 	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
