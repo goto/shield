@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/internal/schema"
 )
 
 type Resource struct {
@@ -59,8 +60,8 @@ type ResourceConfig struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (from ResourceConfig) transformToResourceConfig() resource.Config {
-	return resource.Config{
+func (from ResourceConfig) transformToResourceConfig() schema.Config {
+	return schema.Config{
 		ID:        from.ID,
 		Name:      from.Name,
 		Config:    from.Config,

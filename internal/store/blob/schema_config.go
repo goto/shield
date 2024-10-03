@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/resource"
-	"github.com/goto/shield/core/resource/config"
 	"github.com/goto/shield/internal/schema"
 
 	"github.com/pkg/errors"
@@ -37,9 +36,9 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	for _, c := range configFromFiles {
 		for k, v := range c {
 			if v.Type == "resource_group" {
-				configMap = schema.MergeNamespaceConfigMap(configMap, config.GetNamespacesForResourceGroup(k, v))
+				configMap = schema.MergeNamespaceConfigMap(configMap, schema.GetNamespacesForResourceGroup(k, v))
 			} else {
-				configMap = schema.MergeNamespaceConfigMap(config.GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
+				configMap = schema.MergeNamespaceConfigMap(schema.GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
 			}
 		}
 	}
@@ -49,8 +48,8 @@ func (s *SchemaConfig) GetSchema(ctx context.Context) (schema.NamespaceConfigMap
 	return configMap, nil
 }
 
-func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (config.ConfigYAML, error) {
-	configYAMLs := make(config.ConfigYAML, 0)
+func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (schema.ConfigYAML, error) {
+	configYAMLs := make(schema.ConfigYAML, 0)
 
 	// iterate over bucket files, only read .yml & .yaml files
 	it := s.bucket.List(&blob.ListOptions{})
@@ -74,7 +73,7 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (config.ConfigYAML, er
 			return nil, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
 		}
 
-		configYAML, err := config.ParseConfigYaml(fileBytes)
+		configYAML, err := schema.ParseConfigYaml(fileBytes)
 		if err != nil {
 			return nil, errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
 		}
@@ -88,7 +87,7 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) (config.ConfigYAML, er
 	return configYAMLs, nil
 }
 
-func (repo *SchemaConfig) UpsertResourceConfigs(ctx context.Context, name string, config schema.NamespaceConfigMapType) (resource.Config, error) {
+func (repo *SchemaConfig) UpsertResourceConfigs(ctx context.Context, name string, config schema.NamespaceConfigMapType) (schema.Config, error) {
 	// upsert resource config is not supported for BLOB storage type
-	return resource.Config{}, resource.ErrUpsertConfigNotSupported
+	return schema.Config{}, resource.ErrUpsertConfigNotSupported
 }

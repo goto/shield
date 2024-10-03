@@ -14,6 +14,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -970,7 +971,7 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.Config{
+					Return(schema.Config{
 						ID:        1,
 						Name:      "entropy",
 						Config:    "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
@@ -996,7 +997,7 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.Config{}, resource.ErrInvalidDetail)
+					Return(schema.Config{}, resource.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",
@@ -1009,7 +1010,7 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.Config{}, resource.ErrUpsertConfigNotSupported)
+					Return(schema.Config{}, resource.ErrUpsertConfigNotSupported)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",
@@ -1022,7 +1023,7 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 			setup: func(rs *mocks.ResourceService) {
 				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.Config{}, resource.ErrMarshal)
+					Return(schema.Config{}, resource.ErrMarshal)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",

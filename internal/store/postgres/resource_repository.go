@@ -434,10 +434,10 @@ func (r ResourceRepository) GetByNamespace(ctx context.Context, name string, ns 
 	return fetchedResource.transformToResource(), nil
 }
 
-func (r ResourceRepository) UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (resource.Config, error) {
+func (r ResourceRepository) UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (schema.Config, error) {
 	configJson, err := json.Marshal(config)
 	if err != nil {
-		return resource.Config{}, resource.ErrMarshal
+		return schema.Config{}, resource.ErrMarshal
 	}
 
 	query, params, err := goqu.Insert(TABLE_RESOURCE_CONFIGS).Rows(
@@ -445,7 +445,7 @@ func (r ResourceRepository) UpsertConfig(ctx context.Context, name string, confi
 	).OnConflict(
 		goqu.DoUpdate("name", goqu.Record{"name": name, "config": configJson})).Returning(&RuleConfig{}).ToSQL()
 	if err != nil {
-		return resource.Config{}, fmt.Errorf("%w: %s", queryErr, err)
+		return schema.Config{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	ctx = otelsql.WithCustomAttributes(
@@ -471,7 +471,7 @@ func (r ResourceRepository) UpsertConfig(ctx context.Context, name string, confi
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&resourceConfigModel)
 	}); err != nil {
 		err = checkPostgresError(err)
-		return resource.Config{}, err
+		return schema.Config{}, err
 	}
 
 	return resourceConfigModel.transformToResourceConfig(), nil

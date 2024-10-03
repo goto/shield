@@ -572,7 +572,7 @@ func bootstrapServiceData(client *db.Client, users []user.User, keys []serviceda
 	return insertedData, nil
 }
 
-func bootstrapResourceConfig(client *db.Client) ([]resource.Config, error) {
+func bootstrapResourceConfig(client *db.Client) ([]schema.Config, error) {
 	resourceRepository := postgres.NewResourceRepository(client)
 
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource-config.json")
@@ -590,7 +590,7 @@ func bootstrapResourceConfig(client *db.Client) ([]resource.Config, error) {
 		return nil, err
 	}
 
-	var insertedData []resource.Config
+	var insertedData []schema.Config
 	for _, d := range data {
 		data, err := resourceRepository.UpsertConfig(context.Background(), d.Name, d.Config)
 		if err != nil {

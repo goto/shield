@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	RULES_CONFIG_STORAGE_PG   = "postgresql"
+	RULES_CONFIG_STORAGE_PG   = "postgres"
 	RULES_CONFIG_STORAGE_GS   = "gs"
 	RULES_CONFIG_STORAGE_FILE = "file"
 	RULES_CONFIG_STORAGE_MEM  = "mem"

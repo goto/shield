@@ -10,17 +10,12 @@ import (
 )
 
 const (
-	NON_RESOURCE_ID               = "*"
-	RESOURCES_CONFIG_STORAGE_PG   = "postgresql"
-	RESOURCES_CONFIG_STORAGE_GS   = "gs"
-	RESOURCES_CONFIG_STORAGE_FILE = "file"
-	RESOURCES_CONFIG_STORAGE_MEM  = "mem"
+	NON_RESOURCE_ID = "*"
 
 	AuditEntity = "resource"
 )
 
 type Repository interface {
-	Transactor
 	GetByID(ctx context.Context, id string) (Resource, error)
 	GetByURN(ctx context.Context, urn string) (Resource, error)
 	Upsert(ctx context.Context, resource Resource) (Resource, error)
@@ -30,14 +25,8 @@ type Repository interface {
 	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 }
 
-type Transactor interface {
-	WithTransaction(ctx context.Context) context.Context
-	Rollback(ctx context.Context, err error) error
-	Commit(ctx context.Context) error
-}
-
 type SchemaRepository interface {
-	UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (Config, error)
+	UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (schema.Config, error)
 }
 
 type Resource struct {
@@ -85,18 +74,6 @@ type PagedResources struct {
 }
 
 type ResourcePermissions = map[string][]string
-
-type Config struct {
-	ID        uint32
-	Name      string
-	Config    string
-	CreatedAt time.Time
-	UpdatedAt time.Time
-}
-
-type AppConfig struct {
-	ConfigStorage string
-}
 
 type LogData struct {
 	Entity         string `mapstructure:"entity"`

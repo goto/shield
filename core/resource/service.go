@@ -14,7 +14,6 @@ import (
 	"github.com/goto/shield/core/policy"
 	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
-	resourcecfg "github.com/goto/shield/core/resource/config"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
@@ -68,12 +67,11 @@ type NamespaceService interface {
 }
 
 type SchemaService interface {
-	RunMigrations(ctx context.Context) error
+	UpsertConfig(ctx context.Context, name string, config string) (schema.Config, error)
 }
 
 type Service struct {
 	logger              log.Logger
-	appConfig           AppConfig
 	repository          Repository
 	schemaRepository    SchemaRepository
 	relationService     RelationService
@@ -87,10 +85,9 @@ type Service struct {
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, appConfig AppConfig, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, schemaRepository SchemaRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
-		appConfig:           appConfig,
 		repository:          repository,
 		schemaRepository:    schemaRepository,
 		relationService:     relationService,
@@ -510,52 +507,6 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 	return resPermissionsMap, nil
 }
 
-func (s Service) UpsertConfig(ctx context.Context, name string, config string) (Config, error) {
-	if strings.TrimSpace(name) == "" {
-		return Config{}, ErrInvalidDetail
-	}
-
-	if strings.TrimSpace(config) == "" {
-		return Config{}, ErrInvalidDetail
-	}
-
-	resourceConfig, err := resourcecfg.ParseConfigYaml([]byte(config))
-	if err != nil {
-		return Config{}, ErrInvalidDetail
-	}
-
-	configMap := make(schema.NamespaceConfigMapType)
-	for k, v := range resourceConfig {
-		if v.Type == "resource_group" {
-			configMap = schema.MergeNamespaceConfigMap(configMap, resourcecfg.GetNamespacesForResourceGroup(k, v))
-		} else {
-			configMap = schema.MergeNamespaceConfigMap(resourcecfg.GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
-		}
-	}
-
-	ctx = s.repository.WithTransaction(ctx)
-
-	res, err := s.schemaRepository.UpsertConfig(ctx, name, configMap)
-	if err != nil {
-		if txErr := s.repository.Rollback(ctx, err); txErr != nil {
-			return Config{}, err
-		}
-		return Config{}, err
-	}
-
-	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_PG {
-		if err := s.schemaService.RunMigrations(ctx); err != nil {
-			if txErr := s.repository.Rollback(ctx, err); txErr != nil {
-				return Config{}, err
-			}
-			return Config{}, err
-		}
-	}
-
-	err = s.repository.Commit(ctx)
-	if err != nil {
-		return Config{}, err
-	}
-
-	return res, nil
+func (s Service) UpsertConfig(ctx context.Context, name string, config string) (schema.Config, error) {
+	return s.schemaService.UpsertConfig(ctx, name, config)
 }

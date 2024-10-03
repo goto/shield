@@ -34,7 +34,7 @@ type ResourceRepositoryTestSuite struct {
 	orgs           []organization.Organization
 	namespaces     []namespace.Namespace
 	users          []user.User
-	resourceConfig []resource.Config
+	resourceConfig []schema.Config
 }
 
 func (s *ResourceRepositoryTestSuite) SetupSuite() {
@@ -815,7 +815,7 @@ func (s *ResourceRepositoryTestSuite) TestGetSchema() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Config{},
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(schema.Config{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
@@ -829,7 +829,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 		Description string
 		Name        string
 		Config      schema.NamespaceConfigMapType
-		Expected    resource.Config
+		Expected    schema.Config
 		ErrString   string
 	}
 
@@ -844,7 +844,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 					Permissions: map[string][]string{},
 				},
 			},
-			Expected: resource.Config{
+			Expected: schema.Config{
 				ID:     3,
 				Name:   "test",
 				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
@@ -860,7 +860,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 					Permissions: map[string][]string{},
 				},
 			},
-			Expected: resource.Config{
+			Expected: schema.Config{
 				ID:     s.resourceConfig[0].ID,
 				Name:   s.resourceConfig[0].Name,
 				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
@@ -876,7 +876,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Config{},
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(schema.Config{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)

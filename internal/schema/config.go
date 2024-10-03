@@ -1,10 +1,9 @@
-package config
+package schema
 
 import (
 	"fmt"
 	"maps"
 
-	"github.com/goto/shield/internal/schema"
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,7 +23,7 @@ type ResourceTypeConfig struct {
 	Permissions []PermissionsConfig `yaml:"permissions" json:"permissions"`
 }
 
-type Config struct {
+type ResourceConfig struct {
 	Type string `yaml:"type" json:"type"`
 
 	ResourceTypes []ResourceTypeConfig `yaml:"resource_types" json:"resource_types,omitempty"`
@@ -33,18 +32,18 @@ type Config struct {
 	Permissions []PermissionsConfig `yaml:"permissions" json:"permissions,omitempty"`
 }
 
-type ConfigYAML []map[string]Config
+type ConfigYAML []map[string]ResourceConfig
 
-func ParseConfigYaml(fileBytes []byte) (map[string]Config, error) {
-	var config map[string]Config
+func ParseConfigYaml(fileBytes []byte) (map[string]ResourceConfig, error) {
+	var config map[string]ResourceConfig
 	if err := yaml.Unmarshal(fileBytes, &config); err != nil {
-		return map[string]Config{}, err
+		return map[string]ResourceConfig{}, err
 	}
 	return config, nil
 }
 
-func GetNamespacesForResourceGroup(name string, c Config) schema.NamespaceConfigMapType {
-	namespaceConfig := schema.NamespaceConfigMapType{}
+func GetNamespacesForResourceGroup(name string, c ResourceConfig) NamespaceConfigMapType {
+	namespaceConfig := NamespaceConfigMapType{}
 
 	for _, v := range c.ResourceTypes {
 		maps.Copy(namespaceConfig, GetNamespaceFromConfig(name, v.Roles, v.Permissions, v.Name))
@@ -53,8 +52,8 @@ func GetNamespacesForResourceGroup(name string, c Config) schema.NamespaceConfig
 	return namespaceConfig
 }
 
-func GetNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionConfigs []PermissionsConfig, resourceType ...string) schema.NamespaceConfigMapType {
-	tnc := schema.NamespaceConfig{
+func GetNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionConfigs []PermissionsConfig, resourceType ...string) NamespaceConfigMapType {
+	tnc := NamespaceConfig{
 		Roles:       make(map[string][]string),
 		Permissions: make(map[string][]string),
 	}
@@ -68,11 +67,11 @@ func GetNamespaceFromConfig(name string, rolesConfigs []RoleConfig, permissionCo
 	}
 
 	if len(resourceType) == 0 {
-		tnc.Type = schema.SystemNamespace
+		tnc.Type = SystemNamespace
 	} else {
-		tnc.Type = schema.ResourceGroupNamespace
+		tnc.Type = ResourceGroupNamespace
 		name = fmt.Sprintf("%s/%s", name, resourceType[0])
 	}
 
-	return schema.NamespaceConfigMapType{name: tnc}
+	return NamespaceConfigMapType{name: tnc}
 }

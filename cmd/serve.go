@@ -86,7 +86,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	var resourceBlobFS blob.Bucket
-	if parsedResourceStorageURL.Scheme != resource.RESOURCES_CONFIG_STORAGE_PG {
+	if parsedResourceStorageURL.Scheme != schema.RESOURCES_CONFIG_STORAGE_PG {
 		resourceBlobFS, err = blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
 		if err != nil {
 			return err
@@ -140,18 +140,20 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	resourcePGRepository := postgres.NewResourceRepository(dbClient)
 	var schemaConfigRepository schema.FileService
 	switch parsedResourceStorageURL.Scheme {
-	case resource.RESOURCES_CONFIG_STORAGE_PG:
+	case schema.RESOURCES_CONFIG_STORAGE_PG:
 		schemaConfigRepository = resourcePGRepository
-	case resource.RESOURCES_CONFIG_STORAGE_GS,
-		resource.RESOURCES_CONFIG_STORAGE_FILE,
-		resource.RESOURCES_CONFIG_STORAGE_MEM:
+	case schema.RESOURCES_CONFIG_STORAGE_GS,
+		schema.RESOURCES_CONFIG_STORAGE_FILE,
+		schema.RESOURCES_CONFIG_STORAGE_MEM:
 		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
 	default:
 		return errors.New("invalid resource config storage")
 	}
 
 	schemaMigrationService := schema.NewSchemaMigrationService(
+		schema.AppConfig{ConfigStorage: parsedResourceStorageURL.Scheme},
 		schemaConfigRepository,
+		resourcePGRepository,
 		namespaceService,
 		roleService,
 		actionService,
@@ -257,13 +259,9 @@ func BuildAPIDependencies(
 	policyPGRepository := postgres.NewPolicyRepository(dbc)
 	policyService := policy.NewService(logger, policyPGRepository, userService, activityService)
 
-	parsedResourceStorageURL, err := url.Parse(cfg.App.ResourcesConfigPath)
-	if err != nil {
-		return api.Deps{}, err
-	}
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resource.AppConfig{ConfigStorage: parsedResourceStorageURL.Scheme}, resourcePGRepository, resourcePGRepository, relationService,
+		logger, resourcePGRepository, resourcePGRepository, relationService,
 		userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
