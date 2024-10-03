@@ -19,7 +19,7 @@ func ResourceCommand(cliConfig *Config) *cli.Command {
 			Work with resources.
 		`),
 		Example: heredoc.Doc(`
-			$ shield resource config upsert
+			$ shield resource config upload
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -42,7 +42,7 @@ func resourceConfigCommand(cliConfig *Config) *cli.Command {
 			Work with resources config.
 		`),
 		Example: heredoc.Doc(`
-			$ shield resource config upsert
+			$ shield resource config upload
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -59,11 +59,11 @@ func upsertResourcesConfigCommand(cliConfig *Config) *cli.Command {
 	var name, filePath, header string
 
 	cmd := &cli.Command{
-		Use:   "upsert",
-		Short: "Upsert a resource config",
+		Use:   "upload",
+		Short: "Upload a resource config",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield resource config upsert --name --file=<resource-config-body> --header=<key>:<value>
+			$ shield resource config upload --name --file=<resource-config-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"resource:core": "true",

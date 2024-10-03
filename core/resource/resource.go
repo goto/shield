@@ -37,7 +37,7 @@ type Transactor interface {
 }
 
 type SchemaRepository interface {
-	UpsertResourceConfigs(ctx context.Context, name string, config schema.NamespaceConfigMapType) (ResourceConfig, error)
+	UpsertConfig(ctx context.Context, name string, config schema.NamespaceConfigMapType) (Config, error)
 }
 
 type Resource struct {
@@ -86,7 +86,7 @@ type PagedResources struct {
 
 type ResourcePermissions = map[string][]string
 
-type ResourceConfig struct {
+type Config struct {
 	ID        uint32
 	Name      string
 	Config    string

@@ -572,7 +572,7 @@ func bootstrapServiceData(client *db.Client, users []user.User, keys []serviceda
 	return insertedData, nil
 }
 
-func bootstrapResourceConfig(client *db.Client) ([]resource.ResourceConfig, error) {
+func bootstrapResourceConfig(client *db.Client) ([]resource.Config, error) {
 	resourceRepository := postgres.NewResourceRepository(client)
 
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource-config.json")
@@ -590,9 +590,9 @@ func bootstrapResourceConfig(client *db.Client) ([]resource.ResourceConfig, erro
 		return nil, err
 	}
 
-	var insertedData []resource.ResourceConfig
+	var insertedData []resource.Config
 	for _, d := range data {
-		data, err := resourceRepository.UpsertResourceConfigs(context.Background(), d.Name, d.Config)
+		data, err := resourceRepository.UpsertConfig(context.Background(), d.Name, d.Config)
 		if err != nil {
 			return nil, err
 		}
@@ -603,7 +603,7 @@ func bootstrapResourceConfig(client *db.Client) ([]resource.ResourceConfig, erro
 	return insertedData, nil
 }
 
-func bootstrapRuleConfig(client *db.Client) ([]rule.RuleConfig, error) {
+func bootstrapRuleConfig(client *db.Client) ([]rule.Config, error) {
 	ruleRepository := postgres.NewRuleRepository(client)
 
 	testFixtureJSON, err := os.ReadFile("./testdata/mock-rule-config.json")
@@ -621,7 +621,7 @@ func bootstrapRuleConfig(client *db.Client) ([]rule.RuleConfig, error) {
 		return nil, err
 	}
 
-	var insertedData []rule.RuleConfig
+	var insertedData []rule.Config
 	for _, d := range data {
 		data, err := ruleRepository.Upsert(context.Background(), d.Name, d.Config)
 		if err != nil {

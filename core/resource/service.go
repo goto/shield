@@ -510,18 +510,18 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 	return resPermissionsMap, nil
 }
 
-func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config string) (ResourceConfig, error) {
+func (s Service) UpsertConfig(ctx context.Context, name string, config string) (Config, error) {
 	if strings.TrimSpace(name) == "" {
-		return ResourceConfig{}, ErrInvalidDetail
+		return Config{}, ErrInvalidDetail
 	}
 
 	if strings.TrimSpace(config) == "" {
-		return ResourceConfig{}, ErrInvalidDetail
+		return Config{}, ErrInvalidDetail
 	}
 
 	resourceConfig, err := resourcecfg.ParseConfigYaml([]byte(config))
 	if err != nil {
-		return ResourceConfig{}, ErrInvalidDetail
+		return Config{}, ErrInvalidDetail
 	}
 
 	configMap := make(schema.NamespaceConfigMapType)
@@ -535,26 +535,26 @@ func (s Service) UpsertResourcesConfig(ctx context.Context, name string, config 
 
 	ctx = s.repository.WithTransaction(ctx)
 
-	res, err := s.schemaRepository.UpsertResourceConfigs(ctx, name, configMap)
+	res, err := s.schemaRepository.UpsertConfig(ctx, name, configMap)
 	if err != nil {
 		if txErr := s.repository.Rollback(ctx, err); txErr != nil {
-			return ResourceConfig{}, err
+			return Config{}, err
 		}
-		return ResourceConfig{}, err
+		return Config{}, err
 	}
 
 	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_PG {
 		if err := s.schemaService.RunMigrations(ctx); err != nil {
 			if txErr := s.repository.Rollback(ctx, err); txErr != nil {
-				return ResourceConfig{}, err
+				return Config{}, err
 			}
-			return ResourceConfig{}, err
+			return Config{}, err
 		}
 	}
 
 	err = s.repository.Commit(ctx)
 	if err != nil {
-		return ResourceConfig{}, err
+		return Config{}, err
 	}
 
 	return res, nil

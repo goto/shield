@@ -496,23 +496,23 @@ func (_c *ResourceService_Upsert_Call) RunAndReturn(run func(context.Context, re
 	return _c
 }
 
-// UpsertResourcesConfig provides a mock function with given fields: ctx, name, config
-func (_m *ResourceService) UpsertResourcesConfig(ctx context.Context, name string, config string) (resource.ResourceConfig, error) {
+// UpsertConfig provides a mock function with given fields: ctx, name, config
+func (_m *ResourceService) UpsertConfig(ctx context.Context, name string, config string) (resource.Config, error) {
 	ret := _m.Called(ctx, name, config)
 
 	if len(ret) == 0 {
-		panic("no return value specified for UpsertResourcesConfig")
+		panic("no return value specified for UpsertConfig")
 	}
 
-	var r0 resource.ResourceConfig
+	var r0 resource.Config
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (resource.ResourceConfig, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (resource.Config, error)); ok {
 		return rf(ctx, name, config)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) resource.ResourceConfig); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) resource.Config); ok {
 		r0 = rf(ctx, name, config)
 	} else {
-		r0 = ret.Get(0).(resource.ResourceConfig)
+		r0 = ret.Get(0).(resource.Config)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
@@ -524,32 +524,32 @@ func (_m *ResourceService) UpsertResourcesConfig(ctx context.Context, name strin
 	return r0, r1
 }
 
-// ResourceService_UpsertResourcesConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertResourcesConfig'
-type ResourceService_UpsertResourcesConfig_Call struct {
+// ResourceService_UpsertConfig_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'UpsertConfig'
+type ResourceService_UpsertConfig_Call struct {
 	*mock.Call
 }
 
-// UpsertResourcesConfig is a helper method to define mock.On call
+// UpsertConfig is a helper method to define mock.On call
 //   - ctx context.Context
 //   - name string
 //   - config string
-func (_e *ResourceService_Expecter) UpsertResourcesConfig(ctx interface{}, name interface{}, config interface{}) *ResourceService_UpsertResourcesConfig_Call {
-	return &ResourceService_UpsertResourcesConfig_Call{Call: _e.mock.On("UpsertResourcesConfig", ctx, name, config)}
+func (_e *ResourceService_Expecter) UpsertConfig(ctx interface{}, name interface{}, config interface{}) *ResourceService_UpsertConfig_Call {
+	return &ResourceService_UpsertConfig_Call{Call: _e.mock.On("UpsertConfig", ctx, name, config)}
 }
 
-func (_c *ResourceService_UpsertResourcesConfig_Call) Run(run func(ctx context.Context, name string, config string)) *ResourceService_UpsertResourcesConfig_Call {
+func (_c *ResourceService_UpsertConfig_Call) Run(run func(ctx context.Context, name string, config string)) *ResourceService_UpsertConfig_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *ResourceService_UpsertResourcesConfig_Call) Return(_a0 resource.ResourceConfig, _a1 error) *ResourceService_UpsertResourcesConfig_Call {
+func (_c *ResourceService_UpsertConfig_Call) Return(_a0 resource.Config, _a1 error) *ResourceService_UpsertConfig_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *ResourceService_UpsertResourcesConfig_Call) RunAndReturn(run func(context.Context, string, string) (resource.ResourceConfig, error)) *ResourceService_UpsertResourcesConfig_Call {
+func (_c *ResourceService_UpsertConfig_Call) RunAndReturn(run func(context.Context, string, string) (resource.Config, error)) *ResourceService_UpsertConfig_Call {
 	_c.Call.Return(run)
 	return _c
 }

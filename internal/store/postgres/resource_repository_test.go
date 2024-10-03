@@ -34,7 +34,7 @@ type ResourceRepositoryTestSuite struct {
 	orgs           []organization.Organization
 	namespaces     []namespace.Namespace
 	users          []user.User
-	resourceConfig []resource.ResourceConfig
+	resourceConfig []resource.Config
 }
 
 func (s *ResourceRepositoryTestSuite) SetupSuite() {
@@ -815,7 +815,7 @@ func (s *ResourceRepositoryTestSuite) TestGetSchema() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.ResourceConfig{},
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Config{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)
@@ -829,7 +829,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 		Description string
 		Name        string
 		Config      schema.NamespaceConfigMapType
-		Expected    resource.ResourceConfig
+		Expected    resource.Config
 		ErrString   string
 	}
 
@@ -844,7 +844,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 					Permissions: map[string][]string{},
 				},
 			},
-			Expected: resource.ResourceConfig{
+			Expected: resource.Config{
 				ID:     3,
 				Name:   "test",
 				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
@@ -860,7 +860,7 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 					Permissions: map[string][]string{},
 				},
 			},
-			Expected: resource.ResourceConfig{
+			Expected: resource.Config{
 				ID:     s.resourceConfig[0].ID,
 				Name:   s.resourceConfig[0].Name,
 				Config: "{\"test/resource\": {\"Type\": \"resource_group_namespace\", \"Roles\": {}, \"Permissions\": {}, \"InheritedNamespaces\": null}}",
@@ -870,13 +870,13 @@ func (s *ResourceRepositoryTestSuite) TestUpsertResourceConfigs() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			got, err := s.repository.UpsertResourceConfigs(s.ctx, tc.Name, tc.Config)
+			got, err := s.repository.UpsertConfig(s.ctx, tc.Name, tc.Config)
 			if tc.ErrString != "" {
 				if err.Error() != tc.ErrString {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.ResourceConfig{},
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(resource.Config{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)

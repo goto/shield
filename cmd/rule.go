@@ -19,7 +19,7 @@ func RuleCommand(cliConfig *Config) *cli.Command {
 			Work with rules.
 		`),
 		Example: heredoc.Doc(`
-			$ shield rule config upsert
+			$ shield rule config upload
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -42,7 +42,7 @@ func ruleConfigCommand(cliConfig *Config) *cli.Command {
 			Work with rules config.
 		`),
 		Example: heredoc.Doc(`
-			$ shield rule config upsert
+			$ shield rule config upload
 		`),
 		Annotations: map[string]string{
 			"group":  "core",
@@ -59,11 +59,11 @@ func upsertRuleConfigCommand(cliConfig *Config) *cli.Command {
 	var name, filePath, header string
 
 	cmd := &cli.Command{
-		Use:   "upsert",
-		Short: "Upsert a rule config",
+		Use:   "upload",
+		Short: "Upload a rule config",
 		Args:  cli.NoArgs,
 		Example: heredoc.Doc(`
-			$ shield rule config upsert --name --file=<rule-config-body> --header=<key>:<value>
+			$ shield rule config upload --name --file=<rule-config-body> --header=<key>:<value>
 		`),
 		Annotations: map[string]string{
 			"rule:core": "true",

@@ -10,14 +10,14 @@ import (
 
 type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]Ruleset, error)
-	Upsert(ctx context.Context, name string, config Ruleset) (RuleConfig, error)
+	Upsert(ctx context.Context, name string, config Ruleset) (Config, error)
 }
 
 type Ruleset struct {
 	Rules []Rule `yaml:"rules"`
 }
 
-type RuleConfig struct {
+type Config struct {
 	ID        uint32
 	Name      string
 	Config    string

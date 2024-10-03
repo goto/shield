@@ -28,11 +28,11 @@ func NewRuleRepository(dbc *db.Client) *RuleRepository {
 	}
 }
 
-func (r *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.RuleConfig, error) {
+func (r *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.Config, error) {
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	configJson, err := json.Marshal(config)
 	if err != nil {
-		return rule.RuleConfig{}, rule.ErrMarshal
+		return rule.Config{}, rule.ErrMarshal
 	}
 
 	ctx = r.WithTransaction(ctx)
@@ -42,7 +42,7 @@ func (r *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ru
 	).OnConflict(
 		goqu.DoUpdate("name", goqu.Record{"name": name, "config": configJson})).Returning(&RuleConfig{}).ToSQL()
 	if err != nil {
-		return rule.RuleConfig{}, fmt.Errorf("%w: %s", queryErr, err)
+		return rule.Config{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
 
 	ctx = otelsql.WithCustomAttributes(
@@ -68,23 +68,23 @@ func (r *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ru
 		return r.dbc.QueryRowxContext(ctx, query, params...).StructScan(&ruleConfigModel)
 	}); err != nil {
 		if txErr := r.Rollback(ctx, err); txErr != nil {
-			return rule.RuleConfig{}, err
+			return rule.Config{}, err
 		}
 		err = checkPostgresError(err)
-		return rule.RuleConfig{}, err
+		return rule.Config{}, err
 	}
 
 	err = r.InitCache(ctx)
 	if err != nil {
 		if txErr := r.Rollback(ctx, err); txErr != nil {
-			return rule.RuleConfig{}, err
+			return rule.Config{}, err
 		}
-		return rule.RuleConfig{}, err
+		return rule.Config{}, err
 	}
 
 	err = r.Commit(ctx)
 	if err != nil {
-		return rule.RuleConfig{}, err
+		return rule.Config{}, err
 	}
 
 	return ruleConfigModel.transformToRuleConfig(), nil
@@ -109,7 +109,7 @@ func (r *RuleRepository) InitCache(ctx context.Context) error {
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RULE_CONFIGS,
+				Collection: TABLE_RESOURCES,
 				Operation:  "List",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}

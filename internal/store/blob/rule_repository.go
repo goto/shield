@@ -123,9 +123,9 @@ func (repo *RuleRepository) Close() error {
 	return repo.bucket.Close()
 }
 
-func (repo *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.RuleConfig, error) {
+func (repo *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.Config, error) {
 	// upsert is currently not supported for BLOB rule config storage type
-	return rule.RuleConfig{}, rule.ErrUpsertConfigNotSupported
+	return rule.Config{}, rule.ErrUpsertConfigNotSupported
 }
 
 func NewRuleRepository(logger log.Logger, b Bucket) *RuleRepository {

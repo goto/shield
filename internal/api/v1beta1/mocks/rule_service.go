@@ -81,22 +81,22 @@ func (_c *RuleService_GetAllConfigs_Call) RunAndReturn(run func(context.Context)
 }
 
 // UpsertRulesConfigs provides a mock function with given fields: ctx, name, config
-func (_m *RuleService) UpsertRulesConfigs(ctx context.Context, name string, config string) (rule.RuleConfig, error) {
+func (_m *RuleService) UpsertRulesConfigs(ctx context.Context, name string, config string) (rule.Config, error) {
 	ret := _m.Called(ctx, name, config)
 
 	if len(ret) == 0 {
 		panic("no return value specified for UpsertRulesConfigs")
 	}
 
-	var r0 rule.RuleConfig
+	var r0 rule.Config
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (rule.RuleConfig, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (rule.Config, error)); ok {
 		return rf(ctx, name, config)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) rule.RuleConfig); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) rule.Config); ok {
 		r0 = rf(ctx, name, config)
 	} else {
-		r0 = ret.Get(0).(rule.RuleConfig)
+		r0 = ret.Get(0).(rule.Config)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
@@ -128,12 +128,12 @@ func (_c *RuleService_UpsertRulesConfigs_Call) Run(run func(ctx context.Context,
 	return _c
 }
 
-func (_c *RuleService_UpsertRulesConfigs_Call) Return(_a0 rule.RuleConfig, _a1 error) *RuleService_UpsertRulesConfigs_Call {
+func (_c *RuleService_UpsertRulesConfigs_Call) Return(_a0 rule.Config, _a1 error) *RuleService_UpsertRulesConfigs_Call {
 	_c.Call.Return(_a0, _a1)
 	return _c
 }
 
-func (_c *RuleService_UpsertRulesConfigs_Call) RunAndReturn(run func(context.Context, string, string) (rule.RuleConfig, error)) *RuleService_UpsertRulesConfigs_Call {
+func (_c *RuleService_UpsertRulesConfigs_Call) RunAndReturn(run func(context.Context, string, string) (rule.Config, error)) *RuleService_UpsertRulesConfigs_Call {
 	_c.Call.Return(run)
 	return _c
 }

@@ -21,7 +21,7 @@ type RuleRepositoryTestSuite struct {
 	pool       *dockertest.Pool
 	resource   *dockertest.Resource
 	repository *postgres.RuleRepository
-	ruleConfig []rule.RuleConfig
+	Config     []rule.Config
 }
 
 func (s *RuleRepositoryTestSuite) SetupSuite() {
@@ -36,7 +36,7 @@ func (s *RuleRepositoryTestSuite) SetupSuite() {
 	s.ctx = context.TODO()
 	s.repository = postgres.NewRuleRepository(s.client)
 
-	s.ruleConfig, err = bootstrapRuleConfig(s.client)
+	s.Config, err = bootstrapRuleConfig(s.client)
 	if err != nil {
 		s.T().Fatal(err)
 	}
@@ -47,7 +47,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 		Description string
 		Name        string
 		Config      rule.Ruleset
-		Expected    rule.RuleConfig
+		Expected    rule.Config
 		ErrString   string
 	}
 
@@ -58,7 +58,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 			Config: rule.Ruleset{
 				Rules: []rule.Rule{{}},
 			},
-			Expected: rule.RuleConfig{
+			Expected: rule.Config{
 				ID:     2,
 				Name:   "test",
 				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null}]}",
@@ -66,13 +66,13 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 		},
 		{
 			Description: "should update a resource config",
-			Name:        s.ruleConfig[0].Name,
+			Name:        s.Config[0].Name,
 			Config: rule.Ruleset{
 				Rules: []rule.Rule{{}},
 			},
-			Expected: rule.RuleConfig{
-				ID:     s.ruleConfig[0].ID,
-				Name:   s.ruleConfig[0].Name,
+			Expected: rule.Config{
+				ID:     s.Config[0].ID,
+				Name:   s.Config[0].Name,
 				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null}]}",
 			},
 		},
@@ -86,7 +86,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.ErrString)
 				}
 			}
-			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(rule.RuleConfig{},
+			if !cmp.Equal(got, tc.Expected, cmpopts.IgnoreFields(rule.Config{},
 				"CreatedAt",
 				"UpdatedAt")) {
 				s.T().Fatalf("got result %+v, expected was %+v", got, tc.Expected)

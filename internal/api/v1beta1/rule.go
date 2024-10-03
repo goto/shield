@@ -12,7 +12,7 @@ import (
 
 type RuleService interface {
 	GetAllConfigs(ctx context.Context) ([]rule.Ruleset, error)
-	UpsertRulesConfigs(ctx context.Context, name string, config string) (rule.RuleConfig, error)
+	UpsertRulesConfigs(ctx context.Context, name string, config string) (rule.Config, error)
 }
 
 func (h Handler) UpsertRulesConfig(ctx context.Context, request *shieldv1beta1.UpsertRulesConfigRequest) (*shieldv1beta1.UpsertRulesConfigResponse, error) {
@@ -35,7 +35,7 @@ func (h Handler) UpsertRulesConfig(ctx context.Context, request *shieldv1beta1.U
 	return ruleConfigToPB(rc), nil
 }
 
-func ruleConfigToPB(from rule.RuleConfig) *shieldv1beta1.UpsertRulesConfigResponse {
+func ruleConfigToPB(from rule.Config) *shieldv1beta1.UpsertRulesConfigResponse {
 	return &shieldv1beta1.UpsertRulesConfigResponse{
 		Id:        from.ID,
 		Name:      from.Name,

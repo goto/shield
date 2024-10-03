@@ -28,18 +28,18 @@ func (s Service) GetAllConfigs(ctx context.Context) ([]Ruleset, error) {
 	return s.configRepository.GetAll(ctx)
 }
 
-func (s Service) UpsertRulesConfigs(ctx context.Context, name string, config string) (RuleConfig, error) {
+func (s Service) UpsertRulesConfigs(ctx context.Context, name string, config string) (Config, error) {
 	if strings.TrimSpace(name) == "" {
-		return RuleConfig{}, ErrInvalidRuleConfig
+		return Config{}, ErrInvalidRuleConfig
 	}
 
 	if strings.TrimSpace(config) == "" {
-		return RuleConfig{}, ErrInvalidRuleConfig
+		return Config{}, ErrInvalidRuleConfig
 	}
 
 	yamlRuleset, err := rulecfg.ParseRulesetYaml([]byte(config))
 	if err != nil {
-		return RuleConfig{}, ErrInvalidRuleConfig
+		return Config{}, ErrInvalidRuleConfig
 	}
 
 	targetRuleset := YamlRulesetToRuleset(yamlRuleset)

@@ -59,8 +59,8 @@ type ResourceConfig struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (from ResourceConfig) transformToResourceConfig() resource.ResourceConfig {
-	return resource.ResourceConfig{
+func (from ResourceConfig) transformToResourceConfig() resource.Config {
+	return resource.Config{
 		ID:        from.ID,
 		Name:      from.Name,
 		Config:    from.Config,

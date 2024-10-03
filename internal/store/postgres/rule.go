@@ -14,8 +14,8 @@ type RuleConfig struct {
 	UpdatedAt time.Time `db:"updated_at"`
 }
 
-func (from RuleConfig) transformToRuleConfig() rule.RuleConfig {
-	return rule.RuleConfig{
+func (from RuleConfig) transformToRuleConfig() rule.Config {
+	return rule.Config{
 		ID:        from.ID,
 		Name:      from.Name,
 		Config:    from.Config,

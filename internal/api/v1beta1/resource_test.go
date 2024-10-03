@@ -968,9 +968,9 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 		{
 			name: "should return success if service return nil err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().UpsertResourcesConfig(mock.AnythingOfType("context.todoCtx"),
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.ResourceConfig{
+					Return(resource.Config{
 						ID:        1,
 						Name:      "entropy",
 						Config:    "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
@@ -994,9 +994,9 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 		{
 			name: "should return bad body error if service return invalid detail err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().UpsertResourcesConfig(mock.AnythingOfType("context.todoCtx"),
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.ResourceConfig{}, resource.ErrInvalidDetail)
+					Return(resource.Config{}, resource.ErrInvalidDetail)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",
@@ -1007,9 +1007,9 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 		{
 			name: "should return not supported error if service return not supported err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().UpsertResourcesConfig(mock.AnythingOfType("context.todoCtx"),
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.ResourceConfig{}, resource.ErrUpsertConfigNotSupported)
+					Return(resource.Config{}, resource.ErrUpsertConfigNotSupported)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",
@@ -1020,9 +1020,9 @@ func TestHandler_UpsertResourcesConfig(t *testing.T) {
 		{
 			name: "should return internal error if service return unmarshal err",
 			setup: func(rs *mocks.ResourceService) {
-				rs.EXPECT().UpsertResourcesConfig(mock.AnythingOfType("context.todoCtx"),
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
 					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
-					Return(resource.ResourceConfig{}, resource.ErrMarshal)
+					Return(resource.Config{}, resource.ErrMarshal)
 			},
 			request: &shieldv1beta1.UpsertResourcesConfigRequest{
 				Name:   "entropy",

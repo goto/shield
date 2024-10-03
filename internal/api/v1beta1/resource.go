@@ -30,7 +30,7 @@ type ResourceService interface {
 	BulkCheckAuthz(ctx context.Context, resources []resource.Resource, actions []action.Action) ([]relation.Permission, error)
 	ListUserResourcesByType(ctx context.Context, userID string, resourceType string, permissions []string) (resource.ResourcePermissions, error)
 	ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]resource.ResourcePermissions, error)
-	UpsertResourcesConfig(ctx context.Context, name string, config string) (resource.ResourceConfig, error)
+	UpsertConfig(ctx context.Context, name string, config string) (resource.Config, error)
 }
 
 var grpcResourceNotFoundErr = status.Errorf(codes.NotFound, "resource doesn't exist")
@@ -304,7 +304,7 @@ func (h Handler) ListUserResourcesByType(ctx context.Context, request *shieldv1b
 func (h Handler) UpsertResourcesConfig(ctx context.Context, request *shieldv1beta1.UpsertResourcesConfigRequest) (*shieldv1beta1.UpsertResourcesConfigResponse, error) {
 	logger := grpczap.Extract(ctx)
 
-	rc, err := h.resourceService.UpsertResourcesConfig(ctx, request.Name, request.Config)
+	rc, err := h.resourceService.UpsertConfig(ctx, request.Name, request.Config)
 	if err != nil {
 		logger.Error(err.Error())
 		switch {
@@ -322,7 +322,7 @@ func (h Handler) UpsertResourcesConfig(ctx context.Context, request *shieldv1bet
 	return resourceConfigToPB(rc), nil
 }
 
-func resourceConfigToPB(from resource.ResourceConfig) *shieldv1beta1.UpsertResourcesConfigResponse {
+func resourceConfigToPB(from resource.Config) *shieldv1beta1.UpsertResourcesConfigResponse {
 	return &shieldv1beta1.UpsertResourcesConfigResponse{
 		Id:        from.ID,
 		Name:      from.Name,
