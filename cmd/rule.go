@@ -98,7 +98,7 @@ func upsertRuleConfigCommand(cliConfig *Config) *cli.Command {
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully upserted rule config %s with id %d\nconfig:\n%s", res.GetName(), res.GetId(), res.Config)
+			fmt.Printf("successfully uploaded rule config %s with id %d\nconfig:\n%s", res.GetName(), res.GetId(), res.Config)
 			return nil
 		},
 	}

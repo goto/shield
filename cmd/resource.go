@@ -98,7 +98,7 @@ func upsertResourcesConfigCommand(cliConfig *Config) *cli.Command {
 			}
 
 			spinner.Stop()
-			fmt.Printf("successfully upserted resource config %s with id %d\nconfig:\n%s", res.GetName(), res.GetId(), res.GetConfig())
+			fmt.Printf("successfully uploaded resource config %s with id %d\nconfig:\n%s", res.GetName(), res.GetId(), res.GetConfig())
 			return nil
 		},
 	}
