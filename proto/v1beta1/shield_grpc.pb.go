@@ -64,6 +64,8 @@ const (
 	ShieldService_ListAllUserResources_FullMethodName        = "/gotocompany.shield.v1beta1.ShieldService/ListAllUserResources"
 	ShieldService_CheckResourcePermission_FullMethodName     = "/gotocompany.shield.v1beta1.ShieldService/CheckResourcePermission"
 	ShieldService_ListActivities_FullMethodName              = "/gotocompany.shield.v1beta1.ShieldService/ListActivities"
+	ShieldService_UpsertResourcesConfig_FullMethodName       = "/gotocompany.shield.v1beta1.ShieldService/UpsertResourcesConfig"
+	ShieldService_UpsertRulesConfig_FullMethodName           = "/gotocompany.shield.v1beta1.ShieldService/UpsertRulesConfig"
 )
 
 // ShieldServiceClient is the client API for ShieldService service.
@@ -127,6 +129,8 @@ type ShieldServiceClient interface {
 	CheckResourcePermission(ctx context.Context, in *CheckResourcePermissionRequest, opts ...grpc.CallOption) (*CheckResourcePermissionResponse, error)
 	// Activity
 	ListActivities(ctx context.Context, in *ListActivitiesRequest, opts ...grpc.CallOption) (*ListActivitiesResponse, error)
+	UpsertResourcesConfig(ctx context.Context, in *UpsertResourcesConfigRequest, opts ...grpc.CallOption) (*UpsertResourcesConfigResponse, error)
+	UpsertRulesConfig(ctx context.Context, in *UpsertRulesConfigRequest, opts ...grpc.CallOption) (*UpsertRulesConfigResponse, error)
 }
 
 type shieldServiceClient struct {
@@ -542,6 +546,24 @@ func (c *shieldServiceClient) ListActivities(ctx context.Context, in *ListActivi
 	return out, nil
 }
 
+func (c *shieldServiceClient) UpsertResourcesConfig(ctx context.Context, in *UpsertResourcesConfigRequest, opts ...grpc.CallOption) (*UpsertResourcesConfigResponse, error) {
+	out := new(UpsertResourcesConfigResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpsertResourcesConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) UpsertRulesConfig(ctx context.Context, in *UpsertRulesConfigRequest, opts ...grpc.CallOption) (*UpsertRulesConfigResponse, error) {
+	out := new(UpsertRulesConfigResponse)
+	err := c.cc.Invoke(ctx, ShieldService_UpsertRulesConfig_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // ShieldServiceServer is the server API for ShieldService service.
 // All implementations must embed UnimplementedShieldServiceServer
 // for forward compatibility
@@ -603,6 +625,8 @@ type ShieldServiceServer interface {
 	CheckResourcePermission(context.Context, *CheckResourcePermissionRequest) (*CheckResourcePermissionResponse, error)
 	// Activity
 	ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error)
+	UpsertResourcesConfig(context.Context, *UpsertResourcesConfigRequest) (*UpsertResourcesConfigResponse, error)
+	UpsertRulesConfig(context.Context, *UpsertRulesConfigRequest) (*UpsertRulesConfigResponse, error)
 	mustEmbedUnimplementedShieldServiceServer()
 }
 
@@ -744,6 +768,12 @@ func (UnimplementedShieldServiceServer) CheckResourcePermission(context.Context,
 }
 func (UnimplementedShieldServiceServer) ListActivities(context.Context, *ListActivitiesRequest) (*ListActivitiesResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListActivities not implemented")
+}
+func (UnimplementedShieldServiceServer) UpsertResourcesConfig(context.Context, *UpsertResourcesConfigRequest) (*UpsertResourcesConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertResourcesConfig not implemented")
+}
+func (UnimplementedShieldServiceServer) UpsertRulesConfig(context.Context, *UpsertRulesConfigRequest) (*UpsertRulesConfigResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method UpsertRulesConfig not implemented")
 }
 func (UnimplementedShieldServiceServer) mustEmbedUnimplementedShieldServiceServer() {}
 
@@ -1568,6 +1598,42 @@ func _ShieldService_ListActivities_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _ShieldService_UpsertResourcesConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertResourcesConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).UpsertResourcesConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_UpsertResourcesConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).UpsertResourcesConfig(ctx, req.(*UpsertResourcesConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_UpsertRulesConfig_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(UpsertRulesConfigRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).UpsertRulesConfig(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_UpsertRulesConfig_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).UpsertRulesConfig(ctx, req.(*UpsertRulesConfigRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // ShieldService_ServiceDesc is the grpc.ServiceDesc for ShieldService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -1754,6 +1820,14 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "ListActivities",
 			Handler:    _ShieldService_ListActivities_Handler,
+		},
+		{
+			MethodName: "UpsertResourcesConfig",
+			Handler:    _ShieldService_UpsertResourcesConfig_Handler,
+		},
+		{
+			MethodName: "UpsertRulesConfig",
+			Handler:    _ShieldService_UpsertRulesConfig_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -16,7 +16,6 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
-	"github.com/goto/shield/pkg/db"
 	"github.com/goto/shield/pkg/uuid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -67,10 +66,13 @@ type NamespaceService interface {
 	List(ctx context.Context) ([]namespace.Namespace, error)
 }
 
+type SchemaService interface {
+	UpsertConfig(ctx context.Context, name string, config string) (schema.Config, error)
+}
+
 type Service struct {
 	logger              log.Logger
 	repository          Repository
-	configRepository    ConfigRepository
 	relationService     RelationService
 	userService         UserService
 	projectService      ProjectService
@@ -78,14 +80,14 @@ type Service struct {
 	groupService        GroupService
 	policyService       PolicyService
 	namespaceService    NamespaceService
+	schemaService       SchemaService
 	activityService     ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, configRepository ConfigRepository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, activityService ActivityService) *Service {
+func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
 		repository:          repository,
-		configRepository:    configRepository,
 		relationService:     relationService,
 		userService:         userService,
 		projectService:      projectService,
@@ -93,6 +95,7 @@ func NewService(logger log.Logger, repository Repository, configRepository Confi
 		groupService:        groupService,
 		policyService:       policyService,
 		namespaceService:    namespaceService,
+		schemaService:       schemaService,
 		activityService:     activityService,
 	}
 }
@@ -210,7 +213,6 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 	}
 
 	go func() {
-		ctx = db.WithoutTx(ctx)
 		ctx = context.WithoutCancel(ctx)
 		resourceLogData := newResource.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}
@@ -294,10 +296,6 @@ func (s Service) AddOrgToResource(ctx context.Context, org organization.Organiza
 		return err
 	}
 	return nil
-}
-
-func (s Service) GetAllConfigs(ctx context.Context) ([]YAML, error) {
-	return s.configRepository.GetAll(ctx)
 }
 
 // TODO(krkvrm): Separate Authz for Resources & System Namespaces
@@ -505,4 +503,8 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 	}
 
 	return resPermissionsMap, nil
+}
+
+func (s Service) UpsertConfig(ctx context.Context, name string, config string) (schema.Config, error) {
+	return s.schemaService.UpsertConfig(ctx, name, config)
 }

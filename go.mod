@@ -27,6 +27,7 @@ require (
 	github.com/jackc/pgx/v4 v4.18.1
 	github.com/jhump/protoreflect v1.14.0
 	github.com/jmoiron/sqlx v1.3.5
+	github.com/json-iterator/go v1.1.12
 	github.com/julienschmidt/httprouter v1.3.0
 	github.com/lib/pq v1.10.9
 	github.com/mcuadros/go-defaults v1.2.0
@@ -61,6 +62,8 @@ require (
 )
 
 require (
+	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
+	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/oklog/run v1.1.0 // indirect
 	github.com/planetscale/vtprotobuf v0.6.0 // indirect
 	github.com/rogpeppe/go-internal v1.12.0 // indirect

@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/internal/schema"
 )
 
 type Resource struct {
@@ -49,4 +50,22 @@ type ResourceCols struct {
 	UserID         sql.NullString `db:"user_id"`
 	CreatedAt      time.Time      `db:"created_at"`
 	UpdatedAt      time.Time      `db:"updated_at"`
+}
+
+type ResourceConfig struct {
+	ID        uint32    `db:"id"`
+	Name      string    `db:"name"`
+	Config    string    `db:"config"`
+	CreatedAt time.Time `db:"created_at"`
+	UpdatedAt time.Time `db:"updated_at"`
+}
+
+func (from ResourceConfig) transformToResourceConfig() schema.Config {
+	return schema.Config{
+		ID:        from.ID,
+		Name:      from.Name,
+		Config:    from.Config,
+		CreatedAt: from.CreatedAt,
+		UpdatedAt: from.UpdatedAt,
+	}
 }

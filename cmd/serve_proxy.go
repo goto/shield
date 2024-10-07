@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/url"
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/group"
@@ -25,6 +26,7 @@ import (
 	"github.com/goto/shield/internal/proxy/middleware/prefix"
 	"github.com/goto/shield/internal/proxy/middleware/rulematch"
 	"github.com/goto/shield/internal/store/blob"
+	"github.com/goto/shield/internal/store/postgres"
 )
 
 func serveProxies(
@@ -33,6 +35,7 @@ func serveProxies(
 	identityProxyHeaderKey,
 	userIDHeaderKey string,
 	cfg proxy.ServicesConfig,
+	pgRuleRepository *postgres.RuleRepository,
 	resourceService *resource.Service,
 	relationService *relation.Service,
 	userService *user.Service,
@@ -56,18 +59,34 @@ func serveProxies(
 			return nil, nil, errors.New("ruleset field cannot be left empty")
 		}
 
-		ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+		parsedRuleConfigURL, err := url.Parse(svcConfig.RulesPath)
 		if err != nil {
 			return nil, nil, err
 		}
 
-		ruleBlobRepository := blob.NewRuleRepository(logger, ruleBlobFS)
-		if err := ruleBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-			return nil, nil, err
-		}
-		cleanUpBlobs = append(cleanUpBlobs, ruleBlobRepository.Close)
+		var ruleRepository rule.ConfigRepository
+		switch parsedRuleConfigURL.Scheme {
+		case rule.RULES_CONFIG_STORAGE_PG:
+			ruleRepository = pgRuleRepository
+		case rule.RULES_CONFIG_STORAGE_GS,
+			rule.RULES_CONFIG_STORAGE_FILE,
+			rule.RULES_CONFIG_STORAGE_MEM:
+			ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+			if err != nil {
+				return nil, nil, err
+			}
 
-		ruleService := rule.NewService(ruleBlobRepository)
+			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
+			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+				return nil, nil, err
+			}
+			cleanUpBlobs = append(cleanUpBlobs, blobRuleRepository.Close)
+			ruleRepository = blobRuleRepository
+		default:
+			return nil, nil, errors.New("invalid rule config storage")
+		}
+
+		ruleService := rule.NewService(ruleRepository)
 
 		middlewarePipeline := buildMiddlewarePipeline(logger, h2cProxy, identityProxyHeaderKey, userIDHeaderKey, resourceService, userService, groupService, ruleService, projectService)
 

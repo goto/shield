@@ -2,18 +2,27 @@ package rule
 
 import (
 	"context"
-	"errors"
 	"regexp"
-)
+	"time"
 
-var ErrUnknown = errors.New("undefined proxy rule")
+	"github.com/goto/shield/core/rule/config"
+)
 
 type ConfigRepository interface {
 	GetAll(ctx context.Context) ([]Ruleset, error)
+	Upsert(ctx context.Context, name string, config Ruleset) (Config, error)
 }
 
 type Ruleset struct {
 	Rules []Rule `yaml:"rules"`
+}
+
+type Config struct {
+	ID        uint32
+	Name      string
+	Config    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
 type Rule struct {
@@ -66,4 +75,40 @@ type Backend struct {
 	URL       string `yaml:"url"`
 	Namespace string `yaml:"namespace"`
 	Prefix    string `yaml:"prefix"`
+}
+
+func YamlRulesetToRuleset(YamlRuleset config.Ruleset) Ruleset {
+	targetRuleSet := Ruleset{}
+	for _, theRule := range YamlRuleset.Rules {
+		for _, backend := range theRule.Backends {
+			for _, frontend := range backend.Frontends {
+				middlewares := MiddlewareSpecs{}
+				for _, middleware := range frontend.Middlewares {
+					middlewares = append(middlewares, MiddlewareSpec{
+						Name:   middleware.Name,
+						Config: middleware.Config,
+					})
+				}
+
+				hooks := HookSpecs{}
+				for _, hook := range frontend.Hooks {
+					hooks = append(hooks, HookSpec{
+						Name:   hook.Name,
+						Config: hook.Config,
+					})
+				}
+
+				targetRuleSet.Rules = append(targetRuleSet.Rules, Rule{
+					Frontend: Frontend{
+						URL:    frontend.Path,
+						Method: frontend.Method,
+					},
+					Backend:     Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
+					Middlewares: middlewares,
+					Hooks:       hooks,
+				})
+			}
+		}
+	}
+	return targetRuleSet
 }

@@ -23,6 +23,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/schema"
@@ -561,6 +562,68 @@ func bootstrapServiceData(client *db.Client, users []user.User, keys []serviceda
 		d.NamespaceID = schema.UserPrincipal
 
 		data, err := serviceDataRepository.Upsert(context.Background(), d)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, data)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapResourceConfig(client *db.Client) ([]schema.Config, error) {
+	resourceRepository := postgres.NewResourceRepository(client)
+
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-resource-config.json")
+	if err != nil {
+		return nil, err
+	}
+
+	type resourceConfig struct {
+		Name   string                        `json:"name"`
+		Config schema.NamespaceConfigMapType `json:"config"`
+	}
+
+	var data []resourceConfig
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []schema.Config
+	for _, d := range data {
+		data, err := resourceRepository.UpsertConfig(context.Background(), d.Name, d.Config)
+		if err != nil {
+			return nil, err
+		}
+
+		insertedData = append(insertedData, data)
+	}
+
+	return insertedData, nil
+}
+
+func bootstrapRuleConfig(client *db.Client) ([]rule.Config, error) {
+	ruleRepository := postgres.NewRuleRepository(client)
+
+	testFixtureJSON, err := os.ReadFile("./testdata/mock-rule-config.json")
+	if err != nil {
+		return nil, err
+	}
+
+	type ruleConfig struct {
+		Name   string       `json:"name"`
+		Config rule.Ruleset `json:"config"`
+	}
+
+	var data []ruleConfig
+	if err = json.Unmarshal(testFixtureJSON, &data); err != nil {
+		return nil, err
+	}
+
+	var insertedData []rule.Config
+	for _, d := range data {
+		data, err := ruleRepository.Upsert(context.Background(), d.Name, d.Config)
 		if err != nil {
 			return nil, err
 		}

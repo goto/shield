@@ -14,6 +14,7 @@ import (
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -951,6 +952,94 @@ func TestHandler_ListAllUserResources(t *testing.T) {
 			}
 			mockDep := Handler{resourceService: mockResourceSrv}
 			resp, err := mockDep.ListAllUserResources(context.TODO(), tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_UpsertResourcesConfig(t *testing.T) {
+	tests := []struct {
+		name    string
+		setup   func(rs *mocks.ResourceService)
+		request *shieldv1beta1.UpsertResourcesConfigRequest
+		want    *shieldv1beta1.UpsertResourcesConfigResponse
+		wantErr error
+	}{
+		{
+			name: "should return success if service return nil err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
+					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
+					Return(schema.Config{
+						ID:        1,
+						Name:      "entropy",
+						Config:    "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+						CreatedAt: time.Time{},
+						UpdatedAt: time.Time{},
+					}, nil)
+			},
+			request: &shieldv1beta1.UpsertResourcesConfigRequest{
+				Name:   "entropy",
+				Config: "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+			},
+			want: &shieldv1beta1.UpsertResourcesConfigResponse{
+				Id:        1,
+				Name:      "entropy",
+				Config:    "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+				CreatedAt: timestamppb.New(time.Time{}),
+				UpdatedAt: timestamppb.New(time.Time{}),
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should return bad body error if service return invalid detail err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
+					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
+					Return(schema.Config{}, resource.ErrInvalidDetail)
+			},
+			request: &shieldv1beta1.UpsertResourcesConfigRequest{
+				Name:   "entropy",
+				Config: "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+			},
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return not supported error if service return not supported err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
+					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
+					Return(schema.Config{}, resource.ErrUpsertConfigNotSupported)
+			},
+			request: &shieldv1beta1.UpsertResourcesConfigRequest{
+				Name:   "entropy",
+				Config: "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+			},
+			wantErr: grpcUnsupportedError,
+		},
+		{
+			name: "should return internal error if service return unmarshal err",
+			setup: func(rs *mocks.ResourceService) {
+				rs.EXPECT().UpsertConfig(mock.AnythingOfType("context.todoCtx"),
+					"entropy", "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose").
+					Return(schema.Config{}, resource.ErrMarshal)
+			},
+			request: &shieldv1beta1.UpsertResourcesConfigRequest{
+				Name:   "entropy",
+				Config: "entropy:\n  type: resource_group\n  resource_types:\n    - name: firehose",
+			},
+			wantErr: grpcInternalServerError,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockResourceSrv := new(mocks.ResourceService)
+			if tt.setup != nil {
+				tt.setup(mockResourceSrv)
+			}
+			mockDep := Handler{resourceService: mockResourceSrv}
+			resp, err := mockDep.UpsertResourcesConfig(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

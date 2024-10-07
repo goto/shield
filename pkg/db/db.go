@@ -166,10 +166,16 @@ func (c Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*sql.Tx, erro
 }
 
 func (c Client) GetContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	if tx := extractTransaction(ctx); tx != nil {
+		return tx.GetContext(ctx, dest, query, args...)
+	}
 	return c.db.GetContext(ctx, dest, query, args...)
 }
 
 func (c Client) SelectContext(ctx context.Context, dest interface{}, query string, args ...interface{}) error {
+	if tx := extractTransaction(ctx); tx != nil {
+		return tx.SelectContext(ctx, dest, query, args...)
+	}
 	return c.db.SelectContext(ctx, dest, query, args...)
 }
 

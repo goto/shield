@@ -24,10 +24,6 @@ type Repository interface {
 	GetByNamespace(ctx context.Context, name string, ns string) (Resource, error)
 }
 
-type ConfigRepository interface {
-	GetAll(ctx context.Context) ([]YAML, error)
-}
-
 type Resource struct {
 	Idxa           string
 	URN            string

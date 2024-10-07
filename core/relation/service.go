@@ -9,7 +9,6 @@ import (
 	"github.com/goto/shield/core/activity"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/user"
-	"github.com/goto/shield/pkg/db"
 )
 
 const (
@@ -64,7 +63,6 @@ func (s Service) Create(ctx context.Context, rel RelationV2) (RelationV2, error)
 	}
 
 	go func() {
-		ctx = db.WithoutTx(ctx)
 		ctx = context.WithoutCancel(ctx)
 		relationLogData := createdRelation.ToLogData()
 		actor := activity.Actor{ID: currentUser.ID, Email: currentUser.Email}

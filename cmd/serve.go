@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -28,6 +29,7 @@ import (
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
+	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
@@ -78,18 +80,18 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		return errors.New("resource config path cannot be left empty")
 	}
 
-	resourceBlobFS, err := blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
+	parsedResourcesConfigURL, err := url.Parse(cfg.App.ResourcesConfigPath)
 	if err != nil {
 		return err
 	}
-	resourceBlobRepository := blob.NewResourcesRepository(logger, resourceBlobFS)
-	if err := resourceBlobRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
-		return err
+
+	var resourceBlobFS blob.Bucket
+	if parsedResourcesConfigURL.Scheme != schema.RESOURCES_CONFIG_STORAGE_PG {
+		resourceBlobFS, err = blob.NewStore(ctx, cfg.App.ResourcesConfigPath, cfg.App.ResourcesConfigPathSecret)
+		if err != nil {
+			return err
+		}
 	}
-	defer func() {
-		logger.Info("cleaning up resource blob")
-		defer resourceBlobRepository.Close()
-	}()
 
 	spiceDBClient, err := spicedb.New(cfg.SpiceDB, logger)
 	if err != nil {
@@ -135,8 +137,23 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	namespaceRepository := postgres.NewNamespaceRepository(dbClient)
 	namespaceService := namespace.NewService(logger, namespaceRepository, userService, activityService)
 
-	s := schema.NewSchemaMigrationService(
-		blob.NewSchemaConfigRepository(resourceBlobFS),
+	resourcePGRepository := postgres.NewResourceRepository(dbClient)
+	var schemaConfigRepository schema.FileService
+	switch parsedResourcesConfigURL.Scheme {
+	case schema.RESOURCES_CONFIG_STORAGE_PG:
+		schemaConfigRepository = resourcePGRepository
+	case schema.RESOURCES_CONFIG_STORAGE_GS,
+		schema.RESOURCES_CONFIG_STORAGE_FILE,
+		schema.RESOURCES_CONFIG_STORAGE_MEM:
+		schemaConfigRepository = blob.NewSchemaConfigRepository(resourceBlobFS)
+	default:
+		return errors.New("invalid resource config storage")
+	}
+
+	schemaMigrationService := schema.NewSchemaMigrationService(
+		schema.AppConfig{ConfigStorage: parsedResourcesConfigURL.Scheme},
+		schemaConfigRepository,
+		resourcePGRepository,
 		namespaceService,
 		roleService,
 		actionService,
@@ -145,19 +162,23 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 		userRepository,
 		schemaMigrationConfig,
 	)
-
-	err = s.RunMigrations(ctx)
+	err = schemaMigrationService.RunMigrations(ctx)
 	if err != nil {
 		return err
 	}
 
-	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, resourceBlobRepository, dbClient, spiceDBClient, cfg)
+	pgRuleRepository := postgres.NewRuleRepository(dbClient)
+	if err := pgRuleRepository.InitCache(ctx); err != nil {
+		return err
+	}
+
+	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, pgRuleRepository, schemaMigrationService, dbClient, spiceDBClient, resourceBlobFS, cfg)
 	if err != nil {
 		return err
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
 	if err != nil {
 		return err
 	}
@@ -190,9 +211,11 @@ func BuildAPIDependencies(
 	ctx context.Context,
 	logger log.Logger,
 	activityRepository activity.Repository,
-	resourceBlobRepository *blob.ResourcesRepository,
+	ruleRepository rule.ConfigRepository,
+	schemaMigrationService *schema.SchemaService,
 	dbc *db.Client,
 	sdb *spicedb.SpiceDB,
+	bucket blob.Bucket,
 	cfg *config.Shield,
 ) (api.Deps, error) {
 	cache, err := inmemory.NewCache(cfg.App.CacheConfig)
@@ -238,12 +261,14 @@ func BuildAPIDependencies(
 
 	resourcePGRepository := postgres.NewResourceRepository(dbc)
 	resourceService := resource.NewService(
-		logger, resourcePGRepository, resourceBlobRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, activityService)
+		logger, resourcePGRepository, relationService, userService, projectService, organizationService, groupService, policyService, namespaceService, schemaMigrationService, activityService)
 
 	serviceDataRepository := postgres.NewServiceDataRepository(dbc)
 	serviceDataService := servicedata.NewService(logger, serviceDataRepository, resourceService, relationService, projectService, userService, activityService)
 
 	relationAdapter := adapter.NewRelation(groupService, userService, relationService, roleService)
+
+	ruleService := rule.NewService(ruleRepository)
 
 	dependencies := api.Deps{
 		OrgService:         organizationService,
@@ -259,6 +284,7 @@ func BuildAPIDependencies(
 		RelationAdapter:    relationAdapter,
 		ActivityService:    activityService,
 		ServiceDataService: serviceDataService,
+		RuleService:        ruleService,
 	}
 	return dependencies, nil
 }

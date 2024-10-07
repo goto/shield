@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/namespace"
@@ -21,8 +22,28 @@ var (
 	SystemNamespace        NamespaceType = "system_namespace"
 	ResourceGroupNamespace NamespaceType = "resource_group_namespace"
 
-	ErrMigration = errors.New("error in migrating authz schema")
+	ErrMigration     = errors.New("error in migrating authz schema")
+	ErrInvalidDetail = errors.New("error in schema config")
 )
+
+const (
+	RESOURCES_CONFIG_STORAGE_PG   = "postgres"
+	RESOURCES_CONFIG_STORAGE_GS   = "gs"
+	RESOURCES_CONFIG_STORAGE_FILE = "file"
+	RESOURCES_CONFIG_STORAGE_MEM  = "mem"
+)
+
+type Config struct {
+	ID        uint32
+	Name      string
+	Config    string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type AppConfig struct {
+	ConfigStorage string
+}
 
 type InheritedNamespace struct {
 	Name        string
@@ -54,6 +75,17 @@ type ActionService interface {
 	Upsert(ctx context.Context, action action.Action) (action.Action, error)
 }
 
+type PGRepository interface {
+	Transactor
+	UpsertConfig(ctx context.Context, name string, config NamespaceConfigMapType) (Config, error)
+}
+
+type Transactor interface {
+	WithTransaction(ctx context.Context) context.Context
+	Rollback(ctx context.Context, err error) error
+	Commit(ctx context.Context) error
+}
+
 type FileService interface {
 	GetSchema(ctx context.Context) (NamespaceConfigMapType, error)
 }
@@ -73,7 +105,9 @@ type SchemaMigrationConfig struct {
 }
 
 type SchemaService struct {
+	appConfig             AppConfig
 	schemaConfig          FileService
+	pgRepository          PGRepository
 	namespaceService      NamespaceService
 	roleService           RoleService
 	actionService         ActionService
@@ -84,7 +118,9 @@ type SchemaService struct {
 }
 
 func NewSchemaMigrationService(
+	appConfig AppConfig,
 	schemaConfig FileService,
+	pgRepository PGRepository,
 	namespaceService NamespaceService,
 	roleService RoleService,
 	actionService ActionService,
@@ -94,7 +130,9 @@ func NewSchemaMigrationService(
 	schemaMigrationConfig SchemaMigrationConfig,
 ) *SchemaService {
 	return &SchemaService{
+		appConfig:             appConfig,
 		schemaConfig:          schemaConfig,
+		pgRepository:          pgRepository,
 		namespaceService:      namespaceService,
 		roleService:           roleService,
 		actionService:         actionService,
@@ -123,13 +161,13 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		}
 	}
 
-	// setting context with predefined user email
-	ctx = user.SetContextWithEmail(ctx, defaultUser.Email)
-
 	namespaceConfigMap, err := s.schemaConfig.GetSchema(ctx)
 	if err != nil {
 		return err
 	}
+
+	// setting context with predefined user email
+	ctx = user.SetContextWithEmail(ctx, defaultUser.Email)
 
 	// append service data key schema if configured to be bootstrapped automatically
 	if s.schemaMigrationConfig.BootstrapServiceDataKey {
@@ -137,7 +175,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 	}
 
 	// combining predefined and configured namespaces
-	namespaceConfigMap = MergeNamespaceConfigMap(PreDefinedSystemNamespaceConfig, namespaceConfigMap)
+	namespaceConfigMap = MergeNamespaceConfigMap(namespaceConfigMap, PreDefinedSystemNamespaceConfig)
 
 	// adding predefined roles and permissions for resource group namespaces
 	for n, nc := range namespaceConfigMap {
@@ -220,7 +258,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 				}
 
 				if _, ok := namespaceConfigMap[GetNamespace(transformedRole.NamespaceID)].Roles[transformedRole.ID]; !ok {
-					return fmt.Errorf("role %s not associated with namespace: %s", transformedRole.ID, transformedRole.NamespaceID)
+					return fmt.Errorf("%w: role %s not associated with namespace: %s", ErrInvalidDetail, transformedRole.ID, transformedRole.NamespaceID)
 				}
 
 				_, err = s.policyService.Upsert(ctx, &policy.Policy{
@@ -240,6 +278,56 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 	}
 
 	return nil
+}
+
+func (s SchemaService) UpsertConfig(ctx context.Context, name string, config string) (Config, error) {
+	if strings.TrimSpace(name) == "" {
+		return Config{}, ErrInvalidDetail
+	}
+
+	if strings.TrimSpace(config) == "" {
+		return Config{}, ErrInvalidDetail
+	}
+
+	resourceConfig, err := ParseConfigYaml([]byte(config))
+	if err != nil {
+		return Config{}, ErrInvalidDetail
+	}
+
+	configMap := make(NamespaceConfigMapType)
+	for k, v := range resourceConfig {
+		if v.Type == "resource_group" {
+			configMap = MergeNamespaceConfigMap(configMap, GetNamespacesForResourceGroup(k, v))
+		} else {
+			configMap = MergeNamespaceConfigMap(GetNamespaceFromConfig(k, v.Roles, v.Permissions), configMap)
+		}
+	}
+
+	ctx = s.pgRepository.WithTransaction(ctx)
+
+	res, err := s.pgRepository.UpsertConfig(ctx, name, configMap)
+	if err != nil {
+		if txErr := s.pgRepository.Rollback(ctx, err); txErr != nil {
+			return Config{}, err
+		}
+		return Config{}, err
+	}
+
+	if s.appConfig.ConfigStorage == RESOURCES_CONFIG_STORAGE_PG {
+		if err := s.RunMigrations(ctx); err != nil {
+			if txErr := s.pgRepository.Rollback(ctx, err); txErr != nil {
+				return Config{}, err
+			}
+			return Config{}, err
+		}
+	}
+
+	err = s.pgRepository.Commit(ctx)
+	if err != nil {
+		return Config{}, err
+	}
+
+	return res, nil
 }
 
 func MergeNamespaceConfigMap(smallMap, largeMap NamespaceConfigMapType) NamespaceConfigMapType {

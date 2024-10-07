@@ -1,0 +1,114 @@
+[
+    {
+        "name": "guardian",
+        "config": {
+            "guardian/appeal": {
+                "Type": "resource_group_namespace",
+                "Roles": {},
+                "Permissions": {},
+                "InheritedNamespaces": null
+            }
+        }
+    },
+    {
+        "name": "entropy",
+        "config": {
+            "entropy/dagger": {
+                "Type": "resource_group_namespace",
+                "Roles": {
+                    "viewer": [
+                        "shield/user"
+                    ],
+                    "database_editor": [
+                        "shield/group"
+                    ]
+                },
+                "Permissions": {
+                    "database_edit": [
+                        "owner",
+                        "database_editor"
+                    ]
+                },
+                "InheritedNamespaces": null
+            },
+            "shield/project": {
+                "Type": "system_namespace",
+                "Roles": {
+                    "sink_editor": [
+                        "shield/user",
+                        "shield/group"
+                    ],
+                    "firehose_project_bq_admin": [
+                        "shield/user",
+                        "shield/group"
+                    ],
+                    "firehose_project_gcs_admin": [
+                        "shield/user",
+                        "shield/group"
+                    ]
+                },
+                "Permissions": {
+                    "manage_bq_firehose": [
+                        "firehose_project_bq_admin"
+                    ],
+                    "manage_gcs_firehose": [
+                        "firehose_project_bq_admin"
+                    ]
+                },
+                "InheritedNamespaces": null
+            },
+            "entropy/firehose": {
+                "Type": "resource_group_namespace",
+                "Roles": {
+                    "viewer": [
+                        "shield/user",
+                        "shield/group"
+                    ],
+                    "sink_editor": [
+                        "shield/user",
+                        "shield/group"
+                    ]
+                },
+                "Permissions": {
+                    "view": [
+                        "owner",
+                        "organization:owner",
+                        "viewer"
+                    ],
+                    "sink_edit": [
+                        "owner",
+                        "sink_editor",
+                        "organization:sink_editor"
+                    ]
+                },
+                "InheritedNamespaces": null
+            },
+            "shield/organization": {
+                "Type": "system_namespace",
+                "Roles": {
+                    "sink_editor": [
+                        "shield/user",
+                        "shield/group"
+                    ],
+                    "firehose_bq_admin": [
+                        "shield/user",
+                        "shield/group"
+                    ],
+                    "firehose_gcs_admin": [
+                        "shield/user",
+                        "shield/group"
+                    ]
+                },
+                "Permissions": {
+                    "manage_bq_firehose": [
+                        "firehose_bq_admin"
+                    ],
+                    "manage_gcs_firehose": [
+                        "firehose_gcs_admin"
+                    ]
+                },
+                "InheritedNamespaces": null
+            }
+        }
+    }
+]

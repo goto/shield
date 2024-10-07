@@ -29,6 +29,8 @@ func NewActivityRepository(dbc *db.Client) *ActivityRepository {
 }
 
 func (r ActivityRepository) Insert(ctx context.Context, log *audit.Log) error {
+	ctx = db.WithoutTx(ctx)
+
 	marshaledMetadata, err := json.Marshal(log.Metadata)
 	if err != nil {
 		return fmt.Errorf("%w: %s", parseErr, err)
