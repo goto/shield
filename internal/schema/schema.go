@@ -13,6 +13,7 @@ import (
 	"github.com/goto/shield/core/role"
 	"github.com/goto/shield/core/user"
 
+	"github.com/goto/salt/log"
 	"golang.org/x/exp/maps"
 )
 
@@ -105,6 +106,7 @@ type SchemaMigrationConfig struct {
 }
 
 type SchemaService struct {
+	logger                log.Logger
 	appConfig             AppConfig
 	schemaConfig          FileService
 	pgRepository          PGRepository
@@ -118,6 +120,7 @@ type SchemaService struct {
 }
 
 func NewSchemaMigrationService(
+	logger log.Logger,
 	appConfig AppConfig,
 	schemaConfig FileService,
 	pgRepository PGRepository,
@@ -130,6 +133,7 @@ func NewSchemaMigrationService(
 	schemaMigrationConfig SchemaMigrationConfig,
 ) *SchemaService {
 	return &SchemaService{
+		logger:                logger,
 		appConfig:             appConfig,
 		schemaConfig:          schemaConfig,
 		pgRepository:          pgRepository,
@@ -198,6 +202,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 			backend = st[0]
 			resourceType = st[1]
 		}
+		s.logger.Info(fmt.Sprintf("create namespace %s", namespaceId))
 		_, err := s.namespaceService.Upsert(ctx, namespace.Namespace{
 			ID:           namespaceId,
 			Name:         namespaceId,
@@ -210,6 +215,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 
 		// create roles
 		for roleId, principals := range v.Roles {
+			s.logger.Info(fmt.Sprintf("create role %s with principals %s under namespace %s", roleId, principals, namespaceId))
 			_, err := s.roleService.Upsert(ctx, role.Role{
 				ID:          fmt.Sprintf("%s:%s", namespaceId, roleId),
 				Name:        roleId,
@@ -223,6 +229,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 
 		// create role for inherited namespaces
 		for _, ins := range v.InheritedNamespaces {
+			s.logger.Info(fmt.Sprintf("create role %s from inherited namespace %s under namespace %s", ins.Name, ins.NamespaceId, namespaceId))
 			_, err := s.roleService.Upsert(ctx, role.Role{
 				ID:          fmt.Sprintf("%s:%s", namespaceId, ins.Name),
 				Name:        ins.Name,
@@ -237,6 +244,7 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 		// create actions
 		// IMP: we should depreciate actions with principals
 		for actionId := range v.Permissions {
+			s.logger.Info(fmt.Sprintf("create action %s under namespace %s", actionId, namespaceId))
 			_, err := s.actionService.Upsert(ctx, action.Action{
 				ID:          fmt.Sprintf("%s.%s", actionId, namespaceId),
 				Name:        actionId,
@@ -261,10 +269,13 @@ func (s SchemaService) RunMigrations(ctx context.Context) error {
 					return fmt.Errorf("%w: role %s not associated with namespace: %s", ErrInvalidDetail, transformedRole.ID, transformedRole.NamespaceID)
 				}
 
+				roleId := GetRoleID(GetNamespace(transformedRole.NamespaceID), transformedRole.ID)
+				actionId := fmt.Sprintf("%s.%s", actionId, namespaceId)
+				s.logger.Info(fmt.Sprintf("create policy for role %s on namespace %s with action %s", roleId, namespaceId, actionId))
 				_, err = s.policyService.Upsert(ctx, &policy.Policy{
-					RoleID:      GetRoleID(GetNamespace(transformedRole.NamespaceID), transformedRole.ID),
+					RoleID:      roleId,
 					NamespaceID: namespaceId,
-					ActionID:    fmt.Sprintf("%s.%s", actionId, namespaceId),
+					ActionID:    actionId,
 				})
 				if err != nil {
 					return fmt.Errorf("%w: %s", ErrMigration, err.Error())
