@@ -683,7 +683,7 @@ func (r UserRepository) DeleteByEmail(ctx context.Context, email string, emailTa
 	return nil
 }
 
-func (r UserRepository) DeleteById(ctx context.Context, id string, emailTag string) error {
+func (r UserRepository) DeleteByID(ctx context.Context, id string, emailTag string) error {
 	user, err := r.GetByID(ctx, id)
 	if err != nil {
 		return err

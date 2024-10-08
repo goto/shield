@@ -184,12 +184,12 @@ func (_c *Repository_DeleteByEmail_Call) RunAndReturn(run func(context.Context, 
 	return _c
 }
 
-// DeleteById provides a mock function with given fields: ctx, id, emailTag
-func (_m *Repository) DeleteById(ctx context.Context, id string, emailTag string) error {
+// DeleteByID provides a mock function with given fields: ctx, id, emailTag
+func (_m *Repository) DeleteByID(ctx context.Context, id string, emailTag string) error {
 	ret := _m.Called(ctx, id, emailTag)
 
 	if len(ret) == 0 {
-		panic("no return value specified for DeleteById")
+		panic("no return value specified for DeleteByID")
 	}
 
 	var r0 error
@@ -202,32 +202,32 @@ func (_m *Repository) DeleteById(ctx context.Context, id string, emailTag string
 	return r0
 }
 
-// Repository_DeleteById_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteById'
-type Repository_DeleteById_Call struct {
+// Repository_DeleteByID_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'DeleteByID'
+type Repository_DeleteByID_Call struct {
 	*mock.Call
 }
 
-// DeleteById is a helper method to define mock.On call
+// DeleteByID is a helper method to define mock.On call
 //   - ctx context.Context
 //   - id string
 //   - emailTag string
-func (_e *Repository_Expecter) DeleteById(ctx interface{}, id interface{}, emailTag interface{}) *Repository_DeleteById_Call {
-	return &Repository_DeleteById_Call{Call: _e.mock.On("DeleteById", ctx, id, emailTag)}
+func (_e *Repository_Expecter) DeleteByID(ctx interface{}, id interface{}, emailTag interface{}) *Repository_DeleteByID_Call {
+	return &Repository_DeleteByID_Call{Call: _e.mock.On("DeleteByID", ctx, id, emailTag)}
 }
 
-func (_c *Repository_DeleteById_Call) Run(run func(ctx context.Context, id string, emailTag string)) *Repository_DeleteById_Call {
+func (_c *Repository_DeleteByID_Call) Run(run func(ctx context.Context, id string, emailTag string)) *Repository_DeleteByID_Call {
 	_c.Call.Run(func(args mock.Arguments) {
 		run(args[0].(context.Context), args[1].(string), args[2].(string))
 	})
 	return _c
 }
 
-func (_c *Repository_DeleteById_Call) Return(_a0 error) *Repository_DeleteById_Call {
+func (_c *Repository_DeleteByID_Call) Return(_a0 error) *Repository_DeleteByID_Call {
 	_c.Call.Return(_a0)
 	return _c
 }
 
-func (_c *Repository_DeleteById_Call) RunAndReturn(run func(context.Context, string, string) error) *Repository_DeleteById_Call {
+func (_c *Repository_DeleteByID_Call) RunAndReturn(run func(context.Context, string, string) error) *Repository_DeleteByID_Call {
 	_c.Call.Return(run)
 	return _c
 }

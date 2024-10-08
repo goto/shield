@@ -640,7 +640,7 @@ func (s *UserRepositoryTestSuite) TestDeleteByID() {
 
 	for _, tc := range testCases {
 		s.Run(tc.Description, func() {
-			err := s.repository.DeleteById(s.ctx, tc.Email, emailTag)
+			err := s.repository.DeleteByID(s.ctx, tc.Email, emailTag)
 			if tc.Err != nil && tc.Err.Error() != "" {
 				if errors.Unwrap(err) == tc.Err {
 					s.T().Fatalf("got error %s, expected was %s", err.Error(), tc.Err)

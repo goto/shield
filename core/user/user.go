@@ -22,7 +22,7 @@ type Repository interface {
 	UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 	CreateMetadataKey(ctx context.Context, key UserMetadataKey) (UserMetadataKey, error)
 	DeleteByEmail(ctx context.Context, email string, emailTag string) error
-	DeleteById(ctx context.Context, id string, emailTag string) error
+	DeleteByID(ctx context.Context, id string, emailTag string) error
 }
 
 type User struct {

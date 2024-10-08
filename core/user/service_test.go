@@ -705,7 +705,7 @@ func TestService_DeleteUser(t *testing.T) {
 				repository := &mocks.Repository{}
 				activityService := &mocks.ActivityService{}
 				repository.EXPECT().
-					DeleteById(mock.Anything, testUserID, emailTag).
+					DeleteByID(mock.Anything, testUserID, emailTag).
 					Return(user.ErrNotExist)
 				return user.NewService(logger, user.Config{InactiveEmailTag: emailTag}, repository, activityService)
 			},

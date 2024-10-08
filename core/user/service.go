@@ -215,7 +215,7 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 
 func (s Service) Delete(ctx context.Context, id string) error {
 	if uuid.IsValid(id) {
-		return s.repository.DeleteById(ctx, id, s.config.InactiveEmailTag)
+		return s.repository.DeleteByID(ctx, id, s.config.InactiveEmailTag)
 	}
 	return s.repository.DeleteByEmail(ctx, id, s.config.InactiveEmailTag)
 }
