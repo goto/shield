@@ -673,7 +673,7 @@ func (r UserRepository) DeleteByEmail(ctx context.Context, email string, emailTa
 			return err
 		}
 		if rowCount == 0 {
-			return sql.ErrNoRows
+			return user.ErrNotExist
 		}
 		return nil
 	}); err != nil {
