@@ -23,13 +23,15 @@ type ActivityService interface {
 
 type Service struct {
 	logger          log.Logger
+	config          Config
 	repository      Repository
 	activityService ActivityService
 }
 
-func NewService(logger log.Logger, repository Repository, activityService ActivityService) *Service {
+func NewService(logger log.Logger, config Config, repository Repository, activityService ActivityService) *Service {
 	return &Service{
 		logger:          logger,
+		config:          config,
 		repository:      repository,
 		activityService: activityService,
 	}
@@ -209,4 +211,11 @@ func (s Service) FetchCurrentUser(ctx context.Context) (User, error) {
 	}
 
 	return fetchedUser, nil
+}
+
+func (s Service) Delete(ctx context.Context, id string) error {
+	if uuid.IsValid(id) {
+		return s.repository.DeleteByID(ctx, id, s.config.InactiveEmailTag)
+	}
+	return s.repository.DeleteByEmail(ctx, id, s.config.InactiveEmailTag)
 }

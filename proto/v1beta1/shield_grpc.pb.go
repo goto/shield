@@ -28,6 +28,7 @@ const (
 	ShieldService_CheckResourceUserPermission_FullMethodName = "/gotocompany.shield.v1beta1.ShieldService/CheckResourceUserPermission"
 	ShieldService_UpdateCurrentUser_FullMethodName           = "/gotocompany.shield.v1beta1.ShieldService/UpdateCurrentUser"
 	ShieldService_CreateMetadataKey_FullMethodName           = "/gotocompany.shield.v1beta1.ShieldService/CreateMetadataKey"
+	ShieldService_DeleteUser_FullMethodName                  = "/gotocompany.shield.v1beta1.ShieldService/DeleteUser"
 	ShieldService_ListGroups_FullMethodName                  = "/gotocompany.shield.v1beta1.ShieldService/ListGroups"
 	ShieldService_CreateGroup_FullMethodName                 = "/gotocompany.shield.v1beta1.ShieldService/CreateGroup"
 	ShieldService_GetGroup_FullMethodName                    = "/gotocompany.shield.v1beta1.ShieldService/GetGroup"
@@ -82,6 +83,7 @@ type ShieldServiceClient interface {
 	CheckResourceUserPermission(ctx context.Context, in *CheckResourceUserPermissionRequest, opts ...grpc.CallOption) (*CheckResourceUserPermissionResponse, error)
 	UpdateCurrentUser(ctx context.Context, in *UpdateCurrentUserRequest, opts ...grpc.CallOption) (*UpdateCurrentUserResponse, error)
 	CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error)
+	DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error)
 	// Group
 	ListGroups(ctx context.Context, in *ListGroupsRequest, opts ...grpc.CallOption) (*ListGroupsResponse, error)
 	CreateGroup(ctx context.Context, in *CreateGroupRequest, opts ...grpc.CallOption) (*CreateGroupResponse, error)
@@ -216,6 +218,15 @@ func (c *shieldServiceClient) UpdateCurrentUser(ctx context.Context, in *UpdateC
 func (c *shieldServiceClient) CreateMetadataKey(ctx context.Context, in *CreateMetadataKeyRequest, opts ...grpc.CallOption) (*CreateMetadataKeyResponse, error) {
 	out := new(CreateMetadataKeyResponse)
 	err := c.cc.Invoke(ctx, ShieldService_CreateMetadataKey_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *shieldServiceClient) DeleteUser(ctx context.Context, in *DeleteUserRequest, opts ...grpc.CallOption) (*DeleteUserResponse, error) {
+	out := new(DeleteUserResponse)
+	err := c.cc.Invoke(ctx, ShieldService_DeleteUser_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -578,6 +589,7 @@ type ShieldServiceServer interface {
 	CheckResourceUserPermission(context.Context, *CheckResourceUserPermissionRequest) (*CheckResourceUserPermissionResponse, error)
 	UpdateCurrentUser(context.Context, *UpdateCurrentUserRequest) (*UpdateCurrentUserResponse, error)
 	CreateMetadataKey(context.Context, *CreateMetadataKeyRequest) (*CreateMetadataKeyResponse, error)
+	DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error)
 	// Group
 	ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error)
 	CreateGroup(context.Context, *CreateGroupRequest) (*CreateGroupResponse, error)
@@ -660,6 +672,9 @@ func (UnimplementedShieldServiceServer) UpdateCurrentUser(context.Context, *Upda
 }
 func (UnimplementedShieldServiceServer) CreateMetadataKey(context.Context, *CreateMetadataKeyRequest) (*CreateMetadataKeyResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateMetadataKey not implemented")
+}
+func (UnimplementedShieldServiceServer) DeleteUser(context.Context, *DeleteUserRequest) (*DeleteUserResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteUser not implemented")
 }
 func (UnimplementedShieldServiceServer) ListGroups(context.Context, *ListGroupsRequest) (*ListGroupsResponse, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method ListGroups not implemented")
@@ -946,6 +961,24 @@ func _ShieldService_CreateMetadataKey_Handler(srv interface{}, ctx context.Conte
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(ShieldServiceServer).CreateMetadataKey(ctx, req.(*CreateMetadataKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _ShieldService_DeleteUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DeleteUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(ShieldServiceServer).DeleteUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: ShieldService_DeleteUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(ShieldServiceServer).DeleteUser(ctx, req.(*DeleteUserRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -1676,6 +1709,10 @@ var ShieldService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateMetadataKey",
 			Handler:    _ShieldService_CreateMetadataKey_Handler,
+		},
+		{
+			MethodName: "DeleteUser",
+			Handler:    _ShieldService_DeleteUser_Handler,
 		},
 		{
 			MethodName: "ListGroups",

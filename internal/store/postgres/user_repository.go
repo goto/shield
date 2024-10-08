@@ -50,7 +50,8 @@ func (r UserRepository) GetByID(ctx context.Context, id string) (user.User, erro
 	var fetchedUser User
 	userQuery, params, err := dialect.From(TABLE_USERS).
 		Where(goqu.Ex{
-			"id": id,
+			"id":         id,
+			"deleted_at": nil,
 		}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -196,6 +197,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 			goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
 			goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
 		),
+		goqu.Ex{"deleted_at": nil},
 	).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -315,7 +317,8 @@ func (r UserRepository) GetByIDs(ctx context.Context, userIDs []string) ([]user.
 
 	query, params, err := dialect.From(TABLE_USERS).Select("id", "name", "email").Where(
 		goqu.Ex{
-			"id": goqu.Op{"in": userIDs},
+			"id":         goqu.Op{"in": userIDs},
+			"deleted_at": nil,
 		}).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -389,7 +392,8 @@ func (r UserRepository) UpdateByEmail(ctx context.Context, usr user.User) (user.
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
-				"email": usr.Email,
+				"email":      usr.Email,
+				"deleted_at": nil,
 			},
 		).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
 		if err != nil {
@@ -464,7 +468,8 @@ func (r UserRepository) UpdateByID(ctx context.Context, usr user.User) (user.Use
 				"updated_at": goqu.L("now()"),
 			}).Where(
 			goqu.Ex{
-				"id": usr.ID,
+				"id":         usr.ID,
+				"deleted_at": nil,
 			},
 		).Returning("created_at", "deleted_at", "email", "id", "name", "updated_at").ToSQL()
 		if err != nil {
@@ -525,7 +530,8 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
 		goqu.Ex{
-			"email": email,
+			"email":      email,
+			"deleted_at": nil,
 		}).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
@@ -615,4 +621,73 @@ func (r UserRepository) CreateMetadataKey(ctx context.Context, key user.UserMeta
 	}
 
 	return metadataKey.tranformUserMetadataKey(), nil
+}
+
+func (r UserRepository) DeleteByEmail(ctx context.Context, email string, emailTag string) error {
+	emailSplit := strings.Split(email, "@")
+
+	query, params, err := dialect.Update(TABLE_USERS).Set(
+		goqu.Record{
+			"deleted_at": goqu.L("now()"),
+			"email": goqu.L("CONCAT(?, (SELECT COUNT(*) FROM users WHERE ? LIKE ?), ?)",
+				fmt.Sprintf("%s+%s", emailSplit[0], emailTag),
+				goqu.C("email"),
+				fmt.Sprintf("%s+%s%%@%s", emailSplit[0], emailTag, emailSplit[1]),
+				fmt.Sprintf("@%s", emailSplit[1]),
+			),
+		}).Where(
+		goqu.Ex{
+			"email":      email,
+			"deleted_at": nil,
+		}).ToSQL()
+	if err != nil {
+		return fmt.Errorf("%w: %s", queryErr, err)
+	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "DeleteUser"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_METADATA_KEYS),
+		}...,
+	)
+
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_USERS,
+				Operation:  "Delete",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		res, err := r.dbc.ExecContext(ctx, query, params...)
+		if err != nil {
+			return err
+		}
+		rowCount, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rowCount == 0 {
+			return sql.ErrNoRows
+		}
+		return nil
+	}); err != nil {
+		err = checkPostgresError(err)
+		return err
+	}
+	return nil
+}
+
+func (r UserRepository) DeleteByID(ctx context.Context, id string, emailTag string) error {
+	user, err := r.GetByID(ctx, id)
+	if err != nil {
+		return err
+	}
+
+	return r.DeleteByEmail(ctx, user.Email, emailTag)
 }

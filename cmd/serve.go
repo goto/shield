@@ -122,7 +122,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	activityService := activity.NewService(appConfig, activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbClient)
-	userService := user.NewService(logger, userRepository, activityService)
+	userService := user.NewService(logger, user.Config{InactiveEmailTag: cfg.App.InactiveEmailTag}, userRepository, activityService)
 
 	actionRepository := postgres.NewActionRepository(dbClient)
 	actionService := action.NewService(logger, actionRepository, userService, activityService)
@@ -231,7 +231,7 @@ func BuildAPIDependencies(
 	activityService := activity.NewService(appConfig, activityRepository)
 
 	userRepository := postgres.NewUserRepository(dbc)
-	userService := user.NewService(logger, userRepository, activityService)
+	userService := user.NewService(logger, user.Config{InactiveEmailTag: cfg.App.InactiveEmailTag}, userRepository, activityService)
 
 	actionRepository := postgres.NewActionRepository(dbc)
 	actionService := action.NewService(logger, actionRepository, userService, activityService)

@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/goto/shield/core/action"
+	"github.com/goto/shield/core/group"
 	"github.com/goto/shield/core/namespace"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/user"
@@ -77,6 +78,9 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
+	if err := h.verifyPrincipal(ctx, principal, subjectID); err != nil {
+		return nil, err
+	}
 
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        request.GetBody().GetObjectId(),
@@ -262,4 +266,24 @@ func extractSubjectFromPrincipal(principal string) (string, string) {
 
 func generateSubject(subjectId, principal string) string {
 	return fmt.Sprintf("%s:%s", principal, subjectId)
+}
+
+func (h Handler) verifyPrincipal(ctx context.Context, principal, subjectID string) error {
+	var err error
+	switch principal {
+	case strings.Split(schema.UserPrincipal, "/")[1]:
+		_, err = h.userService.Get(ctx, subjectID)
+	case strings.Split(schema.GroupPrincipal, "/")[1]:
+		_, err = h.groupService.Get(ctx, subjectID)
+	}
+	if err != nil {
+		switch {
+		case errors.Is(err, user.ErrNotExist), errors.Is(err, group.ErrNotExist):
+			return grpcBadBodyError
+		default:
+			return grpcInternalServerError
+		}
+	}
+
+	return nil
 }
