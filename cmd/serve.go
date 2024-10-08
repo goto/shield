@@ -151,6 +151,7 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	schemaMigrationService := schema.NewSchemaMigrationService(
+		logger,
 		schema.AppConfig{ConfigStorage: parsedResourcesConfigURL.Scheme},
 		schemaConfigRepository,
 		resourcePGRepository,
