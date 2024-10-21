@@ -16,6 +16,8 @@ import (
 	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api/v1beta1"
 	"github.com/goto/shield/internal/proxy"
+	"github.com/goto/shield/internal/proxy/envoy/xds"
+	"github.com/goto/shield/internal/proxy/envoy/xds/ads"
 	"github.com/goto/shield/internal/proxy/hook"
 	authz_hook "github.com/goto/shield/internal/proxy/hook/authz"
 	"github.com/goto/shield/internal/proxy/middleware/attributes"
@@ -96,6 +98,42 @@ func serveProxies(
 
 	logger.Info("[shield] proxy is up")
 	return cleanUpBlobs, cleanUpProxies, nil
+}
+
+func serveXDS(ctx context.Context, logger *log.Zap, cfg proxy.ServicesConfig, pgRuleRepository *postgres.RuleRepository) ([]func() error, error) {
+	var cleanUpBlobs []func() error
+
+	repositories := make(map[string]ads.Repository)
+	for _, svcConfig := range cfg.Services {
+		parsedRuleConfigURL, err := url.Parse(svcConfig.RulesPath)
+		if err != nil {
+			return nil, err
+		}
+
+		var repository ads.Repository
+		switch parsedRuleConfigURL.Scheme {
+		case rule.RULES_CONFIG_STORAGE_PG:
+			repository = pgRuleRepository
+		case rule.RULES_CONFIG_STORAGE_GS,
+			rule.RULES_CONFIG_STORAGE_FILE,
+			rule.RULES_CONFIG_STORAGE_MEM:
+			ruleBlobFS, err := blob.NewStore(ctx, svcConfig.RulesPath, svcConfig.RulesPathSecret)
+			if err != nil {
+				return nil, err
+			}
+
+			blobRuleRepository := blob.NewRuleRepository(logger, ruleBlobFS)
+			if err := blobRuleRepository.InitCache(ctx, ruleCacheRefreshDelay); err != nil {
+				return nil, err
+			}
+			cleanUpBlobs = append(cleanUpBlobs, blobRuleRepository.Close)
+			repository = blobRuleRepository
+		default:
+			return nil, errors.New("invalid rule config storage")
+		}
+		repositories[svcConfig.Name] = repository
+	}
+	return cleanUpBlobs, xds.Serve(ctx, logger, cfg, repositories)
 }
 
 func buildHookPipeline(

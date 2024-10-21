@@ -22,9 +22,10 @@ type RuleRepository struct {
 	log log.Logger
 	mu  *sync.Mutex
 
-	cron   *cron.Cron
-	bucket Bucket
-	cached []rule.Ruleset
+	cron      *cron.Cron
+	bucket    Bucket
+	cached    []rule.Ruleset
+	updatedAt time.Time
 }
 
 func (repo *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) {
@@ -96,6 +97,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 
 	repo.mu.Lock()
 	repo.cached = rulesets
+	repo.updatedAt = time.Now()
 	repo.mu.Unlock()
 	repo.log.Debug("rule cache refreshed", "ruleset_count", len(repo.cached))
 	return nil
@@ -126,6 +128,10 @@ func (repo *RuleRepository) Close() error {
 func (repo *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.Config, error) {
 	// upsert is currently not supported for BLOB rule config storage type
 	return rule.Config{}, rule.ErrUpsertConfigNotSupported
+}
+
+func (repo *RuleRepository) IsUpdated(ctx context.Context, lastUpdated time.Time) bool {
+	return repo.updatedAt.After(lastUpdated)
 }
 
 func NewRuleRepository(logger log.Logger, b Bucket) *RuleRepository {
