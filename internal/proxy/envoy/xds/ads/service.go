@@ -307,10 +307,10 @@ func resolveHostPort(urlString string) (string, uint32, error) {
 		}
 	}
 
-	intPort, err := strconv.Atoi(port)
+	uintPort, err := strconv.ParseUint(port, 10, 32)
 	if err != nil {
 		return "", 0, err
 	}
 
-	return parsed.Hostname(), uint32(intPort), nil
+	return parsed.Hostname(), uint32(uintPort), nil
 }
