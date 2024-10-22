@@ -178,47 +178,6 @@ func (r *RuleRepository) IsUpdated(ctx context.Context, since time.Time) bool {
 	return isUpdatedTest
 }
 
-func (r *RuleRepository) List(ctx context.Context) ([]rule.Config, error) {
-	query, params, err := dialect.From(TABLE_RULE_CONFIGS).ToSQL()
-	if err != nil {
-		return []rule.Config{}, err
-	}
-	ctx = otelsql.WithCustomAttributes(
-		ctx,
-		[]attribute.KeyValue{
-			attribute.String("db.repository.method", "List"),
-			attribute.String(string(semconv.DBSQLTableKey), TABLE_RULE_CONFIGS),
-		}...,
-	)
-
-	var ruleConfigModel []RuleConfig
-	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
-		nrCtx := newrelic.FromContext(ctx)
-		if nrCtx != nil {
-			nr := newrelic.DatastoreSegment{
-				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RULE_CONFIGS,
-				Operation:  "List",
-				StartTime:  nrCtx.StartSegmentNow(),
-			}
-			defer nr.End()
-		}
-
-		return r.dbc.SelectContext(ctx, &ruleConfigModel, query, params...)
-	}); err != nil {
-		err = checkPostgresError(err)
-		if !errors.Is(err, sql.ErrNoRows) {
-			return []rule.Config{}, err
-		}
-	}
-
-	var res []rule.Config
-	for _, rule := range ruleConfigModel {
-		res = append(res, rule.transformToRuleConfig())
-	}
-	return res, nil
-}
-
 func (r *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) {
 	return r.cached, nil
 }
