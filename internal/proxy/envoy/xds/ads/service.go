@@ -77,7 +77,7 @@ func (s Service) getCluster(rule rule.Rule) *cluster.Cluster {
 		ClusterDiscoveryType: &cluster.Cluster_Type{
 			Type: cluster.Cluster_LOGICAL_DNS,
 		},
-		DnsLookupFamily: cluster.Cluster_V4_ONLY,
+		DnsLookupFamily: cluster.Cluster_V4_PREFERRED,
 		Name:            rule.Backend.Namespace,
 		ConnectTimeout:  durationpb.New(1 * time.Second),
 		LoadAssignment:  s.getEndpoint(rule),

@@ -6,6 +6,7 @@ type Message struct {
 	NodeID      string
 	VersionInfo string
 	Nonce       string
+	TypeUrl     string
 }
 
 type MessageChan chan Message
