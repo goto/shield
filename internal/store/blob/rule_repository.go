@@ -41,6 +41,10 @@ func (repo *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) 
 	return repo.cached, err
 }
 
+func (repo *RuleRepository) Fetch(ctx context.Context) ([]rule.Ruleset, error) {
+	return repo.GetAll(ctx)
+}
+
 func (repo *RuleRepository) refresh(ctx context.Context) error {
 	var rulesets []rule.Ruleset
 

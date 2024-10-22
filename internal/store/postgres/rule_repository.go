@@ -110,7 +110,7 @@ func (r *RuleRepository) InitCache(ctx context.Context) error {
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
+				Collection: TABLE_RULE_CONFIGS,
 				Operation:  "List",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
@@ -197,7 +197,7 @@ func (r *RuleRepository) List(ctx context.Context) ([]rule.Config, error) {
 		if nrCtx != nil {
 			nr := newrelic.DatastoreSegment{
 				Product:    newrelic.DatastorePostgres,
-				Collection: TABLE_RESOURCES,
+				Collection: TABLE_RULE_CONFIGS,
 				Operation:  "List",
 				StartTime:  nrCtx.StartSegmentNow(),
 			}
@@ -221,6 +221,53 @@ func (r *RuleRepository) List(ctx context.Context) ([]rule.Config, error) {
 
 func (r *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) {
 	return r.cached, nil
+}
+
+func (r *RuleRepository) Fetch(ctx context.Context) ([]rule.Ruleset, error) {
+	query, params, err := dialect.From(TABLE_RULE_CONFIGS).ToSQL()
+	if err != nil {
+		return []rule.Ruleset{}, err
+	}
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "List"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_RULE_CONFIGS),
+		}...,
+	)
+
+	var ruleConfigModel []RuleConfig
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_RULE_CONFIGS,
+				Operation:  "List",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.SelectContext(ctx, &ruleConfigModel, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		if !errors.Is(err, sql.ErrNoRows) {
+			return []rule.Ruleset{}, err
+		}
+	}
+
+	rules := []rule.Ruleset{}
+	for _, ruleConfig := range ruleConfigModel {
+		rc := ruleConfig.transformToRuleConfig()
+		var targetRuleset rule.Ruleset
+		if err := json.Unmarshal([]byte(rc.Config), &targetRuleset); err != nil {
+			return []rule.Ruleset{}, err
+		}
+		rules = append(rules, targetRuleset)
+	}
+
+	return rules, nil
 }
 
 func (r *RuleRepository) WithTransaction(ctx context.Context) context.Context {

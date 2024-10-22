@@ -19,6 +19,6 @@ const (
 )
 
 type Repository interface {
-	GetAll(ctx context.Context) ([]rule.Ruleset, error)
+	Fetch(ctx context.Context) ([]rule.Ruleset, error)
 	IsUpdated(ctx context.Context, since time.Time) bool
 }

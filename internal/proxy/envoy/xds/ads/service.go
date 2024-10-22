@@ -37,7 +37,7 @@ func NewService(config proxy.Config, repository Repository) Service {
 }
 
 func (s Service) Get(ctx context.Context) (*DiscoveryResource, error) {
-	ruleset, err := s.repository.GetAll(ctx)
+	ruleset, err := s.repository.Fetch(ctx)
 	if err != nil {
 		return &DiscoveryResource{}, err
 	}
