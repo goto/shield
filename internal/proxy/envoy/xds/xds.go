@@ -32,12 +32,5 @@ func Serve(ctx context.Context, logger log.Logger, cfg proxy.ServicesConfig, rep
 		return err
 	}
 
-	go func() {
-		if err := server.Serve(lis); err != nil {
-			logger.Error("[envoy agent] failed to serve envoy xds: %v\n", err)
-		}
-	}()
-
-	logger.Info("[envoy agent] envoy xds is up")
-	return nil
+	return server.Serve(lis)
 }
