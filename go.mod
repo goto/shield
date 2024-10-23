@@ -12,8 +12,7 @@ require (
 	github.com/authzed/spicedb v1.15.0
 	github.com/dgraph-io/ristretto v0.1.1
 	github.com/doug-martin/goqu/v9 v9.18.0
-	github.com/envoyproxy/protoc-gen-validate v1.0.4
-	github.com/ghodss/yaml v1.0.0
+	github.com/envoyproxy/protoc-gen-validate v1.1.0
 	github.com/golang-migrate/migrate/v4 v4.16.0
 	github.com/golang/protobuf v1.5.4
 	github.com/google/go-cmp v0.6.0
@@ -100,7 +99,7 @@ require (
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/dustin/go-humanize v1.0.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
-	github.com/envoyproxy/go-control-plane v0.13.0
+	github.com/envoyproxy/go-control-plane v0.13.1
 	github.com/fatih/color v1.17.0 // indirect
 	github.com/felixge/fgprof v0.9.3 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

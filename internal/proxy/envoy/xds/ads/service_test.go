@@ -283,3 +283,40 @@ func TestGet(t *testing.T) {
 		})
 	}
 }
+
+func TestIsUpdated(t *testing.T) {
+	t.Parallel()
+
+	tests := []struct {
+		name  string
+		since time.Time
+		setup func(t *testing.T) ads.Service
+		want  bool
+	}{
+		{
+			name:  "should return discovery resource",
+			since: time.Time{},
+			setup: func(t *testing.T) ads.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				repository.EXPECT().IsUpdated(mock.Anything, time.Time{}).Return(true)
+				return ads.NewService(testConfig, repository)
+			},
+			want: true,
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+			ctx := context.Background()
+			got := svc.IsUpdated(ctx, tt.since)
+
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
