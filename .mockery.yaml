@@ -192,3 +192,12 @@ packages:
       GroupRepository:
         config:
           filename: "group_repository.go"
+  github.com/goto/shield/internal/proxy/envoy/xds/ads:
+    config:
+      dir: "internal/proxy/envoy/xds/ads/mocks"
+      outpkg: "mocks"
+      mockname: "{{.InterfaceName}}"
+    interfaces:
+      Repository:
+        config:
+          filename: "repository.go"
