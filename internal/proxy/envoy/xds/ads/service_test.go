@@ -238,6 +238,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "should return discovery resource",
 			setup: func(t *testing.T) ads.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				repository.EXPECT().Fetch(mock.Anything).Return([]rule.Ruleset{
 					{
@@ -252,6 +253,7 @@ func TestGet(t *testing.T) {
 		{
 			name: "should return discovery resource",
 			setup: func(t *testing.T) ads.Service {
+				t.Helper()
 				repository := &mocks.Repository{}
 				repository.EXPECT().Fetch(mock.Anything).Return([]rule.Ruleset{}, rule.ErrMarshal)
 				return ads.NewService(testConfig, repository)
