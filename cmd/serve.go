@@ -179,7 +179,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	var cbs []func() error
+	var cps []func(context.Context) error
+	if cfg.Proxy.EnvoyAgent.XDS.Host != "" && cfg.Proxy.EnvoyAgent.XDS.Port != 0 {
+		cbs, err = serveXDS(ctx, logger, cfg.Proxy, pgRuleRepository)
+	} else {
+		cbs, cps, err = serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	}
 	if err != nil {
 		return err
 	}
