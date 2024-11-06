@@ -16,7 +16,7 @@ func ProxyCommand() *cobra.Command {
 		Short: "Proxy management",
 		Long:  "Server management commands.",
 		Example: heredoc.Doc(`
-			$ shield proxy envoy-xds start -c ./config.yaml
+			$ shield proxy envoy start -c ./config.yaml
 		`),
 	}
 
@@ -27,11 +27,11 @@ func ProxyCommand() *cobra.Command {
 
 func proxyEnvoyXDSCommand() *cobra.Command {
 	c := &cli.Command{
-		Use:   "envoy-xds",
+		Use:   "envoy",
 		Short: "Envoy Agent xDS management",
 		Long:  "Envoy Agent xDS management commands.",
 		Example: heredoc.Doc(`
-			$ shield proxy envoy-xds start
+			$ shield proxy envoy start
 		`),
 	}
 
@@ -47,7 +47,7 @@ func envoyXDSStartCommand() *cobra.Command {
 		Use:     "start",
 		Short:   "Start Envoy Agent xDS server",
 		Long:    "Start Envoy Agent xDS server commands.",
-		Example: "shield proxy envoy-xds start",
+		Example: "shield proxy envoy start",
 		RunE: func(cmd *cli.Command, args []string) error {
 			appConfig, err := config.Load(configFile)
 			if err != nil {
