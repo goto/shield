@@ -10,6 +10,7 @@ import (
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	xds "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/goto/salt/log"
 )
 
@@ -121,11 +122,11 @@ func (s Stream) streamResponses(message Message) error {
 
 	responseStream := NewResponseStream(s.stream, message.VersionInfo, message.Nonce)
 	switch message.TypeUrl {
-	case CLUSTER_TYPE_URL:
+	case resource.ClusterType:
 		if err := responseStream.StreamCDS(cfg.Clusters); err != nil {
 			return err
 		}
-	case LISTENER_TYPE_URL:
+	case resource.ListenerType:
 		if err := responseStream.StreamLDS(cfg.Listeners); err != nil {
 			return err
 		}

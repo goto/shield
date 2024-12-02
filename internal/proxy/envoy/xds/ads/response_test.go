@@ -7,6 +7,7 @@ import (
 	listenerv3 "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	routev3 "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
 	xds "github.com/envoyproxy/go-control-plane/envoy/service/discovery/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"github.com/goto/shield/internal/proxy/envoy/xds/ads"
 	"github.com/goto/shield/internal/proxy/envoy/xds/ads/mocks"
 	"github.com/stretchr/testify/assert"
@@ -18,21 +19,21 @@ var (
 	testClusterStream    = &clusterv3.Cluster{}
 	testClusterBytes, _  = proto.Marshal(testClusterStream)
 	testClusterResources = &anypb.Any{
-		TypeUrl: ads.CLUSTER_TYPE_URL,
+		TypeUrl: resource.ClusterType,
 		Value:   testClusterBytes,
 	}
 
 	testListenerStream    = &listenerv3.Listener{}
 	testListenerBytes, _  = proto.Marshal(testListenerStream)
 	testListenerResources = &anypb.Any{
-		TypeUrl: ads.LISTENER_TYPE_URL,
+		TypeUrl: resource.ListenerType,
 		Value:   testListenerBytes,
 	}
 
 	testRouteStream    = &routev3.RouteConfiguration{}
 	testRouteBytes, _  = proto.Marshal(testRouteStream)
 	testRouteResources = &anypb.Any{
-		TypeUrl: ads.ROUTE_CONFIGURATION_TYPE_URL,
+		TypeUrl: resource.RouteType,
 		Value:   testRouteBytes,
 	}
 )
@@ -56,7 +57,7 @@ func TestStreamCDS(t *testing.T) {
 					VersionInfo: "v1",
 					Nonce:       "test",
 					Resources:   []*anypb.Any{testClusterResources},
-					TypeUrl:     ads.CLUSTER_TYPE_URL,
+					TypeUrl:     resource.ClusterType,
 				}).Return(nil)
 				return ads.NewResponseStream(&stream, "v1", "test")
 			},
@@ -97,7 +98,7 @@ func TestStreamLDS(t *testing.T) {
 					VersionInfo: "v1",
 					Nonce:       "test",
 					Resources:   []*anypb.Any{testListenerResources},
-					TypeUrl:     ads.LISTENER_TYPE_URL,
+					TypeUrl:     resource.ListenerType,
 				}).Return(nil)
 				return ads.NewResponseStream(&stream, "v1", "test")
 			},
@@ -138,7 +139,7 @@ func TestStreamRDS(t *testing.T) {
 					VersionInfo: "v1",
 					Nonce:       "test",
 					Resources:   []*anypb.Any{testRouteResources},
-					TypeUrl:     ads.ROUTE_CONFIGURATION_TYPE_URL,
+					TypeUrl:     resource.RouteType,
 				}).Return(nil)
 				return ads.NewResponseStream(&stream, "v1", "test")
 			},

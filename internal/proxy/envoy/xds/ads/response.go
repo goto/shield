@@ -4,6 +4,7 @@ import (
 	cluster "github.com/envoyproxy/go-control-plane/envoy/config/cluster/v3"
 	listener "github.com/envoyproxy/go-control-plane/envoy/config/listener/v3"
 	route "github.com/envoyproxy/go-control-plane/envoy/config/route/v3"
+	"github.com/envoyproxy/go-control-plane/pkg/resource/v3"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 
@@ -29,7 +30,7 @@ func (s ResponseStream) StreamCDS(clusters []*cluster.Cluster) error {
 		}
 
 		resources = append(resources, &anypb.Any{
-			TypeUrl: CLUSTER_TYPE_URL,
+			TypeUrl: resource.ClusterType,
 			Value:   res,
 		})
 	}
@@ -38,7 +39,7 @@ func (s ResponseStream) StreamCDS(clusters []*cluster.Cluster) error {
 		VersionInfo: s.versionInfo,
 		Nonce:       s.nonce,
 		Resources:   resources,
-		TypeUrl:     CLUSTER_TYPE_URL,
+		TypeUrl:     resource.ClusterType,
 	}
 
 	return s.stream.Send(resp)
@@ -57,7 +58,7 @@ func (s ResponseStream) StreamLDS(listeners []*listener.Listener) error {
 		}
 
 		resources = append(resources, &anypb.Any{
-			TypeUrl: LISTENER_TYPE_URL,
+			TypeUrl: resource.ListenerType,
 			Value:   res,
 		})
 	}
@@ -66,7 +67,7 @@ func (s ResponseStream) StreamLDS(listeners []*listener.Listener) error {
 		VersionInfo: s.versionInfo,
 		Nonce:       s.nonce,
 		Resources:   resources,
-		TypeUrl:     LISTENER_TYPE_URL,
+		TypeUrl:     resource.ListenerType,
 	}
 	return s.stream.Send(resp)
 }
@@ -84,7 +85,7 @@ func (s ResponseStream) StreamRDS(routes []*route.RouteConfiguration) error {
 		}
 
 		resources = append(resources, &anypb.Any{
-			TypeUrl: ROUTE_CONFIGURATION_TYPE_URL,
+			TypeUrl: resource.RouteType,
 			Value:   res,
 		})
 	}
@@ -93,7 +94,7 @@ func (s ResponseStream) StreamRDS(routes []*route.RouteConfiguration) error {
 		VersionInfo: s.versionInfo,
 		Nonce:       s.nonce,
 		Resources:   resources,
-		TypeUrl:     ROUTE_CONFIGURATION_TYPE_URL,
+		TypeUrl:     resource.RouteType,
 	}
 
 	return s.stream.Send(resp)
