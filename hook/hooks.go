@@ -3,8 +3,8 @@ package hook
 import (
 	"net/http"
 
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/middleware"
+	"github.com/raystack/shield/structs"
 )
 
 type Service interface {

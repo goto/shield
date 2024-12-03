@@ -5,14 +5,14 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/roles"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
-	blobstore "github.com/odpf/shield/store/blob"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/roles"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/pkg/utils"
+	blobstore "github.com/raystack/shield/store/blob"
+	"github.com/raystack/shield/structs"
 )
 
 // Insert Action

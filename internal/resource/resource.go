@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/permission"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/utils"
+	"github.com/raystack/shield/internal/permission"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/utils"
 )
 
 type Service struct {

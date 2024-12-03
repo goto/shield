@@ -1,6 +1,6 @@
 package definition
 
-import "github.com/odpf/shield/model"
+import "github.com/raystack/shield/model"
 
 var ManageOrganizationAction = model.Action{
 	Id:          "manage_organization",

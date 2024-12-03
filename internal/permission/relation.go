@@ -3,12 +3,12 @@ package permission
 import (
 	"context"
 
-	"github.com/odpf/shield/internal/authz"
-	"github.com/odpf/shield/internal/bootstrap"
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
-	blobstore "github.com/odpf/shield/store/blob"
+	"github.com/raystack/shield/internal/authz"
+	"github.com/raystack/shield/internal/bootstrap"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/pkg/utils"
+	blobstore "github.com/raystack/shield/store/blob"
 )
 
 type Store interface {

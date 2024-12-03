@@ -18,7 +18,7 @@ test: ## Run tests
 	go test -race ./... -coverprofile=coverage.out
 
 benchmark: ## Run benchmarks
-	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/odpf/shield/integration
+	go test -run=XX -bench=Benchmark. -count 3 -benchtime=1s github.com/raystack/shield/integration
 
 coverage: ## print code coverage
 	go test -race -coverprofile coverage.out -covermode=atomic ./... -tags=unit_test && go tool cover -html=coverage.txt

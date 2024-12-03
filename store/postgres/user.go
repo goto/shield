@@ -8,11 +8,11 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/group"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/group"
 
-	"github.com/odpf/shield/internal/user"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/user"
+	"github.com/raystack/shield/model"
 
 	"github.com/jmoiron/sqlx"
 )

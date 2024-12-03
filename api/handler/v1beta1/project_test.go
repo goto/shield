@@ -8,13 +8,13 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/odpf/shield/internal/project"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/project"
+	"github.com/raystack/shield/model"
 
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var testProjectID = "ab657ae7-8c9e-45eb-9862-dd9ceb6d5c71"

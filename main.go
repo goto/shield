@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
-	shieldlogger "github.com/odpf/shield/logger"
+	shieldlogger "github.com/raystack/shield/logger"
 
-	"github.com/odpf/shield/cmd"
-	"github.com/odpf/shield/config"
+	"github.com/raystack/shield/cmd"
+	"github.com/raystack/shield/config"
 
 	_ "github.com/authzed/authzed-go/proto/authzed/api/v0"
 )

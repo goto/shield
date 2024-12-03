@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/structs"
 	"gocloud.dev/blob"
 )
 

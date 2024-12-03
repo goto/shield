@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"github.com/MakeNowJust/heredoc"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/salt/printer"
-	"github.com/odpf/shield/config"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/salt/printer"
+	"github.com/raystack/shield/config"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 	cli "github.com/spf13/cobra"
 )
 

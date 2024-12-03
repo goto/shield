@@ -8,10 +8,10 @@ import (
 	"time"
 
 	"github.com/doug-martin/goqu/v9"
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/internal/resource"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/resource"
+	"github.com/raystack/shield/model"
 )
 
 type Resource struct {

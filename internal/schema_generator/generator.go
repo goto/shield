@@ -10,9 +10,9 @@ import (
 	"github.com/authzed/spicedb/pkg/namespace"
 	"github.com/authzed/spicedb/pkg/schemadsl/generator"
 
-	defn "github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/utils"
+	defn "github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/pkg/utils"
 )
 
 type role struct {

@@ -3,8 +3,8 @@ package local
 import (
 	"os"
 
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/store"
+	"github.com/raystack/shield/structs"
 	"github.com/spf13/afero"
 	"gopkg.in/yaml.v3"
 )

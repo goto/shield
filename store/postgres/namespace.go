@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/jmoiron/sqlx"
-	"github.com/odpf/shield/internal/schema"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/schema"
+	"github.com/raystack/shield/model"
 )
 
 type Namespace struct {

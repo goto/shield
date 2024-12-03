@@ -4,11 +4,11 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/permission"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/permission"
+	shieldError "github.com/raystack/shield/utils/errors"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 )
 
 type Service struct {

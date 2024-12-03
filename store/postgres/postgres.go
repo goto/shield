@@ -3,7 +3,7 @@ package postgres
 import (
 	"errors"
 
-	"github.com/odpf/shield/pkg/sql"
+	"github.com/raystack/shield/pkg/sql"
 )
 
 type Store struct {

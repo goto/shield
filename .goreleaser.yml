@@ -10,7 +10,7 @@ builds:
     flags:
       - -a
     ldflags:
-      - -s -w -X github.com/odpf/shield/config.Version={{.Tag}} -X github.com/odpf/shield/config.BuildCommit={{.FullCommit}} -X github.com/odpf/shield/config.BuildDate={{.Date}}
+      - -s -w -X github.com/raystack/shield/config.Version={{.Tag}} -X github.com/raystack/shield/config.BuildCommit={{.FullCommit}} -X github.com/raystack/shield/config.BuildDate={{.Date}}
     goos:
       - linux
       - darwin

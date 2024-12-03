@@ -4,9 +4,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/middleware"
+	"github.com/raystack/shield/structs"
 )
 
 var (

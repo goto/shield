@@ -10,18 +10,18 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/api/handler"
+	"github.com/raystack/shield/api/handler"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
-	"github.com/odpf/shield/hook"
-	authz_hook "github.com/odpf/shield/hook/authz"
-	basic_auth "github.com/odpf/shield/middleware/basic_auth"
-	"github.com/odpf/shield/middleware/prefix"
-	"github.com/odpf/shield/middleware/rulematch"
-	"github.com/odpf/shield/proxy"
-	"github.com/odpf/shield/store"
-	blobstore "github.com/odpf/shield/store/blob"
+	"github.com/raystack/shield/hook"
+	authz_hook "github.com/raystack/shield/hook/authz"
+	basic_auth "github.com/raystack/shield/middleware/basic_auth"
+	"github.com/raystack/shield/middleware/prefix"
+	"github.com/raystack/shield/middleware/rulematch"
+	"github.com/raystack/shield/proxy"
+	"github.com/raystack/shield/store"
+	blobstore "github.com/raystack/shield/store/blob"
 
 	"github.com/stretchr/testify/assert"
 

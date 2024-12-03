@@ -7,16 +7,16 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/model"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"github.com/raystack/shield/internal/org"
+	"github.com/raystack/shield/model"
+	shieldError "github.com/raystack/shield/utils/errors"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 type OrganizationService interface {

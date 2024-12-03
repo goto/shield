@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/org"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/org"
+	"github.com/raystack/shield/model"
 )
 
 type Organization struct {

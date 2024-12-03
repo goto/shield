@@ -5,7 +5,7 @@ import (
 
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/spicedb/pkg/tuple"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 	"github.com/stretchr/testify/assert"
 )
 

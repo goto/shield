@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/config"
 	cli "github.com/spf13/cobra"
 )
 

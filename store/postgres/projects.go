@@ -8,9 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
-	"github.com/odpf/shield/internal/project"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/project"
+	"github.com/raystack/shield/model"
 )
 
 type Project struct {

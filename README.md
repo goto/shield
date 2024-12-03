@@ -1,7 +1,7 @@
 # Shield
 
-![build workflow](https://github.com/odpf/shield/actions/workflows/test.yml/badge.svg)
-![package workflow](https://github.com/odpf/shield/actions/workflows/release.yml/badge.svg)
+![build workflow](https://github.com/raystack/shield/actions/workflows/test.yml/badge.svg)
+![package workflow](https://github.com/raystack/shield/actions/workflows/release.yml/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?logo=apache)](LICENSE)
 [![Version](https://img.shields.io/github/v/release/odpf/shield?logo=semantic-release)](Version)
 
@@ -33,7 +33,7 @@ Install Shield on macOS, Windows, Linux, OpenBSD, FreeBSD, and on any machine.
 
 #### Binary (Cross-platform)
 
-Download the appropriate version for your platform from [releases](https://github.com/odpf/shield/releases) page. Once downloaded, the binary can be run from anywhere.
+Download the appropriate version for your platform from [releases](https://github.com/raystack/shield/releases) page. Once downloaded, the binary can be run from anywhere.
 You don’t need to install it into a global location. This works well for shared hosts and other systems where you don’t have a privileged account.
 Ideally, you should install it somewhere in your PATH for easy use. `/usr/local/bin` is the most probable location.
 
@@ -82,7 +82,7 @@ LEARN MORE
   Read the manual at https://odpf.github.io/shield/
 
 FEEDBACK
-  Open an issue here https://github.com/odpf/shield/issues
+  Open an issue here https://github.com/raystack/shield/issues
 ```
 
 ## Running locally
@@ -139,10 +139,10 @@ Read our [contributing guide](https://odpf.github.io/shield/docs/contribute/cont
 bugfixes and improvements, and how to build and test your changes to Shield.
 
 To help you get your feet wet and get you familiar with our contribution process, we have a list of
-[good first issues](https://github.com/odpf/shield/labels/good%20first%20issue) that contain bugs which have a relatively
+[good first issues](https://github.com/raystack/shield/labels/good%20first%20issue) that contain bugs which have a relatively
 limited scope. This is a great place to get started.
 
-This project exists thanks to all the [contributors](https://github.com/odpf/shield/graphs/contributors).
+This project exists thanks to all the [contributors](https://github.com/raystack/shield/graphs/contributors).
 
 ## License
 

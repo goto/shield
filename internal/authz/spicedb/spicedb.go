@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/internal/schema_generator"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/schema_generator"
+	"github.com/raystack/shield/model"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	pb "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 	"github.com/authzed/grpcutil"
-	"github.com/odpf/shield/config"
+	"github.com/raystack/shield/config"
 	"google.golang.org/grpc"
 )
 

@@ -7,11 +7,11 @@ import (
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 
-	"github.com/odpf/shield/internal/group"
-	"github.com/odpf/shield/model"
-	shieldError "github.com/odpf/shield/utils/errors"
+	"github.com/raystack/shield/internal/group"
+	"github.com/raystack/shield/model"
+	shieldError "github.com/raystack/shield/utils/errors"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

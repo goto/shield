@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/hook"
+	"github.com/raystack/shield/hook"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 
 	"golang.org/x/net/http2"
 )

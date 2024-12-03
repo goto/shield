@@ -6,16 +6,16 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/odpf/shield/api/handler"
-	"github.com/odpf/shield/internal/permission"
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/structs"
-	"github.com/odpf/shield/utils"
+	"github.com/raystack/shield/api/handler"
+	"github.com/raystack/shield/internal/permission"
+	"github.com/raystack/shield/middleware"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/pkg/body_extractor"
+	"github.com/raystack/shield/structs"
+	"github.com/raystack/shield/utils"
 
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 )
 
 const (

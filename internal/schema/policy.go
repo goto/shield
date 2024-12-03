@@ -5,8 +5,8 @@ import (
 	"errors"
 	"strings"
 
-	"github.com/odpf/shield/internal/schema_generator"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/schema_generator"
+	"github.com/raystack/shield/model"
 )
 
 var PolicyDoesntExist = errors.New("policies doesn't exist")

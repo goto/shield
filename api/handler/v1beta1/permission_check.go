@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/model"
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	"github.com/raystack/shield/model"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 
 	grpczap "github.com/grpc-ecosystem/go-grpc-middleware/logging/zap/ctxzap"
 	"google.golang.org/grpc/codes"

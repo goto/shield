@@ -1,10 +1,10 @@
 package cmd
 
 import (
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/pkg/sql"
-	"github.com/odpf/shield/store/postgres/migrations"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/pkg/sql"
+	"github.com/raystack/shield/store/postgres/migrations"
 	cli "github.com/spf13/cobra"
 )
 

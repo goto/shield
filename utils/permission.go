@@ -3,9 +3,9 @@ package utils
 import (
 	"fmt"
 
-	"github.com/odpf/shield/internal/bootstrap/definition"
+	"github.com/raystack/shield/internal/bootstrap/definition"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 )
 
 const NON_RESOURCE_ID = "*"
@@ -22,7 +22,7 @@ func StrListHas(list []string, a string) bool {
 }
 
 /*
- /project/uuid/
+/project/uuid/
 */
 func CreateResourceURN(resource model.Resource) string {
 	isSystemNS := IsSystemNS(resource)

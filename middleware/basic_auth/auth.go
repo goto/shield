@@ -7,13 +7,13 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/pkg/body_extractor"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/middleware"
+	"github.com/raystack/shield/pkg/body_extractor"
+	"github.com/raystack/shield/structs"
 
 	goauth "github.com/abbot/go-http-auth"
 	"github.com/mitchellh/mapstructure"
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 )
 
 const (

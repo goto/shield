@@ -1,6 +1,6 @@
 package definition
 
-import "github.com/odpf/shield/model"
+import "github.com/raystack/shield/model"
 
 var OrgNamespace = model.Namespace{
 	Id:   "organization",

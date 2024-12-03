@@ -3,7 +3,7 @@ package definition
 import (
 	"fmt"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 )
 
 var (

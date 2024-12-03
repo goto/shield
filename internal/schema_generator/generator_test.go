@@ -3,7 +3,7 @@ package schema_generator
 import (
 	"testing"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 	"github.com/stretchr/testify/assert"
 )
 

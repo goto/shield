@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/structs"
 )
 
 const (

@@ -3,8 +3,8 @@ package permission
 import (
 	"context"
 
-	"github.com/odpf/shield/model"
-	"github.com/odpf/shield/utils"
+	"github.com/raystack/shield/model"
+	"github.com/raystack/shield/utils"
 )
 
 type CheckService struct {

@@ -7,10 +7,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/odpf/shield/pkg/utils"
+	"github.com/raystack/shield/pkg/utils"
 
-	"github.com/odpf/shield/internal/relation"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/relation"
+	"github.com/raystack/shield/model"
 )
 
 type Relation struct {

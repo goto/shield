@@ -3,8 +3,8 @@ package logger
 import (
 	"os"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/config"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 )

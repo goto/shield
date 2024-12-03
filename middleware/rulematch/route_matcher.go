@@ -3,9 +3,9 @@ package rulematch
 import (
 	"net/http"
 
-	"github.com/odpf/shield/middleware"
-	"github.com/odpf/shield/store"
-	"github.com/odpf/shield/structs"
+	"github.com/raystack/shield/middleware"
+	"github.com/raystack/shield/store"
+	"github.com/raystack/shield/structs"
 
 	"github.com/gorilla/mux"
 )

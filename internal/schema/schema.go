@@ -4,8 +4,8 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/internal/authz"
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/internal/authz"
+	"github.com/raystack/shield/model"
 )
 
 type PolicyFilters struct {

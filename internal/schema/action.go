@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 )
 
 var ActionDoesntExist = errors.New("actions doesn't exist")

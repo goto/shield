@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 
 	"github.com/stretchr/testify/assert"
 
@@ -16,7 +16,7 @@ import (
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var testUserMap = map[string]model.User{

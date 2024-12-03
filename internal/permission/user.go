@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 	"google.golang.org/grpc/metadata"
 )
 

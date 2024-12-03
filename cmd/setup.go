@@ -9,10 +9,10 @@ import (
 	grpcctxtags "github.com/grpc-ecosystem/go-grpc-middleware/tags"
 	newrelic "github.com/newrelic/go-agent"
 	"github.com/newrelic/go-agent/_integrations/nrgrpc"
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/grpc_interceptors"
-	"github.com/odpf/shield/pkg/sql"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/grpc_interceptors"
+	"github.com/raystack/shield/pkg/sql"
 
 	"go.uber.org/zap"
 

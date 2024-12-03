@@ -3,11 +3,11 @@ package authz
 import (
 	"context"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/config"
-	"github.com/odpf/shield/internal/authz/spicedb"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/config"
+	"github.com/raystack/shield/internal/authz/spicedb"
 )
 
 type Policy interface {

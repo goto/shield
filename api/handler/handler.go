@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/odpf/salt/server"
-	"github.com/odpf/shield/api/handler/v1beta1"
+	"github.com/raystack/salt/server"
+	"github.com/raystack/shield/api/handler/v1beta1"
 )
 
 type Deps struct {

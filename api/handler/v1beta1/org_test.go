@@ -8,14 +8,14 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/odpf/shield/model"
+	"github.com/raystack/shield/model"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 var testOrgMap = map[string]model.Organization{

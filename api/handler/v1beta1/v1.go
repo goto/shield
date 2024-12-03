@@ -4,9 +4,9 @@ import (
 	"context"
 	"errors"
 
-	"github.com/odpf/salt/server"
+	"github.com/raystack/salt/server"
 
-	shieldv1beta1 "github.com/odpf/shield/proto/v1beta1"
+	shieldv1beta1 "github.com/raystack/shield/proto/v1beta1"
 )
 
 type Dep struct {

@@ -9,12 +9,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/odpf/shield/hook"
-	"github.com/odpf/shield/integration/fixtures/helloworld"
-	"github.com/odpf/shield/proxy"
-	blobstore "github.com/odpf/shield/store/blob"
+	"github.com/raystack/shield/hook"
+	"github.com/raystack/shield/integration/fixtures/helloworld"
+	"github.com/raystack/shield/proxy"
+	blobstore "github.com/raystack/shield/store/blob"
 
-	"github.com/odpf/salt/log"
+	"github.com/raystack/salt/log"
 	"github.com/stretchr/testify/assert"
 
 	"gocloud.dev/blob/fileblob"

@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/odpf/salt/log"
-	"github.com/odpf/shield/middleware"
+	"github.com/raystack/salt/log"
+	"github.com/raystack/shield/middleware"
 )
 
 type Ware struct {

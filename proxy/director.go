@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"strings"
 
-	"github.com/odpf/shield/middleware"
+	"github.com/raystack/shield/middleware"
 )
 
 const (
