@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/action"
@@ -421,6 +422,17 @@ func (s Service) ListUserResourcesByType(ctx context.Context, userID string, res
 	return res, nil
 }
 
+// resultItem is a struct used to pass the resource and its associated permissions
+type resultItem struct {
+	resourceType string
+	permissions  ResourcePermissions
+}
+
+type resPermission struct {
+	resource   string
+	permission string
+}
+
 func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]ResourcePermissions, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
@@ -433,30 +445,64 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 			return map[string]ResourcePermissions{}, err
 		}
 
+		var newResourceTypes []string
 		for _, ns := range namespaces {
 			if namespace.IsSystemNamespaceID(ns.ID) {
 				continue
 			}
-			resourceTypes = append(resourceTypes, ns.ID)
+			newResourceTypes = append(newResourceTypes, ns.ID)
 		}
+		resourceTypes = newResourceTypes
 	}
 
-	result := make(map[string]ResourcePermissions)
-	for _, res := range resourceTypes {
-		if _, ok := result[res]; !ok {
-			list, err := s.listUserResources(ctx, res, user, permissions)
+	var wg sync.WaitGroup
+	resultChan := make(chan resultItem, len(resourceTypes)) // Buffered channel
+	errChan := make(chan error)
+
+	for _, resType := range resourceTypes {
+		wg.Add(1)
+		go func(rT string, resCh chan<- resultItem, errCh chan<- error) {
+			defer wg.Done()
+			list, err := s.listUserResources(ctx, rT, user, permissions)
 			if err != nil {
 				switch status.Code(err) {
 				case codes.FailedPrecondition:
 					s.logger.Warn(err.Error())
-					continue
 				default:
-					return map[string]ResourcePermissions{}, err
+					errCh <- err
 				}
 			}
 			if len(list) != 0 {
-				result[res] = list
+				resCh <- resultItem{resourceType: rT, permissions: list}
 			}
+		}(resType, resultChan, errChan)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resultChan)
+		close(errChan)
+	}()
+
+	var result = make(map[string]ResourcePermissions)
+	for {
+		select {
+		case resItem, ok := <-resultChan:
+			if !ok {
+				resultChan = nil
+			} else {
+				result[resItem.resourceType] = resItem.permissions
+			}
+		case err, ok := <-errChan:
+			if !ok {
+				errChan = nil
+			} else if err != nil {
+				return map[string]ResourcePermissions{}, err
+			}
+		}
+
+		if resultChan == nil && errChan == nil {
+			break
 		}
 	}
 
@@ -465,40 +511,75 @@ func (s Service) ListAllUserResources(ctx context.Context, userID string, resour
 
 func (s Service) listUserResources(ctx context.Context, resourceType string, user user.User, permissions []string) (ResourcePermissions, error) {
 	if len(permissions) == 0 {
+		var newPermissions []string
 		policies, err := s.policyService.List(ctx, policy.Filters{NamespaceID: resourceType})
 		if err != nil {
 			return ResourcePermissions{}, err
 		}
 
 		for _, p := range policies {
-			permissions = append(permissions, strings.Split(p.ActionID, ".")[0])
+			newPermissions = append(newPermissions, strings.Split(p.ActionID, ".")[0])
 		}
+		permissions = newPermissions
 	}
 
+	var wg sync.WaitGroup
 	resPermissionsMap := make(ResourcePermissions)
 	actMap := make(map[string]bool)
-	for _, p := range permissions {
-		if _, ok := actMap[p]; ok {
+
+	resPermissionChan := make(chan resPermission)
+	errChan := make(chan error)
+
+	for _, per := range permissions {
+		if _, ok := actMap[per]; ok {
 			continue
 		}
-		actMap[p] = true
-		resources, err := s.relationService.LookupResources(ctx, resourceType, p, userNamespace, user.ID)
-		if err != nil {
-			// continue if permission under a namespace is not found
-			// https://github.com/authzed/spicedb/blob/main/internal/dispatch/graph/errors.go#L73
-			if strings.Contains(err.Error(), "not found under definition") {
-				s.logger.Warn(err.Error())
-				continue
+		actMap[per] = true
+		wg.Add(1)
+		go func(p string, resPerCh chan<- resPermission, errCh chan<- error) {
+			defer wg.Done()
+			resources, err := s.relationService.LookupResources(ctx, resourceType, p, userNamespace, user.ID)
+			if err != nil {
+				// continue if permission under a namespace is not found
+				// https://github.com/authzed/spicedb/blob/main/internal/dispatch/graph/errors.go#L73
+				if strings.Contains(err.Error(), "not found under definition") {
+					s.logger.Warn("Permission not found: %v", err)
+				} else {
+					errCh <- err
+				}
 			}
-			return ResourcePermissions{}, err
+
+			for _, r := range resources {
+				resPerCh <- resPermission{resource: r, permission: p}
+			}
+
+		}(per, resPermissionChan, errChan)
+	}
+
+	go func() {
+		wg.Wait()
+		close(resPermissionChan)
+		close(errChan)
+	}()
+
+	for {
+		select {
+		case resPerItem, ok := <-resPermissionChan:
+			if !ok {
+				resPermissionChan = nil
+			} else {
+				resPermissionsMap[resPerItem.resource] = append(resPermissionsMap[resPerItem.resource], resPerItem.permission)
+			}
+		case err, ok := <-errChan:
+			if !ok {
+				errChan = nil
+			} else if err != nil {
+				return ResourcePermissions{}, err
+			}
 		}
 
-		for _, r := range resources {
-			if _, ok := resPermissionsMap[r]; !ok {
-				resPermissionsMap[r] = []string{p}
-			} else {
-				resPermissionsMap[r] = append(resPermissionsMap[r], p)
-			}
+		if resPermissionChan == nil && errChan == nil {
+			break
 		}
 	}
 
