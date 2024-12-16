@@ -85,6 +85,17 @@ type Service struct {
 	activityService     ActivityService
 }
 
+// resultItem is a struct used to pass the resource and its associated permissions
+type resultItem struct {
+	resourceType string
+	permissions  ResourcePermissions
+}
+
+type resPermission struct {
+	resource   string
+	permission string
+}
+
 func NewService(logger log.Logger, repository Repository, relationService RelationService, userService UserService, projectService ProjectService, organizationService OrganizationService, groupService GroupService, policyService PolicyService, namespaceService NamespaceService, schemaService SchemaService, activityService ActivityService) *Service {
 	return &Service{
 		logger:              logger,
@@ -422,17 +433,6 @@ func (s Service) ListUserResourcesByType(ctx context.Context, userID string, res
 	return res, nil
 }
 
-// resultItem is a struct used to pass the resource and its associated permissions
-type resultItem struct {
-	resourceType string
-	permissions  ResourcePermissions
-}
-
-type resPermission struct {
-	resource   string
-	permission string
-}
-
 func (s Service) ListAllUserResources(ctx context.Context, userID string, resourceTypes []string, permissions []string) (map[string]ResourcePermissions, error) {
 	user, err := s.userService.Get(ctx, userID)
 	if err != nil {
@@ -552,7 +552,6 @@ func (s Service) listUserResources(ctx context.Context, resourceType string, use
 			for _, r := range resources {
 				resPerCh <- resPermission{resource: r, permission: p}
 			}
-
 		}(per, resPermissionChan, errChan)
 	}
 
