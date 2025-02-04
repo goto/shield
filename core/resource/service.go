@@ -158,7 +158,7 @@ func (s Service) Upsert(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddProjectToResource(ctx, project.Project{ID: res.ProjectID}, newResource); err != nil {
+	if err = s.AddProjectToResource(ctx, project.Project{ID: newResource.ProjectID}, newResource); err != nil {
 		return Resource{}, err
 	}
 
@@ -216,7 +216,7 @@ func (s Service) Create(ctx context.Context, res Resource) (Resource, error) {
 		return Resource{}, err
 	}
 
-	if err = s.AddProjectToResource(ctx, project.Project{ID: res.ProjectID}, newResource); err != nil {
+	if err = s.AddProjectToResource(ctx, project.Project{ID: newResource.ProjectID}, newResource); err != nil {
 		return Resource{}, err
 	}
 

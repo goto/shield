@@ -8,6 +8,7 @@ import (
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
+	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
 	"github.com/goto/shield/internal/schema"
@@ -178,6 +179,27 @@ func TestHandler_CreateRelation(t *testing.T) {
 			},
 			want:    nil,
 			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return unauthenticated error if resource service's CheckAuthz function returns invalid email error",
+			setup: func(rs *mocks.RelationService, res *mocks.ResourceService) {
+				res.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testRelationV2.Object.ID).Return(resource.Resource{}, nil)
+
+				res.EXPECT().CheckAuthz(mock.AnythingOfType("context.todoCtx"), resource.Resource{
+					Name:        testRelationV2.Object.ID,
+					NamespaceID: testRelationV2.Object.NamespaceID,
+				}, action.Action{ID: schema.EditPermission}).Return(false, user.ErrInvalidEmail)
+			},
+			request: &shieldv1beta1.CreateRelationRequest{
+				Body: &shieldv1beta1.RelationRequestBody{
+					ObjectId:        testRelationV2.Object.ID,
+					ObjectNamespace: testRelationV2.Object.NamespaceID,
+					Subject:         generateSubject(testRelationV2.Subject.ID, testRelationV2.Subject.Namespace),
+					RoleName:        testRelationV2.Subject.RoleID,
+				},
+			},
+			want:    nil,
+			wantErr: grpcUnauthenticated,
 		},
 		{
 			name: "should return internal error if relation service return some error",
