@@ -8,6 +8,7 @@ import (
 
 	"github.com/goto/shield/core/action"
 	"github.com/goto/shield/core/policy"
+	"github.com/goto/shield/core/project"
 	"github.com/goto/shield/core/relation"
 	"github.com/goto/shield/core/resource"
 	"github.com/goto/shield/core/role"
@@ -76,7 +77,7 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 	}
 
 	projId := request.GetBody().GetProjectId()
-	project, err := h.projectService.Get(ctx, projId)
+	proj, err := h.projectService.Get(ctx, projId)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -84,13 +85,15 @@ func (h Handler) CreateResource(ctx context.Context, request *shieldv1beta1.Crea
 		case errors.Is(err, user.ErrInvalidEmail),
 			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
+		case errors.Is(err, project.ErrNotExist):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
 	newResource, err := h.resourceService.Upsert(ctx, resource.Resource{
-		OrganizationID: project.Organization.ID,
+		OrganizationID: proj.Organization.ID,
 		ProjectID:      request.GetBody().GetProjectId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),
@@ -181,7 +184,7 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 	}
 
 	projId := request.GetBody().GetProjectId()
-	project, err := h.projectService.Get(ctx, projId)
+	proj, err := h.projectService.Get(ctx, projId)
 	if err != nil {
 		logger.Error(err.Error())
 
@@ -189,13 +192,15 @@ func (h Handler) UpdateResource(ctx context.Context, request *shieldv1beta1.Upda
 		case errors.Is(err, user.ErrInvalidEmail),
 			errors.Is(err, user.ErrMissingEmail):
 			return nil, grpcUnauthenticated
+		case errors.Is(err, project.ErrNotExist):
+			return nil, grpcBadBodyError
 		default:
 			return nil, grpcInternalServerError
 		}
 	}
 
 	updatedResource, err := h.resourceService.Update(ctx, request.GetId(), resource.Resource{
-		OrganizationID: project.Organization.ID,
+		OrganizationID: proj.Organization.ID,
 		ProjectID:      request.GetBody().GetProjectId(),
 		NamespaceID:    request.GetBody().GetNamespaceId(),
 		Name:           request.GetBody().GetName(),

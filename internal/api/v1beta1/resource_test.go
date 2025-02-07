@@ -163,6 +163,28 @@ func TestHandler_CreateResource(t *testing.T) {
 			wantErr: grpcBadBodyError,
 		},
 		{
+			name: "should return bad body error if project service return not exist error",
+			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
+				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{}, project.ErrNotExist)
+				return user.SetContextWithEmail(ctx, email)
+			},
+			request: &shieldv1beta1.CreateResourceRequest{
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:        testResource.Name,
+					ProjectId:   testResource.ProjectID,
+					NamespaceId: testResource.NamespaceID,
+					Relations: []*shieldv1beta1.Relation{
+						{
+							RoleName: "owner",
+							Subject:  "user:" + testUserID,
+						},
+					},
+				},
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
 			name: "should return internal error if project service return some error",
 			setup: func(ctx context.Context, rs *mocks.ResourceService, ps *mocks.ProjectService, rls *mocks.RelationService, _ *mocks.RelationTransformer) context.Context {
 				ps.EXPECT().Get(mock.AnythingOfType("*context.valueCtx"), testResource.ProjectID).Return(project.Project{}, errors.New("some error"))
@@ -501,6 +523,22 @@ func TestHandler_UpdateResource(t *testing.T) {
 			name: "should return bad body error if request body is empty",
 			request: &shieldv1beta1.UpdateResourceRequest{
 				Id: testResourceID,
+			},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return bad body error if project service return not exist error",
+			setup: func(rs *mocks.ResourceService, ps *mocks.ProjectService) {
+				ps.EXPECT().Get(mock.AnythingOfType("context.todoCtx"), testResource.ProjectID).Return(project.Project{}, project.ErrNotExist)
+			},
+			request: &shieldv1beta1.UpdateResourceRequest{
+				Id: testResourceID,
+				Body: &shieldv1beta1.ResourceRequestBody{
+					Name:        testResource.Name,
+					ProjectId:   testResource.ProjectID,
+					NamespaceId: testResource.NamespaceID,
+				},
 			},
 			want:    nil,
 			wantErr: grpcBadBodyError,
