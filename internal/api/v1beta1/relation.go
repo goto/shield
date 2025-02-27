@@ -57,8 +57,8 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 }
 
 func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
-	logger.Info(fmt.Sprintf("create relation request: %v", request))
 	logger := grpczap.Extract(ctx)
+	logger.Info(fmt.Sprintf("create relation request: %v", request))
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
