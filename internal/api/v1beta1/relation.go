@@ -57,8 +57,8 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 }
 
 func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
-	logger.Info(fmt.Sprintf("create relation request: %v", request))
 	logger := grpczap.Extract(ctx)
+	logger.Info(fmt.Sprintf("create relation request: %v", request))
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -82,9 +82,9 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		NamespaceID: request.GetBody().ObjectNamespace,
 	}, action.Action{ID: schema.EditPermission})
 
-	logger.Info(fmt.Sprintf("checked auth in spicedb"))
+	logger.Info("checked auth in spicedb")
 	if err != nil {
-		logger.Error(fmt.Sprintf("error when checking auth", err.Error()))
+		logger.Error(fmt.Sprintf("error when checking auth. error %s", err.Error()))
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
