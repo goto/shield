@@ -61,6 +61,7 @@ func (h Handler) ListRelations(ctx context.Context, request *shieldv1beta1.ListR
 
 func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.CreateRelationRequest) (*shieldv1beta1.CreateRelationResponse, error) {
 	logger := grpczap.Extract(ctx)
+	logger.Info(fmt.Sprintf("create relation request: %v", request))
 	if request.GetBody() == nil {
 		return nil, grpcBadBodyError
 	}
@@ -78,11 +79,15 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
 
+	logger.Info(fmt.Sprintf("chekcing auth for request: %v", request))
 	result, err := h.resourceService.CheckAuthz(ctx, resource.Resource{
 		Name:        request.GetBody().GetObjectId(),
 		NamespaceID: request.GetBody().ObjectNamespace,
 	}, action.Action{ID: schema.EditPermission})
+
+	logger.Info("checked auth in spicedb")
 	if err != nil {
+		logger.Error(fmt.Sprintf("error when checking auth. error %s", err.Error()))
 		switch {
 		case errors.Is(err, user.ErrInvalidEmail):
 			return nil, grpcUnauthenticated
@@ -97,6 +102,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		return nil, status.Errorf(codes.PermissionDenied, errpkg.ErrForbidden.Error())
 	}
 
+	logger.Info("creating a new relation")
 	newRelation, err := h.createRelation(ctx, relation.RelationV2{
 		Object: relation.Object{
 			ID:          request.GetBody().GetObjectId(),
@@ -110,6 +116,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 	})
 	if err != nil {
 		logger.Error(err.Error())
+		logger.Error(fmt.Sprintf("error when creating a relation . error %s", err.Error()))
 		switch {
 		case errors.Is(err, relation.ErrInvalidDetail):
 			return nil, grpcBadBodyError
@@ -121,6 +128,7 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		}
 	}
 
+	logger.Info("relation created successfully")
 	relationPB, err := transformRelationV2ToPB(newRelation)
 	if err != nil {
 		logger.Error(err.Error())
