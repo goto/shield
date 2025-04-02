@@ -15,7 +15,7 @@ builds:
       - -X github.com/goto/shield/config.BuildCommit={{.FullCommit}}
       - -X github.com/goto/shield/config.BuildDate={{.Date}}
     goos: [linux, darwin, windows]
-    goarch: [amd64, arm, arm64]
+    goarch: [amd64, arm, 386, arm64]
     env:
       - CGO_ENABLED=0
 archives:
@@ -24,7 +24,7 @@ archives:
       {{- title .Os }}_
       {{- if eq .Arch "amd64" }}x86_64
       {{- else if eq .Arch "386" }}i386
-      {{- else if eq .Arch "windows" }}windows
+      {{- else if eq .Os "windows" }}windows
       {{- else if eq .Arch "linux" }}linux
       {{- else if eq .Arch "darwin" }}macos
       {{- else }}{{ .Arch }}{{ end }}
