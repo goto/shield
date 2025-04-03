@@ -3,6 +3,7 @@ package spicedb
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/odpf/shield/internal/schema_generator"
 	"github.com/odpf/shield/model"
@@ -35,14 +36,21 @@ func (s *SpiceDB) Check() bool {
 
 func (p *Policy) AddPolicy(ctx context.Context, schema string) error {
 	request := &pb.WriteSchemaRequest{Schema: schema}
+	fmt.Println("Trying to write schema to spicedb!")
+
+	ctx, cancel := context.WithTimeout(context.Background(), 120*time.Second) // Increase timeout
+	defer cancel()
+
 	_, err := p.client.WriteSchema(ctx, request)
 	if err != nil {
+		fmt.Println("Error while writing schema ", err.Error())
 		return err
 	}
 	return nil
 }
 
 func New(config config.SpiceDBConfig, logger log.Logger) (*SpiceDB, error) {
+	fmt.Println("connecting to spicedb!!")
 	endpoint := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	client, err := authzed.NewClient(endpoint, grpc.WithInsecure(), grpcutil.WithInsecureBearerToken(config.PreSharedKey))
 	if err != nil {
