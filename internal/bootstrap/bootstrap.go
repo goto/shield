@@ -25,6 +25,7 @@ type Service struct {
 }
 
 func (s Service) BootstrapDefaultDefinitions(ctx context.Context) {
+	fmt.Println("creating policies from BootstrapDefaultDefinitions")
 	s.bootstrapNamespaces(ctx)
 	s.bootstrapRoles(ctx)
 	s.bootstrapActions(ctx)
@@ -33,7 +34,7 @@ func (s Service) BootstrapDefaultDefinitions(ctx context.Context) {
 
 func (s Service) onboardResource(ctx context.Context, resource structs.Resource) {
 	ns := getResourceNamespace(resource)
-
+	fmt.Println("Onboarding resource!!")
 	resourceAllActions := getResourceAction("all_actions", ns)
 
 	ownerRole := GetOwnerRole(ns)
@@ -66,6 +67,7 @@ func (s Service) onboardResource(ctx context.Context, resource structs.Resource)
 	s.createNamespaces(ctx, []model.Namespace{ns})
 	s.createRoles(ctx, resourceRoles)
 	s.createActions(ctx, actions)
+	fmt.Println("creating policies from onboardResource")
 	s.createPolicies(ctx, policies)
 }
 
@@ -160,7 +162,9 @@ func (s Service) BootstrapResources(ctx context.Context, resourceConfig *blobsto
 		return err
 	}
 	for _, resource := range resources {
+		fmt.Println("Working on resource! ", resource.Name)
 		s.onboardResource(ctx, resource)
+		fmt.Println("Done for resource! ", resource.Name)
 	}
 
 	return nil
@@ -190,6 +194,7 @@ func (s Service) createPolicies(ctx context.Context, policies []model.Policy) {
 	for _, policy := range policies {
 		_, err := s.SchemaService.CreatePolicy(ctx, policy)
 		if err != nil {
+			fmt.Printf("error! %s", err.Error())
 			s.Logger.Fatal(err.Error())
 		}
 	}
