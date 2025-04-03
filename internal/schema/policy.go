@@ -3,6 +3,7 @@ package schema
 import (
 	"context"
 	"errors"
+	"fmt"
 	"strings"
 
 	"github.com/odpf/shield/internal/schema_generator"
@@ -22,14 +23,18 @@ func (s Service) ListPolicies(ctx context.Context) ([]model.Policy, error) {
 func (s Service) CreatePolicy(ctx context.Context, policy model.Policy) ([]model.Policy, error) {
 	policies, err := s.Store.CreatePolicy(ctx, policy)
 	if err != nil {
+		fmt.Println(fmt.Printf("Error while creating policy! %s", err.Error()))
 		return []model.Policy{}, err
 	}
+
 	schemas, err := s.generateSchema(policies)
 	if err != nil {
+		fmt.Println(fmt.Printf("Error while creating schema! %s", err.Error()))
 		return []model.Policy{}, err
 	}
 	err = s.pushSchema(ctx, schemas)
 	if err != nil {
+		fmt.Println(fmt.Printf("Error while pushing schema! %s", err.Error()))
 		return []model.Policy{}, err
 	}
 	return policies, err
