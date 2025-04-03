@@ -64,19 +64,19 @@ nfpms:
 #  homepage: "https://github.com/goto/shield"
 #  description: "Identity and authorization system"
 #  license: Apache 2.0
-brews:
-  - name: shield
-    homepage: "https://github.com/goto/shield"
-    description: "Identity and authorization system"
-    tap:
-      owner: goto
-      name: homebrew-tap
-    license: "Apache 2.0"
-    folder: Formula
-    dependencies:
-      - name: git
-    install: |-
-      bin.install "shield"
-    commit_author:
-      name: github-actions[bot]
-      email: 41898282+github-actions[bot]@users.noreply.github.com
+#brews:
+#  - name: shield
+#    homepage: "https://github.com/goto/shield"
+#    description: "Identity and authorization system"
+#    tap:
+#      owner: goto
+#      name: homebrew-tap
+#    license: "Apache 2.0"
+#    folder: Formula
+#    dependencies:
+#      - name: git
+#    install: |-
+#      bin.install "shield"
+#    commit_author:
+#      name: github-actions[bot]
+#      email: 41898282+github-actions[bot]@users.noreply.github.com
