@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/goto/salt/log"
 	"github.com/odpf/shield/internal/bootstrap/definition"
@@ -164,6 +165,7 @@ func (s Service) BootstrapResources(ctx context.Context, resourceConfig *blobsto
 	for _, resource := range resources {
 		fmt.Println("Working on resource! ", resource.Name)
 		s.onboardResource(ctx, resource)
+		time.Sleep(2 * time.Second)
 		fmt.Println("Done for resource! ", resource.Name)
 	}
 
@@ -195,7 +197,7 @@ func (s Service) createPolicies(ctx context.Context, policies []model.Policy) {
 		_, err := s.SchemaService.CreatePolicy(ctx, policy)
 		if err != nil {
 			fmt.Printf("error! %s", err.Error())
-			s.Logger.Fatal(err.Error())
+			s.Logger.Error(err.Error())
 		}
 	}
 }
