@@ -62,11 +62,13 @@ func (s Store) selectNamespace(ctx context.Context, id string, txn *sqlx.Tx) (mo
 
 func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Namespace) (model.Namespace, error) {
 	var newNamespace Namespace
+
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
 		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
 	})
 
 	if err != nil {
+		fmt.Println("Error when creating a namespace!! ", err.Error())
 		return model.Namespace{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 

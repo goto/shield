@@ -38,7 +38,7 @@ func New(config Config) (*SQL, error) {
 	d.SetMaxIdleConns(config.MaxIdleConns)
 	d.SetMaxOpenConns(config.MaxOpenConns)
 	d.SetConnMaxLifetime(config.ConnMaxLifeTime)
-
+	fmt.Println("sql timeout config: ", config.MaxQueryTimeoutInMS)
 	return &SQL{DB: d, queryTimeOut: config.MaxQueryTimeoutInMS}, err
 }
 
