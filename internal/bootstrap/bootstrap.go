@@ -12,6 +12,7 @@ import (
 	blobstore "github.com/odpf/shield/store/blob"
 	"github.com/odpf/shield/structs"
 	"strings"
+	"time"
 )
 
 // Insert Action
@@ -190,6 +191,11 @@ func (s Service) bootstrapPolicies(ctx context.Context) {
 }
 
 func (s Service) createPolicies(ctx context.Context, policies []model.Policy) {
+	if start, ok := ctx.Value("startTime").(time.Time); ok {
+		fmt.Println("Create Policies call start : context initial value ", time.Since(start).Milliseconds())
+	} else {
+		fmt.Println("some err", ok)
+	}
 	for _, policy := range policies {
 		_, err := s.SchemaService.CreatePolicy(ctx, policy)
 		if err != nil {
