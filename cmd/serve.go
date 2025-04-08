@@ -68,7 +68,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 	}
 
 	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
-	ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
+	ctx, cancelFunc := context.WithCancel(context.Background())
 	ctx = context.WithValue(ctx, "startTime", time.Now())
 
 	defer func() {
