@@ -101,12 +101,11 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 	nsId := utils.DefaultStringIfEmpty(policyToCreate.Namespace.Id, policyToCreate.NamespaceId)
 
 	fmt.Println("in create policy!!")
-	if start, ok := ctx.Value("startTime").(time.Time); ok {
-		fmt.Println("Create Policies call start : context initial value ", time.Since(start).Milliseconds())
-	} else {
-		fmt.Println("some err", ok)
-	}
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		if t, ok := ctx.Deadline(); ok {
+			fmt.Println("ctx timeout deadline in create policy ", t)
+			fmt.Println("ctx time left in create policy ", time.Until(t).Milliseconds())
+		}
 		e := s.DB.GetContext(ctx, &newPolicy, createPolicyQuery, nsId, roleId, sql.NullString{String: actionId, Valid: actionId != ""})
 		if e != nil {
 			fmt.Println("error in fetching context from db ", e.Error())
@@ -114,12 +113,6 @@ func (s Store) CreatePolicy(ctx context.Context, policyToCreate model.Policy) ([
 		return e
 	})
 	if err != nil {
-		fmt.Println("err is db timeout !!", err.Error())
-		if start, ok := ctx.Value("startTime").(time.Time); ok {
-			fmt.Println("Create Policies call start : context initial value ", time.Since(start).Milliseconds())
-		} else {
-			fmt.Println("some err", ok)
-		}
 		return []model.Policy{}, fmt.Errorf("%w: %s", dbErr, err)
 	}
 	return s.ListPolicies(ctx)

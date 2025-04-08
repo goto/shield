@@ -64,6 +64,10 @@ func (s Store) CreateNamespace(ctx context.Context, namespaceToCreate model.Name
 	var newNamespace Namespace
 
 	err := s.DB.WithTimeout(ctx, func(ctx context.Context) error {
+		if t, ok := ctx.Deadline(); ok {
+			fmt.Println("ctx timeout deadline in create namespace ", t)
+			fmt.Println("ctx time left in create namespace ", time.Until(t).Milliseconds())
+		}
 		return s.DB.GetContext(ctx, &newNamespace, createNamespaceQuery, namespaceToCreate.Id, namespaceToCreate.Name)
 	})
 
