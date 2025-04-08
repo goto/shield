@@ -200,7 +200,7 @@ func (s Service) createPolicies(ctx context.Context, policies []model.Policy) {
 		_, err := s.SchemaService.CreatePolicy(ctx, policy)
 		if err != nil {
 			fmt.Printf("error creating policy! %s", err.Error())
-			s.Logger.Error(err.Error())
+			s.Logger.Fatal(err.Error())
 		}
 	}
 }
