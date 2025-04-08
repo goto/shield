@@ -43,7 +43,10 @@ func New(config Config) (*SQL, error) {
 }
 
 func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
-	ctxWithTimeout, cancel := context.WithTimeout(ctx, s.queryTimeOut)
+	if ctx.Err() != nil {
+		fmt.Println("⚠️ Parent context is already canceled! Reason:", ctx.Err())
+	}
+	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), s.queryTimeOut)
 	defer cancel()
 	// Logging: show deadlines if available
 	if parentDeadline, ok := ctx.Deadline(); ok {

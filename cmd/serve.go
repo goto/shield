@@ -69,10 +69,12 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 
 	// @TODO: need to inject custom logger wrapper over zap into ctx to use it internally
 	ctx, cancelFunc := context.WithCancel(server.HandleSignals(context.Background()))
-
 	ctx = context.WithValue(ctx, "startTime", time.Now())
 
-	defer cancelFunc()
+	defer func() {
+		fmt.Println("I am invoking cancel on context")
+		cancelFunc()
+	}()
 
 	db, dbShutdown := setupDB(appConfig.DB, logger)
 	defer dbShutdown()
