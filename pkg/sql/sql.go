@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"runtime/debug"
 	"time"
 
 	"github.com/jmoiron/sqlx"
@@ -44,6 +45,7 @@ func New(config Config) (*SQL, error) {
 
 func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
 	if ctx.Err() != nil {
+		debug.PrintStack()
 		fmt.Println("⚠️ Parent context is already canceled! Reason:", ctx.Err())
 	}
 	ctxWithTimeout, cancel := context.WithTimeout(context.Background(), s.queryTimeOut)

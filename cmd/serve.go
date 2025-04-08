@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"runtime/debug"
 	"syscall"
 	"time"
 
@@ -73,6 +74,7 @@ func serve(logger log.Logger, appConfig *config.Shield) error {
 
 	defer func() {
 		fmt.Println("I am invoking cancel on context")
+		debug.PrintStack()
 		cancelFunc()
 	}()
 
