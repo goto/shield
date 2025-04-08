@@ -45,8 +45,29 @@ func New(config Config) (*SQL, error) {
 func (s SQL) WithTimeout(ctx context.Context, op func(ctx context.Context) error) (err error) {
 	ctxWithTimeout, cancel := context.WithTimeout(ctx, s.queryTimeOut)
 	defer cancel()
+	// Logging: show deadlines if available
+	if parentDeadline, ok := ctx.Deadline(); ok {
+		fmt.Printf("🧭 Parent context deadline: %v (in %d ms)\n", parentDeadline, time.Until(parentDeadline).Milliseconds())
+	} else {
+		fmt.Println("🧭 Parent context has no deadline")
+	}
 
-	return op(ctxWithTimeout)
+	if childDeadline, ok := ctxWithTimeout.Deadline(); ok {
+		fmt.Printf("⏳ Child context deadline:  %v (in %d ms)\n", childDeadline, time.Until(childDeadline).Milliseconds())
+	}
+	err = op(ctxWithTimeout)
+
+	// After the operation, check context errors
+	select {
+	case <-ctxWithTimeout.Done():
+		fmt.Println("⚠️ CHILD context done. Error:", ctxWithTimeout.Err())
+	case <-ctx.Done():
+		fmt.Println("⚠️ PARENT context done. Error:", ctx.Err())
+	default:
+		fmt.Println("✅ No context cancellation detected")
+	}
+
+	return err
 }
 
 // Handling transactions: https://stackoverflow.com/a/23502629/8244298
