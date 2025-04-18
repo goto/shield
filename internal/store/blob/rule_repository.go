@@ -2,7 +2,6 @@ package blob
 
 import (
 	"context"
-	"io"
 	"regexp"
 	"strings"
 	"sync"
@@ -15,7 +14,6 @@ import (
 	"github.com/ghodss/yaml"
 	"github.com/goto/shield/core/rule"
 	"github.com/pkg/errors"
-	"gocloud.dev/blob"
 )
 
 type Ruleset struct {
@@ -78,30 +76,24 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 	var ruleset []rule.Ruleset
 
 	// get all items
-	it := repo.bucket.List(&blob.ListOptions{})
-	for {
-		obj, err := it.Next(ctx)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return err
+	files, err := repo.bucket.ListFiles(ctx, "")
+	if err != nil {
+		return err
+	}
+
+	for _, fileKey := range files {
+		if !(strings.HasSuffix(fileKey, ".yaml") || strings.HasSuffix(fileKey, ".yml")) {
+			continue
 		}
 
-		if obj.IsDir {
-			continue
-		}
-		if !(strings.HasSuffix(obj.Key, ".yaml") || strings.HasSuffix(obj.Key, ".yml")) {
-			continue
-		}
-		fileBytes, err := repo.bucket.ReadAll(ctx, obj.Key)
+		fileBytes, err := repo.bucket.ReadFile(ctx, fileKey)
 		if err != nil {
-			return errors.Wrap(err, "bucket.ReadAll: "+obj.Key)
+			return errors.Wrap(err, "bucket.ReadAll: "+fileKey)
 		}
 
 		var s Ruleset
 		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
-			return errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
+			return errors.Wrap(err, "yaml.Unmarshal: "+fileKey)
 		}
 		if len(s.Rules) == 0 {
 			continue

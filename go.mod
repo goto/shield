@@ -7,6 +7,7 @@ toolchain go1.22.3
 require (
 	github.com/MakeNowJust/heredoc v1.0.0
 	github.com/abbot/go-http-auth v0.4.0
+	github.com/aliyun/aliyun-oss-go-sdk v3.0.2+incompatible
 	github.com/authzed/authzed-go v0.13.0
 	github.com/authzed/grpcutil v0.0.0-20230908193239-4286bb1d6403
 	github.com/authzed/spicedb v1.15.0
@@ -58,6 +59,7 @@ require (
 	google.golang.org/protobuf v1.34.2
 	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.1
+
 )
 
 require (
