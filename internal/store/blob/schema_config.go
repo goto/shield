@@ -3,13 +3,11 @@ package blob
 import (
 	"context"
 	"fmt"
-	"io"
 	"strings"
 
 	"github.com/goto/shield/internal/schema"
 
 	"github.com/pkg/errors"
-	"gocloud.dev/blob"
 	"golang.org/x/exp/maps"
 	"gopkg.in/yaml.v3"
 )
@@ -78,30 +76,32 @@ func (s *SchemaConfig) readYAMLFiles(ctx context.Context) ([]map[string]Config, 
 	configYAMLs := make([]map[string]Config, 0)
 
 	// iterate over bucket files, only read .yml & .yaml files
-	it := s.bucket.List(&blob.ListOptions{})
-	for {
-		obj, err := it.Next(ctx)
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
+	files, err := s.bucket.ListFiles(ctx, "")
+	if err != nil {
+		return configYAMLs, err
+	}
+
+	for _, fileKey := range files {
+		if !(strings.HasSuffix(fileKey, ".yaml") || strings.HasSuffix(fileKey, ".yml")) {
+			continue
 		}
 
-		if obj.IsDir {
-			continue
-		}
-		if !(strings.HasSuffix(obj.Key, ".yaml") || strings.HasSuffix(obj.Key, ".yml")) {
-			continue
-		}
-		fileBytes, err := s.bucket.ReadAll(ctx, obj.Key)
+		fileBytes, err := s.bucket.ReadFile(ctx, fileKey)
 		if err != nil {
 			return nil, fmt.Errorf("%s: %s", "error in reading bucket object", err.Error())
 		}
 
+		var s Ruleset
+		if err := yaml.Unmarshal(fileBytes, &s); err != nil {
+			return nil, errors.Wrap(err, "yaml.Unmarshal: "+fileKey)
+		}
+		if len(s.Rules) == 0 {
+			continue
+		}
+
 		var configYAML map[string]Config
 		if err := yaml.Unmarshal(fileBytes, &configYAML); err != nil {
-			return nil, errors.Wrap(err, "yaml.Unmarshal: "+obj.Key)
+
 		}
 		if len(configYAML) == 0 {
 			continue
