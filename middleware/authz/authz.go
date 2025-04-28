@@ -218,7 +218,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 		}
 
-		c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
+		c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", resource.Name, actionId, "result", isAuthorized)
 		if !isAuthorized {
 			c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", resource.Name, "result", isAuthorized)
 			c.notAllowed(rw)
