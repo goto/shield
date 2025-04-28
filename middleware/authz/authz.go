@@ -207,6 +207,8 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		isAuthorized := false
 		for _, actionId := range config.Actions {
 			isAuthorized, err = c.AuthzCheckService.CheckAuthz(req.Context(), resource, model.Action{Id: actionId})
+			c.log.Info("checking auth for", "user", permissionAttributes["user"], "resource", resource.Name, "action", actionId, "result", isAuthorized)
+
 			if err != nil {
 				c.log.Error("error while creating resource obj", "err", err)
 				c.notAllowed(rw)
