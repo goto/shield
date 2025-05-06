@@ -1,1 +1,0 @@
-SELECT cron.unschedule('call-partition_data_proc');
