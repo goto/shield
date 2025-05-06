@@ -1,1 +1,0 @@
-CREATE EXTENSION pg_cron SCHEMA pg_catalog;
