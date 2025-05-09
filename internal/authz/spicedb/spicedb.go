@@ -94,6 +94,11 @@ func (p Permission) CheckRelation(ctx context.Context, relation model.Relation, 
 	}
 
 	request := &pb.CheckPermissionRequest{
+		Consistency: &pb.Consistency{
+			Requirement: &pb.Consistency_FullyConsistent{
+				FullyConsistent: true,
+			},
+		},
 		Resource:   relationship.Resource,
 		Subject:    relationship.Subject,
 		Permission: action.Id,
