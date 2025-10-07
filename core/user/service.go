@@ -73,7 +73,7 @@ func (s Service) Create(ctx context.Context, user User) (User, error) {
 
 	newUser, err := s.repository.Create(ctx, User{
 		Name:     user.Name,
-		Email:    strings.ToLower(user.Email),
+		Email:    user.Email,
 		Metadata: user.Metadata,
 	})
 	if err != nil {
@@ -143,7 +143,7 @@ func (s Service) UpdateByID(ctx context.Context, toUpdate User) (User, error) {
 	updatedUser, err := s.repository.UpdateByID(ctx, User{
 		ID:       toUpdate.ID,
 		Name:     toUpdate.Name,
-		Email:    strings.ToLower(toUpdate.Email),
+		Email:    toUpdate.Email,
 		Metadata: toUpdate.Metadata,
 	})
 	if err != nil {
@@ -170,7 +170,7 @@ func (s Service) UpdateByEmail(ctx context.Context, toUpdate User) (User, error)
 
 	updatedUser, err := s.repository.UpdateByEmail(ctx, User{
 		Name:     toUpdate.Name,
-		Email:    strings.ToLower(toUpdate.Email),
+		Email:    toUpdate.Email,
 		Metadata: toUpdate.Metadata,
 	})
 	if err != nil {

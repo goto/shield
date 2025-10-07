@@ -529,10 +529,11 @@ func (r UserRepository) GetByEmail(ctx context.Context, email string) (user.User
 	var fetchedUser User
 
 	query, params, err := dialect.From(TABLE_USERS).Where(
-		goqu.Ex{
-			"email":      email,
-			"deleted_at": nil,
-		}).ToSQL()
+		goqu.And(
+			goqu.L("LOWER(email) = LOWER(?)", email),
+			goqu.Ex{"deleted_at": nil},
+		),
+	).ToSQL()
 	if err != nil {
 		return user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
