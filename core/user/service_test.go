@@ -48,23 +48,23 @@ func TestService_Create(t *testing.T) {
 				repository.EXPECT().
 					Create(mock.Anything, user.User{
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com",
+						Email: "John.Doe@gotocompany.com",
 					}).
 					Return(user.User{
 						Name:  "John Doe",
-						Email: "john.doe@gotocompany.com",
+						Email: "John.Doe@gotocompany.com",
 					}, nil).Once()
 
 				activityService.EXPECT().
 					Log(mock.Anything, user.AuditKeyUserCreate, activity.Actor{
 						ID:    "test-id",
 						Email: "jane.doe@gotocompany.com",
-					}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe@gotocompany.com"}).Return(nil).Once()
+					}, user.LogData{Entity: "user", Name: "John Doe", Email: "John.Doe@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, user.Config{}, repository, activityService)
 			},
 			want: user.User{
 				Name:  "John Doe",
-				Email: "john.doe@gotocompany.com",
+				Email: "John.Doe@gotocompany.com",
 			},
 			wantErr: nil,
 		},
@@ -382,22 +382,22 @@ func TestService_UpdateByID(t *testing.T) {
 					UpdateByID(mock.Anything, user.User{
 						ID:    "1",
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com",
+						Email: "John.Doe2@gotocompany.com",
 					}).
 					Return(user.User{
 						ID:    "1",
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com",
+						Email: "John.Doe2@gotocompany.com",
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "John.Doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, user.Config{}, repository, activityService)
 			},
 			want: user.User{
 				ID:    "1",
 				Name:  "John Doe",
-				Email: "john.doe2@gotocompany.com",
+				Email: "John.Doe2@gotocompany.com",
 			},
 			wantErr: nil,
 		},
@@ -452,20 +452,20 @@ func TestService_UpdateByEmail(t *testing.T) {
 				repository.EXPECT().
 					UpdateByEmail(mock.Anything, user.User{
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com",
+						Email: "John.Doe2@gotocompany.com",
 					}).
 					Return(user.User{
 						Name:  "John Doe",
-						Email: "john.doe2@gotocompany.com",
+						Email: "John.Doe2@gotocompany.com",
 					}, nil).Once()
 
 				activityService.EXPECT().
-					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "john.doe2@gotocompany.com"}).Return(nil).Once()
+					Log(mock.Anything, user.AuditKeyUserUpdate, activity.Actor{}, user.LogData{Entity: "user", Name: "John Doe", Email: "John.Doe2@gotocompany.com"}).Return(nil).Once()
 				return user.NewService(logger, user.Config{}, repository, activityService)
 			},
 			want: user.User{
 				Name:  "John Doe",
-				Email: "john.doe2@gotocompany.com",
+				Email: "John.Doe2@gotocompany.com",
 			},
 			wantErr: nil,
 		},
