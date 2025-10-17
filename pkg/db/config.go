@@ -9,4 +9,5 @@ type Config struct {
 	MaxOpenConns        int           `yaml:"max_open_conns"     mapstructure:"max_open_conns"     default:"10"`
 	ConnMaxLifeTime     time.Duration `yaml:"conn_max_life_time" mapstructure:"conn_max_life_time" default:"10ms"`
 	MaxQueryTimeoutInMS time.Duration `yaml:"max_query_timeout"  mapstructure:"max_query_timeout"  default:"100ms"`
+	InstanceName        string        `yaml:"instance_name" mapstructure:"instance_name" default:"shield-db"`
 }

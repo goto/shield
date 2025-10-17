@@ -47,7 +47,7 @@ func New(cfg Config) (*Client, error) {
 	if err := otelsql.RecordStats(
 		d.DB,
 		otelsql.WithSystem(semconv.DBSystemPostgreSQL),
-		otelsql.WithInstanceName(cfg.URL),
+		otelsql.WithInstanceName(cfg.InstanceName),
 	); err != nil {
 		return nil, err
 	}
