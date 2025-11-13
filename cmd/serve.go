@@ -34,6 +34,7 @@ import (
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/adapter"
 	"github.com/goto/shield/internal/api"
+	proxycfg "github.com/goto/shield/internal/proxy"
 	"github.com/goto/shield/internal/schema"
 	"github.com/goto/shield/internal/server"
 	"github.com/goto/shield/internal/store/blob"
@@ -179,7 +180,13 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	}
 
 	// serving proxies
-	cbs, cps, err := serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	var cbs []func() error
+	var cps []func(context.Context) error
+	if cfg.Proxy.Type == proxycfg.ENVOY_PROXY {
+		cbs, err = serveXDS(ctx, logger, cfg.Proxy, pgRuleRepository)
+	} else {
+		cbs, cps, err = serveProxies(ctx, logger, cfg.App.IdentityProxyHeader, cfg.App.UserIDHeader, cfg.Proxy, pgRuleRepository, deps.ResourceService, deps.RelationService, deps.UserService, deps.GroupService, deps.ProjectService, deps.RelationAdapter)
+	}
 	if err != nil {
 		return err
 	}
