@@ -135,6 +135,15 @@ func (s Service) ListUserGroups(ctx context.Context, userId string, roleId strin
 }
 
 func (s Service) ListGroupRelations(ctx context.Context, objectId, subjectType, role string) ([]user.User, []Group, map[string][]string, map[string][]string, error) {
+
+	if !uuid.IsValid(objectId) {
+		g, err := s.GetBySlug(ctx, objectId)
+		if err != nil {
+			return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrListingGroupRelations, err.Error())
+		}
+		objectId = g.ID
+	}
+
 	relationList, err := s.repository.ListGroupRelations(ctx, objectId, subjectType, role)
 	if err != nil {
 		return []user.User{}, []Group{}, map[string][]string{}, map[string][]string{}, fmt.Errorf("%w: %s", ErrListingGroupRelations, err.Error())
