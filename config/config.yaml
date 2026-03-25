@@ -37,6 +37,16 @@ spicedb:
 
 # proxy configuration
 proxy:
+  # proxy type configuration
+  # valid values are "shield" and "envoy", with the default set to "shield"
+  type: shield
+  # envoy proxy configuration, will be ignored if proxy type set to "shield"
+  envoy:
+    xds:
+      host: 127.0.0.1
+      port: 8082
+      refresh_interval: 10s
+  # proxy services configuration
   services:
     - name: test
       host: 0.0.0.0

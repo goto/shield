@@ -1,7 +1,26 @@
 package proxy
 
+import "time"
+
+const (
+	SHIELD_PROXY = "shield"
+	ENVOY_PROXY  = "envoy"
+)
+
 type ServicesConfig struct {
-	Services []Config `yaml:"services" mapstructure:"services"`
+	Type       string     `yaml:"type" mapstructure:"type"`
+	EnvoyAgent EnvoyAgent `yaml:"envoy" mapstructure:"envoy"`
+	Services   []Config   `yaml:"services" mapstructure:"services"`
+}
+
+type EnvoyAgent struct {
+	XDS XDS `yaml:"xds" mapstructure:"xds"`
+}
+
+type XDS struct {
+	Host            string        `yaml:"host" mapstructure:"host" default:"shield"`
+	Port            int           `yaml:"port" mapstructure:"port"`
+	RefreshInterval time.Duration `yaml:"refresh_interval" mapstructure:"refresh_interval" default:"60s"`
 }
 
 type Config struct {

@@ -40,6 +40,7 @@ func New(cliConfig *Config) *cli.Command {
 	}
 
 	cmd.AddCommand(ServerCommand())
+	cmd.AddCommand(ProxyCommand())
 	cmd.AddCommand(NamespaceCommand(cliConfig))
 	cmd.AddCommand(UserCommand(cliConfig))
 	cmd.AddCommand(OrganizationCommand(cliConfig))

@@ -443,7 +443,7 @@ func (r ResourceRepository) UpsertConfig(ctx context.Context, name string, confi
 	query, params, err := goqu.Insert(TABLE_RESOURCE_CONFIGS).Rows(
 		goqu.Record{"name": name, "config": configJson},
 	).OnConflict(
-		goqu.DoUpdate("name", goqu.Record{"name": name, "config": configJson})).Returning(&RuleConfig{}).ToSQL()
+		goqu.DoUpdate("name", goqu.Record{"name": name, "config": configJson, "updated_at": goqu.L("now()")})).Returning(&RuleConfig{}).ToSQL()
 	if err != nil {
 		return schema.Config{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
