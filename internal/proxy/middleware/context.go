@@ -16,12 +16,12 @@ func EnrichRule(req *http.Request, r *rule.Rule) {
 }
 
 func EnrichRequestBody(r *http.Request) error {
-	// Only buffer JSON and gRPC request bodies. Multipart/form-data (file
-	// uploads) and other content types are left untouched so that large
-	// payloads are streamed directly to the backend without being copied
-	// into memory — preventing OOM on files of 200 MB+.
+	// Skip body buffering for multipart/form-data (file uploads) to prevent
+	// OOM on large payloads (200 MB+). The raw stream passes through to the
+	// backend untouched. All other content types are buffered for use by
+	// downstream middleware (attributes, authz, basic_auth).
 	ct := r.Header.Get("Content-Type")
-	if !strings.HasPrefix(ct, "application/json") && !strings.HasPrefix(ct, "application/grpc") {
+	if strings.HasPrefix(ct, "multipart/form-data") || strings.HasPrefix(ct, "multipart/mixed") {
 		return nil
 	}
 
