@@ -147,8 +147,12 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 				return false
 			}
 
-			// TODO: we can optimise this by parsing all field at once
-			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
+			bdy, ok := middleware.ExtractRequestBody(req)
+			if !ok {
+				w.log.Error("middleware: request body not available for extraction")
+				return false
+			}
+			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&bdy, attr.Index)
 			if err != nil {
 				w.log.Error("middleware: failed to parse grpc payload", "err", err)
 				return false
@@ -161,7 +165,12 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 				w.log.Error("middleware: payload key field empty")
 				return false
 			}
-			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
+			bdy, ok := middleware.ExtractRequestBody(req)
+			if !ok {
+				w.log.Error("middleware: request body not available for extraction")
+				return false
+			}
+			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&bdy, attr.Key)
 			if err != nil {
 				w.log.Error("middleware: failed to parse json payload", "err", err)
 				return false

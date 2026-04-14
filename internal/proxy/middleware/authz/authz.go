@@ -141,8 +141,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			// TODO: we can optimise this by parsing all field at once
-			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
+			bdy, ok := middleware.ExtractRequestBody(req)
+			if !ok {
+				c.log.Error("middleware: request body not available for extraction")
+				c.notAllowed(rw, nil)
+				return
+			}
+			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&bdy, attr.Index)
 			if err != nil {
 				c.log.Error("middleware: failed to parse grpc payload", "err", err)
 				return
@@ -157,7 +162,13 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				c.notAllowed(rw, nil)
 				return
 			}
-			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
+			bdy, ok := middleware.ExtractRequestBody(req)
+			if !ok {
+				c.log.Error("middleware: request body not available for extraction")
+				c.notAllowed(rw, nil)
+				return
+			}
+			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&bdy, attr.Key)
 			if err != nil {
 				c.log.Error("middleware: failed to parse grpc payload", "err", err)
 				c.notAllowed(rw, nil)

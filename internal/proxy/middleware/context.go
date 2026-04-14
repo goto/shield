@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/goto/shield/core/rule"
@@ -15,6 +16,15 @@ func EnrichRule(req *http.Request, r *rule.Rule) {
 }
 
 func EnrichRequestBody(r *http.Request) error {
+	// Only buffer JSON and gRPC request bodies. Multipart/form-data (file
+	// uploads) and other content types are left untouched so that large
+	// payloads are streamed directly to the backend without being copied
+	// into memory — preventing OOM on files of 200 MB+.
+	ct := r.Header.Get("Content-Type")
+	if !strings.HasPrefix(ct, "application/json") && !strings.HasPrefix(ct, "application/grpc") {
+		return nil
+	}
+
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err
