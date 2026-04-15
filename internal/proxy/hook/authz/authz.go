@@ -150,15 +150,9 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 	res.Request = res.Request.WithContext(user.SetContextWithEmail(res.Request.Context(), identityProxyHeaderValue))
 
 	for id, attr := range config.Attributes {
-		bdy, bdyOk := middleware.ExtractRequestBody(res.Request)
+		bdy, _ := middleware.ExtractRequestBody(res.Request)
 		bodySource := &res.Body
 		if attr.Source == string(proxyattr.SourceRequest) {
-			if !bdyOk && (attr.Type == proxyattr.TypeJSONPayload || attr.Type == proxyattr.TypeGRPCPayload) {
-				// Request body was not buffered (e.g. multipart/form-data upload).
-				// Skip body-based attribute extraction for non-JSON/gRPC requests.
-				a.log.Info("hook: skipping body extraction for non-buffered request", "attr", id)
-				continue
-			}
 			bodySource = &bdy
 		}
 

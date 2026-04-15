@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"io"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/goto/shield/core/rule"
@@ -16,15 +15,6 @@ func EnrichRule(req *http.Request, r *rule.Rule) {
 }
 
 func EnrichRequestBody(r *http.Request) error {
-	// Skip body buffering for multipart/form-data (file uploads) to prevent
-	// OOM on large payloads (200 MB+). The raw stream passes through to the
-	// backend untouched. All other content types are buffered for use by
-	// downstream middleware (attributes, authz, basic_auth).
-	ct := r.Header.Get("Content-Type")
-	if strings.HasPrefix(ct, "multipart/form-data") || strings.HasPrefix(ct, "multipart/mixed") {
-		return nil
-	}
-
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return err

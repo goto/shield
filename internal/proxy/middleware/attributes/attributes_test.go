@@ -143,7 +143,6 @@ func TestExtractMiddleware(t *testing.T) {
 			req: &http.Request{
 				Method: "POST",
 				Header: map[string][]string{
-					"Content-Type":     {"application/json"},
 					"X-Shield-Project": {"85be2dfe-7b13-42aa-96f8-f040afb0bbb3"},
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
@@ -170,7 +169,6 @@ func TestExtractMiddleware(t *testing.T) {
 			req: &http.Request{
 				Method: "POST",
 				Header: map[string][]string{
-					"Content-Type":     {"application/json"},
 					"X-Shield-Project": {"a5ae3dfe-7b13-42aa-96f8-f040afb0bbb3"},
 					"X-Auth-Email":     {"nihar.b.interns@aux.gojek.com"},
 					"X-Shield-Group":   {"e16f46cf-6e1e-4802-967a-ea4008ee0ca3"},
@@ -205,9 +203,6 @@ func TestExtractMiddleware(t *testing.T) {
 		t.Run(tt.title, func(t *testing.T) {
 			middleware.EnrichRule(tt.req, &odinRule)
 			middleware.EnrichPathParams(tt.req, map[string]string{})
-			if err := middleware.EnrichRequestBody(tt.req); err != nil {
-				t.Fatalf("EnrichRequestBody: %v", err)
-			}
 			w := httptest.NewRecorder()
 
 			tt.a.ServeHTTP(w, tt.req)

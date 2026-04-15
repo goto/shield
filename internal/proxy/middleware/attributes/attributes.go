@@ -95,13 +95,8 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				return
 			}
 
-			bdy, ok := middleware.ExtractRequestBody(req)
-			if !ok {
-				a.log.Error("middleware: request body not available for extraction")
-				a.notAllowed(rw)
-				return
-			}
-			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&bdy, attr.Index)
+			// TODO: we can optimise this by parsing all field at once
+			payloadField, err := body_extractor.GRPCPayloadHandler{}.Extract(&req.Body, attr.Index)
 			if err != nil {
 				a.log.Error("middleware: failed to parse grpc payload", "err", err)
 				a.notAllowed(rw)
@@ -117,13 +112,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 				a.notAllowed(rw)
 				return
 			}
-			bdy, ok := middleware.ExtractRequestBody(req)
-			if !ok {
-				a.log.Error("middleware: request body not available for extraction")
-				a.notAllowed(rw)
-				return
-			}
-			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&bdy, attr.Key)
+			payloadField, err := body_extractor.JSONPayloadHandler{}.Extract(&req.Body, attr.Key)
 			if err != nil {
 				a.log.Error("middleware: failed to parse grpc payload", "err", err)
 				a.notAllowed(rw)

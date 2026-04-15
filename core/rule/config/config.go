@@ -21,11 +21,12 @@ type Backend struct {
 }
 
 type Frontend struct {
-	Action      string       `yaml:"action"`
-	Path        string       `yaml:"path"`
-	Method      string       `yaml:"method"`
-	Middlewares []Middleware `yaml:"middlewares"`
-	Hooks       []Hook       `yaml:"hooks"`
+	Action       string       `yaml:"action"`
+	Path         string       `yaml:"path"`
+	Method       string       `yaml:"method"`
+	Middlewares  []Middleware `yaml:"middlewares"`
+	Hooks        []Hook       `yaml:"hooks"`
+	SkipReadBody bool         `yaml:"skip_read_body"`
 }
 
 type Middleware struct {
