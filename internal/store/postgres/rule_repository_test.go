@@ -61,7 +61,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 			Expected: rule.Config{
 				ID:     2,
 				Name:   "test",
-				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null}]}",
+				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null, \"SkipReadBody\": false}]}",
 			},
 		},
 		{
@@ -73,7 +73,7 @@ func (s *RuleRepositoryTestSuite) TestUpsert() {
 			Expected: rule.Config{
 				ID:     s.Config[0].ID,
 				Name:   s.Config[0].Name,
-				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null}]}",
+				Config: "{\"Rules\": [{\"Hooks\": null, \"Backend\": {\"URL\": \"\", \"Prefix\": \"\", \"Namespace\": \"\"}, \"Frontend\": {\"URL\": \"\", \"URLRx\": null, \"Method\": \"\"}, \"Middlewares\": null, \"SkipReadBody\": false}]}",
 			},
 		},
 	}
