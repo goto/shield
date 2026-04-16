@@ -26,10 +26,11 @@ type Config struct {
 }
 
 type Rule struct {
-	Frontend    Frontend        `yaml:"frontend"`
-	Backend     Backend         `yaml:"backend"`
-	Middlewares MiddlewareSpecs `yaml:"middlewares"`
-	Hooks       HookSpecs       `yaml:"hooks"`
+	Frontend     Frontend        `yaml:"frontend"`
+	Backend      Backend         `yaml:"backend"`
+	Middlewares  MiddlewareSpecs `yaml:"middlewares"`
+	Hooks        HookSpecs       `yaml:"hooks"`
+	SkipReadBody bool            `yaml:"skip_read_body"`
 }
 
 type MiddlewareSpec struct {
@@ -103,9 +104,10 @@ func YamlRulesetToRuleset(YamlRuleset config.Ruleset) Ruleset {
 						URL:    frontend.Path,
 						Method: frontend.Method,
 					},
-					Backend:     Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
-					Middlewares: middlewares,
-					Hooks:       hooks,
+					Backend:      Backend{URL: backend.Target, Namespace: backend.Name, Prefix: backend.Prefix},
+					Middlewares:  middlewares,
+					Hooks:        hooks,
+					SkipReadBody: frontend.SkipReadBody,
 				})
 			}
 		}

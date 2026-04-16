@@ -53,7 +53,9 @@ func (m *Ware) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	middleware.EnrichRule(req, matchedRule)
 
 	// enriching context with request body to use it in hooks
-	if err := middleware.EnrichRequestBody(req); err != nil {
+	if matchedRule.SkipReadBody {
+		logger.Info("skipping request body buffering", zap.String("rule", matchedRule.Frontend.URL))
+	} else if err := middleware.EnrichRequestBody(req); err != nil {
 		logger.Error("error_enriching_request_body", zap.Error(err))
 		rw.WriteHeader(http.StatusInternalServerError)
 		return
