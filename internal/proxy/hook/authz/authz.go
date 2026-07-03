@@ -339,7 +339,7 @@ func (a Authz) serveRelationOnly(res *http.Response, config Config, attributes m
 		urn := resource.Resource{Name: name, NamespaceID: namespaceID}.CreateURN()
 		existingResource, err := a.resourceService.GetByURN(ctx, urn)
 		if err != nil {
-			a.log.Error(fmt.Sprintf("relation_only: failed to find resource by urn %s" urn))
+			a.log.Error(fmt.Sprintf("relation_only: failed to find resource by urn %s", urn))
 			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 		}
 
