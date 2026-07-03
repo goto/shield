@@ -724,4 +724,76 @@ func TestServeHook(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
 	})
+
+	t.Run("relation_only should add relation to existing resource without upserting it", func(t *testing.T) {
+		req, _ := http.NewRequest(http.MethodPost, "http://localhost:8080", nil)
+		body := io.NopCloser(bytes.NewBuffer([]byte(`{"foo" : "bar"}`)))
+
+		response := &http.Response{
+			Request: req,
+			Header:  http.Header{},
+			Body:    body,
+		}
+		response.StatusCode = 200
+
+		rl := &rule.Rule{
+			Hooks: rule.HookSpecs{
+				rule.HookSpec{
+					Name: "authz",
+					Config: map[string]interface{}{
+						"relation_only": true,
+						"attributes": map[string]attribute.Attribute{
+							"resource": {
+								Type: "json_payload",
+								Key:  "foo",
+							},
+							"resource_type": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["resource_type"].(string),
+							},
+							"user": {
+								Type:  "constant",
+								Value: testPermissionAttributesMap["user"].(string),
+							},
+						},
+						"relations": []Relation{
+							{
+								Role:               "approvers",
+								SubjectPrincipal:   "user",
+								SubjectIDAttribute: "user",
+							},
+						},
+					},
+				},
+			},
+			Backend: rule.Backend{
+				Namespace: "ns1",
+			},
+		}
+
+		*response.Request = *response.Request.WithContext(rule.WithContext(req.Context(), rl))
+
+		response.Request.Header.Set("X-Shield-Email", "user@gotocompany.com")
+
+		// URN is r/{namespaceID}/{name} for a non-system, named resource.
+		expectedURN := resource.Resource{
+			Name:        "bar",
+			NamespaceID: namespace.CreateID("ns1", testPermissionAttributesMap["resource_type"].(string)),
+		}.CreateURN()
+
+		mockResourceService.EXPECT().GetByURN(mock.AnythingOfType("*context.valueCtx"), expectedURN).Return(resource.Resource{
+			Idxa:        uuid.NewString(),
+			URN:         expectedURN,
+			NamespaceID: namespace.CreateID("ns1", testPermissionAttributesMap["resource_type"].(string)),
+			Name:        "bar",
+		}, nil)
+
+		mockRelationTransformer.EXPECT().TransformRelation(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(relation.RelationV2{}, nil)
+		mockRelationService.EXPECT().Create(mock.AnythingOfType("*context.valueCtx"), mock.AnythingOfType("relation.RelationV2")).Return(relation.RelationV2{}, nil)
+
+		resp, err := a.ServeHook(response, nil)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+	})
 }
