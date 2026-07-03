@@ -100,7 +100,7 @@ func serveProxies(
 
 func buildHookPipeline(
 	log log.Logger,
-	resourceService v1beta1.ResourceService,
+	resourceService *resource.Service,
 	relationService v1beta1.RelationService,
 	relationAdapter *adapter.Relation,
 	identityProxyHeaderKey string,

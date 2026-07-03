@@ -26,6 +26,7 @@ import (
 
 type ResourceService interface {
 	Upsert(ctx context.Context, resource resource.Resource) (resource.Resource, error)
+	GetByURN(ctx context.Context, urn string) (resource.Resource, error)
 }
 
 type RelationService interface {
@@ -96,6 +97,11 @@ type Config struct {
 	Action     string                         `yaml:"action" mapstructure:"action"`
 	Attributes map[string]proxyattr.Attribute `yaml:"attributes" mapstructure:"attributes"`
 	Relations  []Relation                     `yaml:"relations" mapstructure:"relations"`
+	// RelationOnly, when true, makes the hook attach relations to an already
+	// existing resource (looked up by URN) instead of upserting the resource.
+	// Upserting deletes all existing subject relations on the resource before
+	// re-adding them; relation_only avoids that so relations are added additively.
+	RelationOnly bool `yaml:"relation_only" mapstructure:"relation_only"`
 }
 
 func (a Authz) Info() hook.Info {
@@ -238,6 +244,10 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		attributes[key] = value
 	}
 
+	if config.RelationOnly {
+		return a.serveRelationOnly(res, config, attributes)
+	}
+
 	resources, err := a.createResources(attributes)
 	if err != nil {
 		a.log.Error(err.Error())
@@ -291,6 +301,88 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 
 			a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.RoleID, newRelation.Subject.ID, newRelation.Subject.Namespace))
+		}
+	}
+
+	return a.next.ServeHook(res, nil)
+}
+
+// serveRelationOnly attaches the configured relations to an already existing
+// resource (resolved by URN) without upserting it. This is used when the
+// resource is created elsewhere (e.g. on appeal creation) and subsequent
+// requests should only add relations to it, without wiping the relations that
+// already exist on the resource (which resourceService.Upsert would do).
+func (a Authz) serveRelationOnly(res *http.Response, config Config, attributes map[string]interface{}) (*http.Response, error) {
+	ctx := res.Request.Context()
+
+	resourceList, err := getAttributesValues(attributes["resource"])
+	if err != nil {
+		return a.escape.ServeHook(res, err)
+	}
+	backendNamespace, err := getAttributesValues(attributes["namespace"])
+	if err != nil {
+		return a.escape.ServeHook(res, err)
+	}
+	resourceType, err := getAttributesValues(attributes["resource_type"])
+	if err != nil {
+		return a.escape.ServeHook(res, err)
+	}
+
+	if len(resourceList) < 1 || len(backendNamespace) < 1 || len(resourceType) < 1 || backendNamespace[0] == "" || resourceType[0] == "" {
+		return a.escape.ServeHook(res, fmt.Errorf("namespace, resource type, and resource are required"))
+	}
+
+	namespaceID := namespace.CreateID(backendNamespace[0], resourceType[0])
+	resourcesName := composeResourcesName(resourceList, attributes)
+
+	for _, name := range resourcesName {
+		urn := resource.Resource{Name: name, NamespaceID: namespaceID}.CreateURN()
+		existingResource, err := a.resourceService.GetByURN(ctx, urn)
+		if err != nil {
+			a.log.Error(fmt.Sprintf("relation_only: failed to find resource by urn %s", urn))
+			return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
+		}
+
+		for _, rel := range config.Relations {
+			subjectIds, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
+			if err != nil || len(subjectIds) == 0 {
+				a.log.Error(fmt.Sprintf("cannot create relation: %s not found in attributes", rel.SubjectIDAttribute))
+
+				a.metricCounterRelationCreationFailed.Add(ctx, 1,
+					metric.WithAttributes(
+						attribute.String("role", rel.Role),
+						attribute.String("subject_principal", rel.SubjectPrincipal),
+					))
+
+				continue
+			}
+
+			for _, subjectId := range subjectIds {
+				newRelation, err := a.createRelation(ctx, relation.RelationV2{
+					Object: relation.Object{
+						ID:          existingResource.Idxa,
+						NamespaceID: existingResource.NamespaceID,
+					},
+					Subject: relation.Subject{
+						RoleID:    rel.Role,
+						Namespace: rel.SubjectPrincipal,
+						ID:        subjectId,
+					},
+				})
+				if err != nil {
+					a.log.Error(err.Error())
+
+					a.metricCounterRelationCreationFailed.Add(ctx, 1,
+						metric.WithAttributes(
+							attribute.String("role", rel.Role),
+							attribute.String("subject_principal", rel.SubjectPrincipal),
+						))
+
+					return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
+				}
+
+				a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.RoleID, newRelation.Subject.ID, newRelation.Subject.Namespace))
+			}
 		}
 	}
 
