@@ -40,10 +40,21 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	logger := grpczap.Extract(ctx)
 	var resources []*shieldv1beta1.Resource
 
+	// project_id/namespace_id are kept for backward compatibility; merge the
+	// singular scalar filter into its array counterpart when provided.
+	projectIDs := request.GetProjectIds()
+	if request.GetProjectId() != "" {
+		projectIDs = append(projectIDs, request.GetProjectId())
+	}
+	namespaceIDs := request.GetNamespaceIds()
+	if request.GetNamespaceId() != "" {
+		namespaceIDs = append(namespaceIDs, request.GetNamespaceId())
+	}
+
 	filters := resource.Filter{
-		NamespaceID:    request.GetNamespaceId(),
+		NamespaceID:    namespaceIDs,
 		OrganizationID: request.GetOrganizationId(),
-		ProjectID:      request.GetProjectId(),
+		ProjectID:      projectIDs,
 		GroupID:        request.GetGroupId(),
 		URN:            request.GetUrns(),
 		Name:           request.GetNames(),

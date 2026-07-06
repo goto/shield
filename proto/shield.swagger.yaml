@@ -772,10 +772,7 @@ paths:
         - name: projectId
           in: query
           required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
+          type: string
         - name: organizationId
           in: query
           required: false
@@ -783,10 +780,7 @@ paths:
         - name: namespaceId
           in: query
           required: false
-          type: array
-          items:
-            type: string
-          collectionFormat: multi
+          type: string
         - name: pageSize
           in: query
           required: false
@@ -805,6 +799,20 @@ paths:
             type: string
           collectionFormat: multi
         - name: names
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: projectIds
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: namespaceIds
           in: query
           required: false
           type: array

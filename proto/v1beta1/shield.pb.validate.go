@@ -15053,7 +15053,11 @@ func (m *ListResourcesRequest) validate(all bool) error {
 
 	// no validation rules for GroupId
 
+	// no validation rules for ProjectId
+
 	// no validation rules for OrganizationId
+
+	// no validation rules for NamespaceId
 
 	// no validation rules for PageSize
 
