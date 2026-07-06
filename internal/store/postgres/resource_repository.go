@@ -170,7 +170,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if len(flt.ProjectID) > 0 {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
-	if flt.GroupID != "" {
+	if len(flt.GroupID) > 0 {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"group_id": flt.GroupID})
 	}
 	if flt.OrganizationID != "" {

@@ -819,6 +819,13 @@ paths:
           items:
             type: string
           collectionFormat: multi
+        - name: groupIds
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Resource
     post:

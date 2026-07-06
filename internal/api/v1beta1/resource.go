@@ -50,12 +50,16 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	if request.GetNamespaceId() != "" {
 		namespaceIDs = append(namespaceIDs, request.GetNamespaceId())
 	}
+	groupIDs := request.GetGroupIds()
+	if request.GetGroupId() != "" {
+		groupIDs = append(groupIDs, request.GetGroupId())
+	}
 
 	filters := resource.Filter{
 		NamespaceID:    namespaceIDs,
 		OrganizationID: request.GetOrganizationId(),
 		ProjectID:      projectIDs,
-		GroupID:        request.GetGroupId(),
+		GroupID:        groupIDs,
 		URN:            request.GetUrns(),
 		Name:           request.GetNames(),
 		Limit:          request.GetPageSize(),

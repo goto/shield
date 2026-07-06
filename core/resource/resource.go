@@ -49,7 +49,7 @@ func (res Resource) CreateURN() string {
 
 type Filter struct {
 	ProjectID      []string
-	GroupID        string
+	GroupID        []string
 	OrganizationID string
 	NamespaceID    []string
 	URN            []string
