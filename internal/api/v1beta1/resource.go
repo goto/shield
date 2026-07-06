@@ -41,10 +41,12 @@ func (h Handler) ListResources(ctx context.Context, request *shieldv1beta1.ListR
 	var resources []*shieldv1beta1.Resource
 
 	filters := resource.Filter{
-		NamespaceID:    request.GetNamespaceId(),
+		NamespaceID:    request.GetNamespaceIds(),
 		OrganizationID: request.GetOrganizationId(),
-		ProjectID:      request.GetProjectId(),
+		ProjectID:      request.GetProjectIds(),
 		GroupID:        request.GetGroupId(),
+		URN:            request.GetUrns(),
+		Name:           request.GetNames(),
 		Limit:          request.GetPageSize(),
 		Page:           request.GetPageNum(),
 	}

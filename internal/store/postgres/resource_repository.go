@@ -167,7 +167,7 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	offset := (flt.Page - 1) * flt.Limit
 
 	sqlStatement := dialect.From(TABLE_RESOURCES)
-	if flt.ProjectID != "" {
+	if len(flt.ProjectID) > 0 {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"project_id": flt.ProjectID})
 	}
 	if flt.GroupID != "" {
@@ -176,8 +176,14 @@ func (r ResourceRepository) List(ctx context.Context, flt resource.Filter) ([]re
 	if flt.OrganizationID != "" {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"org_id": flt.OrganizationID})
 	}
-	if flt.NamespaceID != "" {
+	if len(flt.NamespaceID) > 0 {
 		sqlStatement = sqlStatement.Where(goqu.Ex{"namespace_id": flt.NamespaceID})
+	}
+	if len(flt.URN) > 0 {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"urn": flt.URN})
+	}
+	if len(flt.Name) > 0 {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"name": flt.Name})
 	}
 	sqlStatement = sqlStatement.Limit(uint(flt.Limit)).Offset(uint(offset))
 	query, params, err := sqlStatement.ToSQL()

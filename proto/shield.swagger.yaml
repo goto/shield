@@ -769,18 +769,24 @@ paths:
           in: query
           required: false
           type: string
-        - name: projectId
+        - name: projectIds
           in: query
           required: false
-          type: string
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
         - name: organizationId
           in: query
           required: false
           type: string
-        - name: namespaceId
+        - name: namespaceIds
           in: query
           required: false
-          type: string
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
         - name: pageSize
           in: query
           required: false
@@ -791,6 +797,20 @@ paths:
           required: false
           type: integer
           format: int32
+        - name: urns
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: names
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
       tags:
         - Resource
     post:
