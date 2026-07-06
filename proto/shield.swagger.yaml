@@ -769,7 +769,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: projectIds
+        - name: projectId
           in: query
           required: false
           type: array
@@ -780,7 +780,7 @@ paths:
           in: query
           required: false
           type: string
-        - name: namespaceIds
+        - name: namespaceId
           in: query
           required: false
           type: array
