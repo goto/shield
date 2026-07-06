@@ -48,10 +48,12 @@ func (res Resource) CreateURN() string {
 }
 
 type Filter struct {
-	ProjectID      string
-	GroupID        string
+	ProjectID      []string
+	GroupID        []string
 	OrganizationID string
-	NamespaceID    string
+	NamespaceID    []string
+	URN            []string
+	Name           []string
 	Limit          int32
 	Page           int32
 }

@@ -488,9 +488,9 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 		{
 			Description: "should get filtered resources",
 			Filter: resource.Filter{
-				ProjectID:      s.projects[1].ID,
+				ProjectID:      []string{s.projects[1].ID},
 				OrganizationID: s.orgs[1].ID,
-				NamespaceID:    s.namespaces[1].ID,
+				NamespaceID:    []string{s.namespaces[1].ID},
 			},
 			ExpectedResources: []resource.Resource{
 				{
@@ -571,9 +571,9 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 			Filter: resource.Filter{
 				Page:           1,
 				Limit:          2,
-				ProjectID:      s.projects[1].ID,
+				ProjectID:      []string{s.projects[1].ID},
 				OrganizationID: s.orgs[1].ID,
-				NamespaceID:    s.namespaces[1].ID,
+				NamespaceID:    []string{s.namespaces[1].ID},
 			},
 			ExpectedResources: []resource.Resource{
 				{
@@ -592,9 +592,9 @@ func (s *ResourceRepositoryTestSuite) TestList() {
 			Filter: resource.Filter{
 				Page:           2,
 				Limit:          2,
-				ProjectID:      s.projects[1].ID,
+				ProjectID:      []string{s.projects[1].ID},
 				OrganizationID: s.orgs[1].ID,
-				NamespaceID:    s.namespaces[1].ID,
+				NamespaceID:    []string{s.namespaces[1].ID},
 			},
 		},
 	}
