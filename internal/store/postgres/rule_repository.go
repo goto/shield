@@ -6,20 +6,27 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"sync"
+	"time"
 
 	"github.com/doug-martin/goqu/v9"
+	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/rule"
 	"github.com/goto/shield/pkg/db"
 	jsoniter "github.com/json-iterator/go"
 	newrelic "github.com/newrelic/go-agent/v3/newrelic"
+	"github.com/robfig/cron/v3"
 	"go.nhat.io/otelsql"
 	"go.opentelemetry.io/otel/attribute"
 	semconv "go.opentelemetry.io/otel/semconv/v1.4.0"
 )
 
 type RuleRepository struct {
-	dbc    *db.Client
+	dbc *db.Client
+
+	mu     sync.RWMutex
 	cached []rule.Ruleset
+	cron   *cron.Cron
 }
 
 func NewRuleRepository(dbc *db.Client) *RuleRepository {
@@ -134,11 +141,41 @@ func (r *RuleRepository) InitCache(ctx context.Context) error {
 		newCache = append(newCache, targetRuleset)
 	}
 
+	r.mu.Lock()
 	r.cached = newCache
+	r.mu.Unlock()
+	return nil
+}
+
+// StartCacheRefresh starts a background cron that periodically reloads the
+// in-memory rule cache from the database. Without it, a replica only refreshes
+// its cache at startup and on the local Upsert that it happens to serve, so
+// after an upload the other replicas keep serving stale rules until restart.
+func (r *RuleRepository) StartCacheRefresh(ctx context.Context, refreshDelay time.Duration, logger log.Logger) error {
+	r.cron = cron.New(cron.WithChain(
+		cron.SkipIfStillRunning(cron.DefaultLogger),
+	))
+	if _, err := r.cron.AddFunc("@every "+refreshDelay.String(), func() {
+		if err := r.InitCache(ctx); err != nil {
+			logger.Warn("failed to refresh rule repository cache", "err", err)
+		}
+	}); err != nil {
+		return err
+	}
+	r.cron.Start()
+	return nil
+}
+
+func (r *RuleRepository) Close() error {
+	if r.cron != nil {
+		<-r.cron.Stop().Done()
+	}
 	return nil
 }
 
 func (r *RuleRepository) GetAll(ctx context.Context) ([]rule.Ruleset, error) {
+	r.mu.RLock()
+	defer r.mu.RUnlock()
 	return r.cached, nil
 }
 
