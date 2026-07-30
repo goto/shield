@@ -317,6 +317,42 @@ func local_request_ServiceDataService_GetGroupServiceData_0(ctx context.Context,
 
 }
 
+var (
+	filter_ServiceDataService_GetServiceDataKeyDistinctValues_0 = &utilities.DoubleArray{Encoding: map[string]int{}, Base: []int(nil), Check: []int(nil)}
+)
+
+func request_ServiceDataService_GetServiceDataKeyDistinctValues_0(ctx context.Context, marshaler runtime.Marshaler, client ServiceDataServiceClient, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetServiceDataKeyDistinctValuesRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ServiceDataService_GetServiceDataKeyDistinctValues_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := client.GetServiceDataKeyDistinctValues(ctx, &protoReq, grpc.Header(&metadata.HeaderMD), grpc.Trailer(&metadata.TrailerMD))
+	return msg, metadata, err
+
+}
+
+func local_request_ServiceDataService_GetServiceDataKeyDistinctValues_0(ctx context.Context, marshaler runtime.Marshaler, server ServiceDataServiceServer, req *http.Request, pathParams map[string]string) (proto.Message, runtime.ServerMetadata, error) {
+	var protoReq GetServiceDataKeyDistinctValuesRequest
+	var metadata runtime.ServerMetadata
+
+	if err := req.ParseForm(); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+	if err := runtime.PopulateQueryParameters(&protoReq, req.Form, filter_ServiceDataService_GetServiceDataKeyDistinctValues_0); err != nil {
+		return nil, metadata, status.Errorf(codes.InvalidArgument, "%v", err)
+	}
+
+	msg, err := server.GetServiceDataKeyDistinctValues(ctx, &protoReq)
+	return msg, metadata, err
+
+}
+
 // RegisterServiceDataServiceHandlerServer registers the http handlers for service ServiceDataService to "mux".
 // UnaryRPC     :call ServiceDataServiceServer directly.
 // StreamingRPC :currently unsupported pending https://github.com/grpc/grpc-go/issues/906.
@@ -445,6 +481,31 @@ func RegisterServiceDataServiceHandlerServer(ctx context.Context, mux *runtime.S
 		}
 
 		forward_ServiceDataService_GetGroupServiceData_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
+	mux.Handle("GET", pattern_ServiceDataService_GetServiceDataKeyDistinctValues_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		var stream runtime.ServerTransportStream
+		ctx = grpc.NewContextWithServerTransportStream(ctx, &stream)
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateIncomingContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/GetServiceDataKeyDistinctValues", runtime.WithHTTPPathPattern("/v1beta1/servicedata/distinct"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := local_request_ServiceDataService_GetServiceDataKeyDistinctValues_0(annotatedContext, inboundMarshaler, server, req, pathParams)
+		md.HeaderMD, md.TrailerMD = metadata.Join(md.HeaderMD, stream.Header()), metadata.Join(md.TrailerMD, stream.Trailer())
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ServiceDataService_GetServiceDataKeyDistinctValues_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
 
 	})
 
@@ -599,6 +660,28 @@ func RegisterServiceDataServiceHandlerClient(ctx context.Context, mux *runtime.S
 
 	})
 
+	mux.Handle("GET", pattern_ServiceDataService_GetServiceDataKeyDistinctValues_0, func(w http.ResponseWriter, req *http.Request, pathParams map[string]string) {
+		ctx, cancel := context.WithCancel(req.Context())
+		defer cancel()
+		inboundMarshaler, outboundMarshaler := runtime.MarshalerForRequest(mux, req)
+		var err error
+		var annotatedContext context.Context
+		annotatedContext, err = runtime.AnnotateContext(ctx, mux, req, "/gotocompany.shield.v1beta1.ServiceDataService/GetServiceDataKeyDistinctValues", runtime.WithHTTPPathPattern("/v1beta1/servicedata/distinct"))
+		if err != nil {
+			runtime.HTTPError(ctx, mux, outboundMarshaler, w, req, err)
+			return
+		}
+		resp, md, err := request_ServiceDataService_GetServiceDataKeyDistinctValues_0(annotatedContext, inboundMarshaler, client, req, pathParams)
+		annotatedContext = runtime.NewServerMetadataContext(annotatedContext, md)
+		if err != nil {
+			runtime.HTTPError(annotatedContext, mux, outboundMarshaler, w, req, err)
+			return
+		}
+
+		forward_ServiceDataService_GetServiceDataKeyDistinctValues_0(annotatedContext, mux, outboundMarshaler, w, req, resp, mux.GetForwardResponseOptions()...)
+
+	})
+
 	return nil
 }
 
@@ -612,6 +695,8 @@ var (
 	pattern_ServiceDataService_GetUserServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "users", "user_id", "servicedata"}, ""))
 
 	pattern_ServiceDataService_GetGroupServiceData_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 1, 0, 4, 1, 5, 2, 2, 3}, []string{"v1beta1", "groups", "group_id", "servicedata"}, ""))
+
+	pattern_ServiceDataService_GetServiceDataKeyDistinctValues_0 = runtime.MustPattern(runtime.NewPattern(1, []int{2, 0, 2, 1, 2, 2}, []string{"v1beta1", "servicedata", "distinct"}, ""))
 )
 
 var (
@@ -624,4 +709,6 @@ var (
 	forward_ServiceDataService_GetUserServiceData_0 = runtime.ForwardResponseMessage
 
 	forward_ServiceDataService_GetGroupServiceData_0 = runtime.ForwardResponseMessage
+
+	forward_ServiceDataService_GetServiceDataKeyDistinctValues_0 = runtime.ForwardResponseMessage
 )

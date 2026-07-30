@@ -1672,3 +1672,288 @@ var _ interface {
 	Cause() error
 	ErrorName() string
 } = GetGroupServiceDataResponseValidationError{}
+
+// Validate checks the field values on GetServiceDataKeyDistinctValuesRequest
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetServiceDataKeyDistinctValuesRequest) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetServiceDataKeyDistinctValuesRequest with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetServiceDataKeyDistinctValuesRequestMultiError, or nil if none found.
+func (m *GetServiceDataKeyDistinctValuesRequest) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetServiceDataKeyDistinctValuesRequest) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	if utf8.RuneCountInString(m.GetPath()) < 1 {
+		err := GetServiceDataKeyDistinctValuesRequestValidationError{
+			field:  "Path",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if _, ok := _GetServiceDataKeyDistinctValuesRequest_Namespace_InLookup[m.GetNamespace()]; !ok {
+		err := GetServiceDataKeyDistinctValuesRequestValidationError{
+			field:  "Namespace",
+			reason: "value must be in list [ user group]",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if utf8.RuneCountInString(m.GetProject()) < 1 {
+		err := GetServiceDataKeyDistinctValuesRequestValidationError{
+			field:  "Project",
+			reason: "value length must be at least 1 runes",
+		}
+		if !all {
+			return err
+		}
+		errors = append(errors, err)
+	}
+
+	if len(errors) > 0 {
+		return GetServiceDataKeyDistinctValuesRequestMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetServiceDataKeyDistinctValuesRequestMultiError is an error wrapping
+// multiple validation errors returned by
+// GetServiceDataKeyDistinctValuesRequest.ValidateAll() if the designated
+// constraints aren't met.
+type GetServiceDataKeyDistinctValuesRequestMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetServiceDataKeyDistinctValuesRequestMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetServiceDataKeyDistinctValuesRequestMultiError) AllErrors() []error { return m }
+
+// GetServiceDataKeyDistinctValuesRequestValidationError is the validation
+// error returned by GetServiceDataKeyDistinctValuesRequest.Validate if the
+// designated constraints aren't met.
+type GetServiceDataKeyDistinctValuesRequestValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) ErrorName() string {
+	return "GetServiceDataKeyDistinctValuesRequestValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetServiceDataKeyDistinctValuesRequestValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetServiceDataKeyDistinctValuesRequest.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetServiceDataKeyDistinctValuesRequestValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetServiceDataKeyDistinctValuesRequestValidationError{}
+
+var _GetServiceDataKeyDistinctValuesRequest_Namespace_InLookup = map[string]struct{}{
+	"":      {},
+	"user":  {},
+	"group": {},
+}
+
+// Validate checks the field values on GetServiceDataKeyDistinctValuesResponse
+// with the rules defined in the proto definition for this message. If any
+// rules are violated, the first error encountered is returned, or nil if
+// there are no violations.
+func (m *GetServiceDataKeyDistinctValuesResponse) Validate() error {
+	return m.validate(false)
+}
+
+// ValidateAll checks the field values on
+// GetServiceDataKeyDistinctValuesResponse with the rules defined in the proto
+// definition for this message. If any rules are violated, the result is a
+// list of violation errors wrapped in
+// GetServiceDataKeyDistinctValuesResponseMultiError, or nil if none found.
+func (m *GetServiceDataKeyDistinctValuesResponse) ValidateAll() error {
+	return m.validate(true)
+}
+
+func (m *GetServiceDataKeyDistinctValuesResponse) validate(all bool) error {
+	if m == nil {
+		return nil
+	}
+
+	var errors []error
+
+	for idx, item := range m.GetValues() {
+		_, _ = idx, item
+
+		if all {
+			switch v := interface{}(item).(type) {
+			case interface{ ValidateAll() error }:
+				if err := v.ValidateAll(); err != nil {
+					errors = append(errors, GetServiceDataKeyDistinctValuesResponseValidationError{
+						field:  fmt.Sprintf("Values[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			case interface{ Validate() error }:
+				if err := v.Validate(); err != nil {
+					errors = append(errors, GetServiceDataKeyDistinctValuesResponseValidationError{
+						field:  fmt.Sprintf("Values[%v]", idx),
+						reason: "embedded message failed validation",
+						cause:  err,
+					})
+				}
+			}
+		} else if v, ok := interface{}(item).(interface{ Validate() error }); ok {
+			if err := v.Validate(); err != nil {
+				return GetServiceDataKeyDistinctValuesResponseValidationError{
+					field:  fmt.Sprintf("Values[%v]", idx),
+					reason: "embedded message failed validation",
+					cause:  err,
+				}
+			}
+		}
+
+	}
+
+	if len(errors) > 0 {
+		return GetServiceDataKeyDistinctValuesResponseMultiError(errors)
+	}
+
+	return nil
+}
+
+// GetServiceDataKeyDistinctValuesResponseMultiError is an error wrapping
+// multiple validation errors returned by
+// GetServiceDataKeyDistinctValuesResponse.ValidateAll() if the designated
+// constraints aren't met.
+type GetServiceDataKeyDistinctValuesResponseMultiError []error
+
+// Error returns a concatenation of all the error messages it wraps.
+func (m GetServiceDataKeyDistinctValuesResponseMultiError) Error() string {
+	var msgs []string
+	for _, err := range m {
+		msgs = append(msgs, err.Error())
+	}
+	return strings.Join(msgs, "; ")
+}
+
+// AllErrors returns a list of validation violation errors.
+func (m GetServiceDataKeyDistinctValuesResponseMultiError) AllErrors() []error { return m }
+
+// GetServiceDataKeyDistinctValuesResponseValidationError is the validation
+// error returned by GetServiceDataKeyDistinctValuesResponse.Validate if the
+// designated constraints aren't met.
+type GetServiceDataKeyDistinctValuesResponseValidationError struct {
+	field  string
+	reason string
+	cause  error
+	key    bool
+}
+
+// Field function returns field value.
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) Field() string { return e.field }
+
+// Reason function returns reason value.
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) Reason() string { return e.reason }
+
+// Cause function returns cause value.
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) Cause() error { return e.cause }
+
+// Key function returns key value.
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) Key() bool { return e.key }
+
+// ErrorName returns error name.
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) ErrorName() string {
+	return "GetServiceDataKeyDistinctValuesResponseValidationError"
+}
+
+// Error satisfies the builtin error interface
+func (e GetServiceDataKeyDistinctValuesResponseValidationError) Error() string {
+	cause := ""
+	if e.cause != nil {
+		cause = fmt.Sprintf(" | caused by: %v", e.cause)
+	}
+
+	key := ""
+	if e.key {
+		key = "key for "
+	}
+
+	return fmt.Sprintf(
+		"invalid %sGetServiceDataKeyDistinctValuesResponse.%s: %s%s",
+		key,
+		e.field,
+		e.reason,
+		cause)
+}
+
+var _ error = GetServiceDataKeyDistinctValuesResponseValidationError{}
+
+var _ interface {
+	Field() string
+	Reason() string
+	Key() bool
+	Cause() error
+	ErrorName() string
+} = GetServiceDataKeyDistinctValuesResponseValidationError{}

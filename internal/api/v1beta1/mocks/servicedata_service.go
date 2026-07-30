@@ -109,6 +109,65 @@ func (_m *ServiceDataService) Get(ctx context.Context, filter servicedata.Filter
 	return r0, r1
 }
 
+// GetDistinctValues provides a mock function with given fields: ctx, filter
+func (_m *ServiceDataService) GetDistinctValues(ctx context.Context, filter servicedata.DistinctValueFilter) ([]interface{}, error) {
+	ret := _m.Called(ctx, filter)
+
+	if len(ret) == 0 {
+		panic("no return value specified for GetDistinctValues")
+	}
+
+	var r0 []interface{}
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.DistinctValueFilter) ([]interface{}, error)); ok {
+		return rf(ctx, filter)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, servicedata.DistinctValueFilter) []interface{}); ok {
+		r0 = rf(ctx, filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]interface{})
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, servicedata.DistinctValueFilter) error); ok {
+		r1 = rf(ctx, filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ServiceDataService_GetDistinctValues_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'GetDistinctValues'
+type ServiceDataService_GetDistinctValues_Call struct {
+	*mock.Call
+}
+
+// GetDistinctValues is a helper method to define mock.On call
+//   - ctx context.Context
+//   - filter servicedata.DistinctValueFilter
+func (_e *ServiceDataService_Expecter) GetDistinctValues(ctx interface{}, filter interface{}) *ServiceDataService_GetDistinctValues_Call {
+	return &ServiceDataService_GetDistinctValues_Call{Call: _e.mock.On("GetDistinctValues", ctx, filter)}
+}
+
+func (_c *ServiceDataService_GetDistinctValues_Call) Run(run func(ctx context.Context, filter servicedata.DistinctValueFilter)) *ServiceDataService_GetDistinctValues_Call {
+	_c.Call.Run(func(args mock.Arguments) {
+		run(args[0].(context.Context), args[1].(servicedata.DistinctValueFilter))
+	})
+	return _c
+}
+
+func (_c *ServiceDataService_GetDistinctValues_Call) Return(_a0 []interface{}, _a1 error) *ServiceDataService_GetDistinctValues_Call {
+	_c.Call.Return(_a0, _a1)
+	return _c
+}
+
+func (_c *ServiceDataService_GetDistinctValues_Call) RunAndReturn(run func(context.Context, servicedata.DistinctValueFilter) ([]interface{}, error)) *ServiceDataService_GetDistinctValues_Call {
+	_c.Call.Return(run)
+	return _c
+}
+
 // ServiceDataService_Get_Call is a *mock.Call that shadows Run/Return methods with type explicit version for method 'Get'
 type ServiceDataService_Get_Call struct {
 	*mock.Call

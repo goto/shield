@@ -35,6 +35,7 @@ type ServiceDataService interface {
 	Upsert(ctx context.Context, serviceData servicedata.ServiceData) (servicedata.ServiceData, error)
 	Get(ctx context.Context, filter servicedata.Filter) ([]servicedata.ServiceData, error)
 	GetKeyByURN(ctx context.Context, urn string) (servicedata.Key, error)
+	GetDistinctValues(ctx context.Context, filter servicedata.DistinctValueFilter) ([]any, error)
 }
 
 func (h Handler) CreateServiceDataKey(ctx context.Context, request *shieldv1beta1.CreateServiceDataKeyRequest) (*shieldv1beta1.CreateServiceDataKeyResponse, error) {
@@ -328,6 +329,59 @@ func (h Handler) GetGroupServiceData(ctx context.Context, request *shieldv1beta1
 
 	return &shieldv1beta1.GetGroupServiceDataResponse{
 		Data: serviceDataPB,
+	}, nil
+}
+
+func (h Handler) GetServiceDataKeyDistinctValues(ctx context.Context, request *shieldv1beta1.GetServiceDataKeyDistinctValuesRequest) (*shieldv1beta1.GetServiceDataKeyDistinctValuesResponse, error) {
+	logger := grpczap.Extract(ctx)
+
+	if request.GetPath() == "" {
+		return nil, grpcBadBodyError
+	}
+
+	// map the requested entity namespace ("user"/"group") to its internal
+	// namespace id, defaulting to the user namespace.
+	namespaceID := userNamespaceID
+	if ns := request.GetNamespace(); ns != "" {
+		mapped, ok := entitiesNamespaceMap[ns]
+		if !ok {
+			return nil, grpcBadBodyError
+		}
+		namespaceID = mapped
+	}
+
+	values, err := h.serviceDataService.GetDistinctValues(ctx, servicedata.DistinctValueFilter{
+		Path:      request.GetPath(),
+		Namespace: namespaceID,
+		Project:   request.GetProject(),
+	})
+	if err != nil {
+		logger.Error(err.Error())
+		switch {
+		case errors.Is(err, user.ErrInvalidEmail), errors.Is(err, user.ErrMissingEmail):
+			return nil, grpcUnauthenticated
+		case errors.Is(err, errPkg.ErrForbidden):
+			return nil, grpcPermissionDenied
+		case errors.Is(err, project.ErrNotExist), errors.Is(err, servicedata.ErrNotExist),
+			errors.Is(err, servicedata.ErrInvalidDetail):
+			return nil, grpcBadBodyError
+		default:
+			return nil, grpcInternalServerError
+		}
+	}
+
+	valuesPB := make([]*structpb.Value, 0, len(values))
+	for _, v := range values {
+		pbVal, err := structpb.NewValue(v)
+		if err != nil {
+			logger.Error(err.Error())
+			return nil, grpcInternalServerError
+		}
+		valuesPB = append(valuesPB, pbVal)
+	}
+
+	return &shieldv1beta1.GetServiceDataKeyDistinctValuesResponse{
+		Values: valuesPB,
 	}, nil
 }
 
