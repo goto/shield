@@ -57,12 +57,6 @@ type Filter struct {
 	Project   string
 }
 
-// DistinctValueFilter describes a request for the distinct values found at a
-// metadata path across all entities of a namespace.
-//
-// Path is dot-separated: the first segment is the service data key name and the
-// remaining segments address a location inside that key's jsonb value, e.g.
-// "functional_roles.roles" -> key "functional_roles", inner path "roles".
 type DistinctValueFilter struct {
 	Path      string
 	Namespace string
@@ -75,9 +69,6 @@ func (f DistinctValueFilter) KeyName() string {
 	return key
 }
 
-// JSONPath builds a SQL/JSON path expression from the segments after the key
-// name. A trailing [*] flattens leaf arrays; lax mode (the default) auto-unwraps
-// intermediate arrays. When there is no inner path it targets the whole value.
 func (f DistinctValueFilter) JSONPath() string {
 	_, rest, found := strings.Cut(f.Path, ".")
 	var sb strings.Builder

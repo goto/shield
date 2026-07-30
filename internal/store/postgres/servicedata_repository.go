@@ -268,9 +268,6 @@ func (r ServiceDataRepository) GetDistinctKeyValues(ctx context.Context, filter 
 		return []any{}, servicedata.ErrInvalidDetail
 	}
 
-	// jsonb_path_query runs in lax mode by default: intermediate arrays are
-	// auto-unwrapped and missing paths yield no rows instead of erroring. The
-	// jsonpath is bound as a parameter, never string-interpolated.
 	sqlStatement := dialect.From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
 		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(
 			goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
