@@ -381,6 +381,92 @@ func (s *UserRepositoryTestSuite) TestList() {
 				},
 			},
 		},
+		// ---- metadata filter (servicedata) ----
+		// Seeded: users[0] has servicedata key "test-key-01" = "test-value-01"
+		// under projects[0]; users[1]/users[2] have other keys under other projects;
+		// users[3..5] have none.
+		{
+			Description: "should not change behaviour when only project id is set (no metadata filter)",
+			Filter: user.Filter{
+				ProjectID: s.projects[0].ID,
+			},
+			ExpectedUsers: s.users,
+		},
+		{
+			Description: "should filter users by metadata equals (scalar value)",
+			Filter: user.Filter{
+				ProjectID:     s.projects[0].ID,
+				MetadataPaths: []string{"test-key-01"},
+				Metadatas:     []string{"test-value-01"},
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
+				},
+			},
+		},
+		{
+			Description: "should filter users by metadata starts_with",
+			Filter: user.Filter{
+				ProjectID:          s.projects[0].ID,
+				MetadataPaths:      []string{"test-key-01"},
+				MetadataStartsWith: "test-value",
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
+				},
+			},
+		},
+		{
+			Description: "should filter users by metadata contains",
+			Filter: user.Filter{
+				ProjectID:        s.projects[0].ID,
+				MetadataPaths:    []string{"test-key-01"},
+				MetadataContains: "value-01",
+			},
+			ExpectedUsers: []user.User{
+				{
+					Name:  s.users[0].Name,
+					Email: s.users[0].Email,
+				},
+			},
+		},
+		{
+			Description: "should return empty when metadata value does not match",
+			Filter: user.Filter{
+				ProjectID:     s.projects[0].ID,
+				MetadataPaths: []string{"test-key-01"},
+				Metadatas:     []string{"does-not-exist"},
+			},
+		},
+		{
+			Description: "should exclude users by not_metadatas (absent key still passes)",
+			Filter: user.Filter{
+				ProjectID:     s.projects[0].ID,
+				MetadataPaths: []string{"test-key-01"},
+				NotMetadatas:  []string{"test-value-01"},
+			},
+			ExpectedUsers: []user.User{
+				{Name: s.users[1].Name, Email: s.users[1].Email},
+				{Name: s.users[2].Name, Email: s.users[2].Email},
+				{Name: s.users[3].Name, Email: s.users[3].Email},
+				{Name: s.users[4].Name, Email: s.users[4].Email},
+				{Name: s.users[5].Name, Email: s.users[5].Email},
+			},
+		},
+		{
+			Description: "should error when contains combined with starts_with",
+			Filter: user.Filter{
+				ProjectID:          s.projects[0].ID,
+				MetadataPaths:      []string{"test-key-01"},
+				MetadataStartsWith: "test",
+				MetadataContains:   "value",
+			},
+			ErrString: "invalid filter: metadata_contains cannot be used together with metadata_starts_with or metadata_ends_with",
+		},
 	}
 
 	for _, tc := range testCases {
