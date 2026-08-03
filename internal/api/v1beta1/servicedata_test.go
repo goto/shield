@@ -10,6 +10,7 @@ import (
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
+	errorsPkg "github.com/goto/shield/pkg/errors"
 	"github.com/goto/shield/pkg/uuid"
 	shieldv1beta1 "github.com/goto/shield/proto/v1beta1"
 	"github.com/stretchr/testify/assert"
@@ -646,6 +647,97 @@ func TestHandler_GetGroupServiceData(t *testing.T) {
 			}
 			mockDep := Handler{serviceDataService: mockServiceDataService, groupService: mockGroupService}
 			resp, err := mockDep.GetGroupServiceData(ctx, tt.request)
+			assert.EqualValues(t, tt.want, resp)
+			assert.EqualValues(t, tt.wantErr, err)
+		})
+	}
+}
+
+func TestHandler_GetServiceDataKeyDistinctValues(t *testing.T) {
+	testPath := "test-key.roles"
+	testProject := "system"
+	// default namespace when request.namespace is empty
+	wantFilter := servicedata.DistinctValueFilter{
+		Path:      testPath,
+		Namespace: userNamespaceID,
+		Project:   testProject,
+	}
+
+	tests := []struct {
+		name    string
+		setup   func(ss *mocks.ServiceDataService)
+		request *shieldv1beta1.GetServiceDataKeyDistinctValuesRequest
+		want    *shieldv1beta1.GetServiceDataKeyDistinctValuesResponse
+		wantErr error
+	}{
+		{
+			name:    "should return bad body error if path is empty",
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: "", Project: testProject},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name:    "should return bad body error if namespace is invalid",
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: testPath, Project: testProject, Namespace: "invalid"},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return permission denied if caller cannot view the key",
+			setup: func(ss *mocks.ServiceDataService) {
+				ss.EXPECT().GetDistinctValues(mock.Anything, wantFilter).Return(nil, errorsPkg.ErrForbidden)
+			},
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: testPath, Project: testProject},
+			want:    nil,
+			wantErr: grpcPermissionDenied,
+		},
+		{
+			name: "should return bad body error if key does not exist",
+			setup: func(ss *mocks.ServiceDataService) {
+				ss.EXPECT().GetDistinctValues(mock.Anything, wantFilter).Return(nil, servicedata.ErrNotExist)
+			},
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: testPath, Project: testProject},
+			want:    nil,
+			wantErr: grpcBadBodyError,
+		},
+		{
+			name: "should return distinct values on success",
+			setup: func(ss *mocks.ServiceDataService) {
+				ss.EXPECT().GetDistinctValues(mock.Anything, wantFilter).Return([]any{"SAMPLE1", "SAMPLE2"}, nil)
+			},
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: testPath, Project: testProject},
+			want: &shieldv1beta1.GetServiceDataKeyDistinctValuesResponse{
+				Values: []*structpb.Value{
+					structpb.NewStringValue("SAMPLE1"),
+					structpb.NewStringValue("SAMPLE2"),
+				},
+			},
+			wantErr: nil,
+		},
+		{
+			name: "should map group namespace and return values",
+			setup: func(ss *mocks.ServiceDataService) {
+				ss.EXPECT().GetDistinctValues(mock.Anything, servicedata.DistinctValueFilter{
+					Path:      testPath,
+					Namespace: groupNamespaceID,
+					Project:   testProject,
+				}).Return([]any{"SAMPLE1"}, nil)
+			},
+			request: &shieldv1beta1.GetServiceDataKeyDistinctValuesRequest{Path: testPath, Project: testProject, Namespace: "group"},
+			want: &shieldv1beta1.GetServiceDataKeyDistinctValuesResponse{
+				Values: []*structpb.Value{structpb.NewStringValue("SAMPLE1")},
+			},
+			wantErr: nil,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			mockServiceDataService := new(mocks.ServiceDataService)
+			if tt.setup != nil {
+				tt.setup(mockServiceDataService)
+			}
+			mockDep := Handler{serviceDataService: mockServiceDataService}
+			resp, err := mockDep.GetServiceDataKeyDistinctValues(context.TODO(), tt.request)
 			assert.EqualValues(t, tt.want, resp)
 			assert.EqualValues(t, tt.wantErr, err)
 		})

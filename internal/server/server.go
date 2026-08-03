@@ -67,6 +67,10 @@ func Serve(
 		return err
 	}
 
+	if err := shieldv1beta1.RegisterServiceDataServiceHandler(ctx, grpcGateway, grpcConn); err != nil {
+		return err
+	}
+
 	grpcServiceDataGateway := runtime.NewServeMux(
 		runtime.WithHealthEndpointAt(grpc_health_v1.NewHealthClient(grpcConn), "/ping"),
 		runtime.WithIncomingHeaderMatcher(customHeaderMatcherFunc(map[string]bool{cfg.IdentityProxyHeader: true})),

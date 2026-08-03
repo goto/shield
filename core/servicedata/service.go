@@ -260,3 +260,44 @@ func (s Service) Get(ctx context.Context, filter Filter) ([]ServiceData, error) 
 
 	return resultSD, nil
 }
+
+// GetDistinctValues returns the distinct values found at a metadata path across
+// all entities of a namespace, e.g. all distinct "functional_roles.roles" values
+// across every user. The caller must have view permission on the queried service
+// data key. Results are paginated (default page size defaultDistinctValuesSize).
+func (s Service) GetDistinctValues(ctx context.Context, filter DistinctValueFilter) ([]any, error) {
+	if filter.KeyName() == "" || filter.Project == "" {
+		return []any{}, ErrInvalidDetail
+	}
+
+	// authenticate the caller
+	currentUser, err := s.userService.FetchCurrentUser(ctx)
+	if err != nil {
+		return []any{}, err
+	}
+
+	// resolve project (needed to identify the key uniquely via its URN)
+	prj, err := s.projectService.Get(ctx, filter.Project)
+	if err != nil {
+		return []any{}, err
+	}
+	filter.Project = prj.ID
+
+	// resolve the queried service data key
+	key, err := s.repository.GetKeyByURN(ctx, CreateURN(prj.Slug, filter.KeyName()))
+	if err != nil {
+		return []any{}, err
+	}
+
+	// caller must be allowed to view the key
+	permission, err := s.relationService.CheckPermission(ctx, currentUser, namespace.Namespace{ID: schema.ServiceDataKeyNamespace},
+		key.ResourceID, action.Action{ID: viewActionID})
+	if err != nil {
+		return []any{}, err
+	}
+	if !permission {
+		return []any{}, errors.ErrForbidden
+	}
+
+	return s.repository.GetDistinctKeyValues(ctx, filter)
+}

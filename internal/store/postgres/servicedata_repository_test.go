@@ -361,6 +361,76 @@ func (s *ServiceDataRepositoryTestSuite) TestGet() {
 	}
 }
 
+func (s *ServiceDataRepositoryTestSuite) TestGetDistinctKeyValues() {
+	type testCase struct {
+		Description  string
+		filter       servicedata.DistinctValueFilter
+		ExpectedData []any
+		ErrString    string
+	}
+
+	testCases := []testCase{
+		{
+			Description: "should get distinct values for a key",
+			filter: servicedata.DistinctValueFilter{
+				Path:      s.keys[0].Name,
+				Namespace: schema.UserPrincipal,
+			},
+			ExpectedData: []any{s.data[0].Value},
+		},
+		{
+			Description: "should scope by project",
+			filter: servicedata.DistinctValueFilter{
+				Path:      s.keys[0].Name,
+				Namespace: schema.UserPrincipal,
+				Project:   s.projects[1].ID,
+			},
+			ExpectedData: []any{},
+		},
+		{
+			Description: "should return empty for a subpath that does not exist in the value",
+			filter: servicedata.DistinctValueFilter{
+				Path:      s.keys[0].Name + ".missing",
+				Namespace: schema.UserPrincipal,
+			},
+			ExpectedData: []any{},
+		},
+		{
+			Description: "should return empty for an unknown key",
+			filter: servicedata.DistinctValueFilter{
+				Path:      "unknown-key",
+				Namespace: schema.UserPrincipal,
+			},
+			ExpectedData: []any{},
+		},
+		{
+			Description: "should return err invalid detail when key name is empty",
+			filter: servicedata.DistinctValueFilter{
+				Path:      "",
+				Namespace: schema.UserPrincipal,
+			},
+			ErrString:    servicedata.ErrInvalidDetail.Error(),
+			ExpectedData: []any{},
+		},
+	}
+
+	for _, tc := range testCases {
+		s.Run(tc.Description, func() {
+			got, err := s.repository.GetDistinctKeyValues(s.ctx, tc.filter)
+			if tc.ErrString != "" {
+				if err == nil || err.Error() != tc.ErrString {
+					s.T().Fatalf("got error %v, expected was %s", err, tc.ErrString)
+				}
+			} else if err != nil {
+				s.T().Fatalf("got unexpected error %v", err)
+			}
+			if !cmp.Equal(got, tc.ExpectedData) {
+				s.T().Fatalf("got result %+v, expected was %+v", got, tc.ExpectedData)
+			}
+		})
+	}
+}
+
 func TestServiceDataRepository(t *testing.T) {
 	suite.Run(t, new(ServiceDataRepositoryTestSuite))
 }

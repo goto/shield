@@ -770,3 +770,194 @@ func TestService_Get(t *testing.T) {
 		})
 	}
 }
+
+func TestService_GetDistinctValues(t *testing.T) {
+	t.Parallel()
+
+	testUser := user.User{
+		ID:    testUserID,
+		Email: "john.doe@gotocompany.com",
+	}
+	testFilter := servicedata.DistinctValueFilter{
+		Path:      "test-key.roles",
+		Namespace: schema.UserPrincipal,
+		Project:   testProjectSlug,
+	}
+	// filter as the repository should receive it: project resolved to its id
+	resolvedFilter := servicedata.DistinctValueFilter{
+		Path:      "test-key.roles",
+		Namespace: schema.UserPrincipal,
+		Project:   testProjectID,
+	}
+	testDistinctValues := []any{"SAMPLE1", "SAMPLE2"}
+
+	tests := []struct {
+		name    string
+		email   string
+		filter  servicedata.DistinctValueFilter
+		setup   func(t *testing.T) *servicedata.Service
+		want    []any
+		wantErr error
+	}{
+		{
+			name:   "GetDistinctValues",
+			email:  testUser.Email,
+			filter: testFilter,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				resourceService := &mocks.ResourceService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(testUser, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectSlug).
+					Return(project.Project{ID: testProjectID, Slug: testProjectSlug}, nil)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(testCreateKey, nil)
+				relationService.EXPECT().CheckPermission(mock.Anything, testUser,
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, testResourceID,
+					action.Action{ID: schema.ViewPermission}).Return(true, nil)
+				repository.EXPECT().GetDistinctKeyValues(mock.Anything, resolvedFilter).Return(testDistinctValues, nil)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
+			},
+			want: testDistinctValues,
+		},
+		{
+			name:   "GetDistinctValuesEmptyPath",
+			email:  testUser.Email,
+			filter: servicedata.DistinctValueFilter{Path: "", Project: testProjectSlug},
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				return newTestService()
+			},
+			wantErr: servicedata.ErrInvalidDetail,
+			want:    []any{},
+		},
+		{
+			name:   "GetDistinctValuesEmptyProject",
+			email:  testUser.Email,
+			filter: servicedata.DistinctValueFilter{Path: "test-key.roles", Project: ""},
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				return newTestService()
+			},
+			wantErr: servicedata.ErrInvalidDetail,
+			want:    []any{},
+		},
+		{
+			name:   "GetDistinctValuesUnauthenticated",
+			email:  testUser.Email,
+			filter: testFilter,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				resourceService := &mocks.ResourceService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(user.User{}, user.ErrInvalidEmail)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
+			},
+			wantErr: user.ErrInvalidEmail,
+			want:    []any{},
+		},
+		{
+			name:   "GetDistinctValuesProjectNotExist",
+			email:  testUser.Email,
+			filter: testFilter,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				resourceService := &mocks.ResourceService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(testUser, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectSlug).Return(project.Project{}, project.ErrNotExist)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
+			},
+			wantErr: project.ErrNotExist,
+			want:    []any{},
+		},
+		{
+			name:   "GetDistinctValuesKeyNotExist",
+			email:  testUser.Email,
+			filter: testFilter,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				resourceService := &mocks.ResourceService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(testUser, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectSlug).
+					Return(project.Project{ID: testProjectID, Slug: testProjectSlug}, nil)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(servicedata.Key{}, servicedata.ErrNotExist)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
+			},
+			wantErr: servicedata.ErrNotExist,
+			want:    []any{},
+		},
+		{
+			name:   "GetDistinctValuesForbidden",
+			email:  testUser.Email,
+			filter: testFilter,
+			setup: func(t *testing.T) *servicedata.Service {
+				t.Helper()
+				repository := &mocks.Repository{}
+				relationService := &mocks.RelationService{}
+				projectService := &mocks.ProjectService{}
+				resourceService := &mocks.ResourceService{}
+				userService := &mocks.UserService{}
+				activityService := &mocks.ActivityService{}
+				userService.EXPECT().FetchCurrentUser(mock.Anything).Return(testUser, nil)
+				projectService.EXPECT().Get(mock.Anything, testProjectSlug).
+					Return(project.Project{ID: testProjectID, Slug: testProjectSlug}, nil)
+				repository.EXPECT().GetKeyByURN(mock.Anything, testCreateKey.URN).Return(testCreateKey, nil)
+				relationService.EXPECT().CheckPermission(mock.Anything, testUser,
+					namespace.Namespace{ID: schema.ServiceDataKeyNamespace}, testResourceID,
+					action.Action{ID: schema.ViewPermission}).Return(false, nil)
+				return servicedata.NewService(testLogger, repository, resourceService, relationService, projectService, userService, activityService)
+			},
+			wantErr: errorsPkg.ErrForbidden,
+			want:    []any{},
+		},
+	}
+
+	for _, tt := range tests {
+		tt := tt
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			svc := tt.setup(t)
+
+			assert.NotNil(t, svc)
+
+			ctx := user.SetContextWithEmail(context.TODO(), tt.email)
+			got, err := svc.GetDistinctValues(ctx, tt.filter)
+			if tt.wantErr != nil {
+				assert.Error(t, err)
+				assert.True(t, errors.Is(err, tt.wantErr))
+			} else {
+				assert.NoError(t, err)
+			}
+			assert.Equal(t, tt.want, got)
+		})
+	}
+}
+
+func newTestService() *servicedata.Service {
+	return servicedata.NewService(
+		testLogger,
+		&mocks.Repository{},
+		&mocks.ResourceService{},
+		&mocks.RelationService{},
+		&mocks.ProjectService{},
+		&mocks.UserService{},
+		&mocks.ActivityService{},
+	)
+}

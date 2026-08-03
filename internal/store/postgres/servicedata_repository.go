@@ -262,6 +262,78 @@ func (r ServiceDataRepository) Get(ctx context.Context, filter servicedata.Filte
 	return transformedServiceData, nil
 }
 
+func (r ServiceDataRepository) GetDistinctKeyValues(ctx context.Context, filter servicedata.DistinctValueFilter) ([]any, error) {
+	keyName := filter.KeyName()
+	if keyName == "" {
+		return []any{}, servicedata.ErrInvalidDetail
+	}
+
+	sqlStatement := dialect.From(goqu.T(TABLE_SERVICE_DATA).As("sd")).
+		Join(goqu.T(TABLE_SERVICE_DATA_KEYS).As("sk"), goqu.On(
+			goqu.I("sk.id").Eq(goqu.I("sd.key_id")))).
+		Where(goqu.Ex{"sk.name": keyName}).
+		Where(goqu.L("sd.value IS NOT NULL")).
+		SelectDistinct(goqu.L("jsonb_path_query(sd.value, ?::jsonpath)", filter.JSONPath()).As("value")).
+		Order(goqu.C("value").Asc())
+
+	if filter.Namespace != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"sd.namespace_id": filter.Namespace})
+	}
+	if filter.Project != "" {
+		sqlStatement = sqlStatement.Where(goqu.Ex{"sk.project_id": filter.Project})
+	}
+
+	query, params, err := sqlStatement.ToSQL()
+	if err != nil {
+		return []any{}, err
+	}
+
+	ctx = otelsql.WithCustomAttributes(
+		ctx,
+		[]attribute.KeyValue{
+			attribute.String("db.repository.method", "GetDistinctKeyValues"),
+			attribute.String(string(semconv.DBSQLTableKey), TABLE_SERVICE_DATA),
+		}...,
+	)
+
+	var values [][]byte
+	if err = r.dbc.WithTimeout(ctx, func(ctx context.Context) error {
+		nrCtx := newrelic.FromContext(ctx)
+		if nrCtx != nil {
+			nr := newrelic.DatastoreSegment{
+				Product:    newrelic.DatastorePostgres,
+				Collection: TABLE_SERVICE_DATA,
+				Operation:  "GetDistinctKeyValues",
+				StartTime:  nrCtx.StartSegmentNow(),
+			}
+			defer nr.End()
+		}
+
+		return r.dbc.SelectContext(ctx, &values, query, params...)
+	}); err != nil {
+		err = checkPostgresError(err)
+		switch {
+		case errors.Is(err, sql.ErrNoRows):
+			return []any{}, nil
+		case errors.Is(err, errInvalidTexRepresentation):
+			return []any{}, servicedata.ErrInvalidDetail
+		default:
+			return []any{}, err
+		}
+	}
+
+	distinctValues := make([]any, 0, len(values))
+	for _, raw := range values {
+		var value any
+		if err := json.Unmarshal(raw, &value); err != nil {
+			continue
+		}
+		distinctValues = append(distinctValues, value)
+	}
+
+	return distinctValues, nil
+}
+
 func (r ServiceDataRepository) WithTransaction(ctx context.Context) context.Context {
 	return r.dbc.WithTransaction(ctx, sql.TxOptions{})
 }
