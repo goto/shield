@@ -89,6 +89,26 @@ func TestMetadataFilterExpr_EqualsArrayContainment(t *testing.T) {
 	}
 }
 
+func TestMetadataFilterExpr_ScalarEqualsMatchesTextForm(t *testing.T) {
+	// employee_details.terminated is a JSON boolean; equality must also compare as
+	// text so `terminated=true` (stored boolean true) matches.
+	sql, err := renderMetadataFilter(t, "p1", user.Filter{
+		MetadataPaths: []string{"employee_details.terminated"},
+		Metadatas:     []string{"true"},
+	})
+	if err != nil {
+		t.Fatalf("unexpected error: %s", err)
+	}
+	// array/string-scalar containment branch
+	if !strings.Contains(sql, `@> to_jsonb('true'::text)`) {
+		t.Fatalf("missing containment branch, sql: %s", sql)
+	}
+	// non-string scalar (bool/number) text-equality branch
+	if !strings.Contains(sql, `COALESCE(NULLIF("fr_sd"."value" #>> '{terminated}'::text[], ''), 'null') = 'true'`) {
+		t.Fatalf("missing text-equality branch, sql: %s", sql)
+	}
+}
+
 func TestMetadataFilterExpr_KeyOnlyPathUsesEmptyJSONPath(t *testing.T) {
 	sql, err := renderMetadataFilter(t, "p1", user.Filter{
 		MetadataPaths: []string{"employee_details"},

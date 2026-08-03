@@ -93,7 +93,7 @@ func metadataFilterExpr(projectID string, flt user.Filter) (goqu.Expression, err
 				matchers = append(matchers, jsonbTextLikeExpr(p.subpath, "%"+flt.MetadataContains+"%"))
 			}
 			for _, v := range flt.Metadatas {
-				matchers = append(matchers, jsonbContainsExpr(p.subpath, v))
+				matchers = append(matchers, jsonbEqualsExpr(p.subpath, v))
 			}
 			if len(matchers) > 0 {
 				positives = append(positives, metadataKeyExistsExpr(projectID, p.key, goqu.Or(matchers...), false))
@@ -117,7 +117,7 @@ func metadataFilterExpr(projectID string, flt user.Filter) (goqu.Expression, err
 				conditions = append(conditions, metadataKeyExistsExpr(projectID, p.key, jsonbTextLikeExpr(p.subpath, "%"+flt.MetadataNotContains+"%"), true))
 			}
 			for _, v := range flt.NotMetadatas {
-				conditions = append(conditions, metadataKeyExistsExpr(projectID, p.key, jsonbContainsExpr(p.subpath, v), true))
+				conditions = append(conditions, metadataKeyExistsExpr(projectID, p.key, jsonbEqualsExpr(p.subpath, v), true))
 			}
 		}
 	}
@@ -151,14 +151,21 @@ func jsonbTextLikeExpr(subpath, pattern string) goqu.Expression {
 	return goqu.L(`COALESCE(NULLIF("fr_sd"."value" #>> ?::text[], ''), 'null') LIKE ?`, subpath, pattern)
 }
 
-// jsonbContainsExpr matches when the value at subpath equals value, or, when it is
-// a JSON array, contains value as an element. Scalars are wrapped in a one-element
-// array so a single containment check covers both shapes.
-func jsonbContainsExpr(subpath, value string) goqu.Expression {
-	return goqu.L(
-		`(CASE WHEN jsonb_typeof("fr_sd"."value" #> ?::text[]) = 'array' `+
-			`THEN "fr_sd"."value" #> ?::text[] `+
-			`ELSE jsonb_build_array("fr_sd"."value" #> ?::text[]) END) @> to_jsonb(?::text)`,
-		subpath, subpath, subpath, value,
+// jsonbEqualsExpr matches when the value at subpath equals value. It covers:
+//   - a JSON array containing value as a string element (via @> containment),
+//   - a JSON string scalar equal to value (also via @>, scalar wrapped in an array),
+//   - any other scalar compared as TEXT (via #>>), so JSON booleans and numbers
+//     match too, e.g. employee_details.terminated=true (stored as boolean true,
+//     whose text form is "true"). Guardian's #>> text form is what makes non-string
+//     scalars comparable; the @> form is what makes array elements comparable.
+func jsonbEqualsExpr(subpath, value string) goqu.Expression {
+	return goqu.Or(
+		goqu.L(
+			`(CASE WHEN jsonb_typeof("fr_sd"."value" #> ?::text[]) = 'array' `+
+				`THEN "fr_sd"."value" #> ?::text[] `+
+				`ELSE jsonb_build_array("fr_sd"."value" #> ?::text[]) END) @> to_jsonb(?::text)`,
+			subpath, subpath, subpath, value,
+		),
+		goqu.L(`COALESCE(NULLIF("fr_sd"."value" #>> ?::text[], ''), 'null') = ?`, subpath, value),
 	)
 }
