@@ -186,19 +186,29 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 
 	offset := (flt.Page - 1) * flt.Limit
 
+	metadataExpr, err := metadataFilterExpr(flt.ProjectID, flt)
+	if err != nil {
+		return []user.User{}, err
+	}
+
+	baseConditions := []goqu.Expression{
+		goqu.Or(
+			goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+			goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+		),
+		goqu.Ex{"deleted_at": nil},
+	}
+	if metadataExpr != nil {
+		baseConditions = append(baseConditions, metadataExpr)
+	}
+
 	query, params, err := dialect.From(goqu.T(TABLE_USERS)).Select(
 		goqu.I("id"),
 		goqu.I("name"),
 		goqu.I("email"),
 		goqu.I("created_at"),
 		goqu.I("updated_at"),
-	).Where(
-		goqu.Or(
-			goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-			goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-		),
-		goqu.Ex{"deleted_at": nil},
-	).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
+	).Where(baseConditions...).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -219,6 +229,16 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 					"sk.resource_id",
 				).In(flt.ServiceDataKeyResourceIds))
 
+		paginationConditions := []goqu.Expression{
+			goqu.Or(
+				goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+				goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
+			),
+		}
+		if metadataExpr != nil {
+			paginationConditions = append(paginationConditions, metadataExpr)
+		}
+
 		query, params, err = dialect.Select(
 			goqu.I("u.id"),
 			goqu.I("u.name"),
@@ -232,12 +252,7 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 			goqu.I("u.email").In(
 				goqu.From(TABLE_USERS).
 					Select(goqu.DISTINCT("email")).
-					Where(
-						goqu.Or(
-							goqu.C("name").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-							goqu.C("email").ILike(fmt.Sprintf("%%%s%%", flt.Keyword)),
-						),
-					).
+					Where(paginationConditions...).
 					Limit(uint(flt.Limit)).
 					Offset(uint(offset)),
 			),

@@ -71,6 +71,15 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 		Keyword:                   request.GetKeyword(),
 		ProjectID:                 prj.ID,
 		ServiceDataKeyResourceIds: servicedataKeyResourceIds,
+		MetadataPaths:             request.GetMetadataPaths(),
+		Metadatas:                 request.GetMetadatas(),
+		MetadataStartsWith:        request.GetMetadataStartsWith(),
+		MetadataEndsWith:          request.GetMetadataEndsWith(),
+		MetadataContains:          request.GetMetadataContains(),
+		NotMetadatas:              request.GetNotMetadatas(),
+		MetadataNotStartsWith:     request.GetMetadataNotStartsWith(),
+		MetadataNotEndsWith:       request.GetMetadataNotEndsWith(),
+		MetadataNotContains:       request.GetMetadataNotContains(),
 	})
 	if err != nil {
 		logger.Error(err.Error())

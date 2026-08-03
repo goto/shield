@@ -2255,6 +2255,18 @@ func (m *ListUsersRequest) validate(all bool) error {
 
 	// no validation rules for Direction
 
+	// no validation rules for MetadataStartsWith
+
+	// no validation rules for MetadataEndsWith
+
+	// no validation rules for MetadataContains
+
+	// no validation rules for MetadataNotStartsWith
+
+	// no validation rules for MetadataNotEndsWith
+
+	// no validation rules for MetadataNotContains
+
 	if len(errors) > 0 {
 		return ListUsersRequestMultiError(errors)
 	}

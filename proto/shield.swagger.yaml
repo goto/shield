@@ -948,6 +948,39 @@ paths:
             $ref: '#/definitions/ServiceDataKeyRequestBody'
       tags:
         - Service Data
+  /v1beta1/servicedata/distinct:
+    get:
+      summary: Get distinct service data values across all entities for a metadata path
+      operationId: ServiceDataService_GetServiceDataKeyDistinctValues
+      responses:
+        "200":
+          description: A successful response.
+          schema:
+            $ref: '#/definitions/GetServiceDataKeyDistinctValuesResponse'
+        default:
+          description: An unexpected error response.
+          schema:
+            $ref: '#/definitions/Status'
+      parameters:
+        - name: path
+          description: |-
+            dot-separated metadata path: first segment is the service data key name,
+            the rest addresses a location inside its value, e.g. "functional_roles.roles"
+          in: query
+          required: false
+          type: string
+        - name: namespace
+          description: entity namespace to aggregate over, "user" (default) or "group"
+          in: query
+          required: false
+          type: string
+        - name: project
+          description: project id or slug, required to identify the service data key
+          in: query
+          required: false
+          type: string
+      tags:
+        - Service Data
   /v1beta1/users:
     get:
       summary: Get All Users
@@ -981,6 +1014,59 @@ paths:
           required: false
           type: string
         - name: direction
+          in: query
+          required: false
+          type: string
+        - name: metadataPaths
+          description: |-
+            Filter users by their servicedata metadata. Each path in metadata_paths is
+            dot-delimited: the first segment is the metadata (servicedata) key and the
+            remaining segments navigate into that key's JSON value, e.g.
+            "functional_roles.roles". Positive filters (metadatas, *_starts_with,
+            *_ends_with, *_contains) are OR-ed together across paths; a matched value
+            that is a JSON array matches when it contains the value. Negative filters
+            (not_metadatas, *_not_*) are AND-ed together (user is excluded on a match).
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: metadatas
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: notMetadatas
+          in: query
+          required: false
+          type: array
+          items:
+            type: string
+          collectionFormat: multi
+        - name: metadataStartsWith
+          in: query
+          required: false
+          type: string
+        - name: metadataEndsWith
+          in: query
+          required: false
+          type: string
+        - name: metadataContains
+          in: query
+          required: false
+          type: string
+        - name: metadataNotStartsWith
+          in: query
+          required: false
+          type: string
+        - name: metadataNotEndsWith
+          in: query
+          required: false
+          type: string
+        - name: metadataNotContains
           in: query
           required: false
           type: string
@@ -1500,6 +1586,12 @@ definitions:
     properties:
       resource:
         $ref: '#/definitions/Resource'
+  GetServiceDataKeyDistinctValuesResponse:
+    type: object
+    properties:
+      values:
+        type: array
+        items: {}
   GetUserResponse:
     type: object
     properties:
