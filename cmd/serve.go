@@ -172,6 +172,17 @@ func StartServer(logger *log.Zap, cfg *config.Shield) error {
 	if err := pgRuleRepository.InitCache(ctx); err != nil {
 		return err
 	}
+	// Periodically reload the rule cache from the database so replicas that did
+	// not serve a `rule config upload` also pick up the change, instead of
+	// staying stale until they are restarted.
+	if err := pgRuleRepository.StartCacheRefresh(ctx, ruleCacheRefreshDelay, logger); err != nil {
+		return err
+	}
+	defer func() {
+		if err := pgRuleRepository.Close(); err != nil {
+			logger.Warn("error occurred while stopping rule cache refresh", "err", err)
+		}
+	}()
 
 	deps, err := BuildAPIDependencies(ctx, logger, activityRepository, pgRuleRepository, schemaMigrationService, dbClient, spiceDBClient, resourceBlobFS, cfg)
 	if err != nil {
