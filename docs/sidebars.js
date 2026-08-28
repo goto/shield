@@ -28,6 +28,17 @@ module.exports = {
     },
     {
       type: "category",
+      label: "APIs",
+      link: {
+        type: "doc",
+        id: "apis/shield-administration-api",
+      },
+      items: [
+        require("./docs/apis/sidebar.js")
+      ]
+    },
+    {
+      type: "category",
       label: "Guides",
       collapsed: true,
       items: [
