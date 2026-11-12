@@ -1,5 +1,5 @@
-const lightCodeTheme = require('prism-react-renderer/themes/dracula');
-const darkCodeTheme = require('prism-react-renderer/themes/dracula');
+const lightCodeTheme = require('prism-react-renderer').themes.dracula;
+const darkCodeTheme = require('prism-react-renderer').themes.dracula;
 
 // With JSDoc @type annotations, IDEs can provide config autocompletion
 /** @type {import('@docusaurus/types').DocusaurusConfig} */
@@ -9,35 +9,35 @@ const darkCodeTheme = require('prism-react-renderer/themes/dracula');
   url: 'https://goto.github.io/',
   baseUrl: '/shield/',
   onBrokenLinks: 'throw',
-  onBrokenMarkdownLinks: 'warn',
+  markdown: { hooks: { onBrokenMarkdownLinks: 'warn' } },
   favicon: 'img/favicon.ico',
   organizationName: 'goto',
   projectName: 'shield',
 
-  presets: [
-    [
-      '@docusaurus/preset-classic',
-      ({
-        gtag: {
-          trackingID: 'G-XXX',
-        },
-        docs: {
-          routeBasePath: '/',
-          sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/goto/shield/edit/master/docs/',
-          sidebarCollapsed: true,
-          breadcrumbs: false,
-        },
-        blog: false,
-        theme: {
-          customCss: [
-            require.resolve('./src/css/theme.css'),
-            require.resolve('./src/css/custom.css'),
-            require.resolve('./src/css/icons.css'),
-          ],
-        },
-      })
-    ],
+  // Explicit plugins preserve the classic layout without unused SVG-to-React
+  // tooling (the sole dependency path to vulnerable deepmerge).
+  themes: [
+    ['@docusaurus/theme-classic', {
+      customCss: [
+        require.resolve('./src/css/theme.css'),
+        require.resolve('./src/css/custom.css'),
+        require.resolve('./src/css/icons.css'),
+      ],
+    }],
+  ],
+  plugins: [
+    ['@docusaurus/plugin-content-docs', {
+      routeBasePath: '/',
+      sidebarPath: require.resolve('./sidebars.js'),
+      editUrl: 'https://github.com/goto/shield/edit/master/docs/',
+      sidebarCollapsed: true,
+      breadcrumbs: false,
+    }],
+    '@docusaurus/plugin-content-pages',
+    ['@docusaurus/plugin-google-gtag', { trackingID: 'G-XXX' }],
+    ...(process.env.NODE_ENV === 'production'
+      ? ['@docusaurus/plugin-sitemap']
+      : ['@docusaurus/plugin-debug']),
   ],
 
   themeConfig:

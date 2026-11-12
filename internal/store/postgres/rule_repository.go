@@ -29,6 +29,9 @@ func NewRuleRepository(dbc *db.Client) *RuleRepository {
 }
 
 func (r *RuleRepository) Upsert(ctx context.Context, name string, config rule.Ruleset) (rule.Config, error) {
+	if err := rule.ValidateRuleset(config); err != nil {
+		return rule.Config{}, fmt.Errorf("%w: %s", rule.ErrInvalidRuleConfig, err)
+	}
 	var json = jsoniter.ConfigCompatibleWithStandardLibrary
 	configJson, err := json.Marshal(config)
 	if err != nil {
@@ -130,6 +133,9 @@ func (r *RuleRepository) InitCache(ctx context.Context) error {
 		var targetRuleset rule.Ruleset
 		if err := json.Unmarshal([]byte(rc.Config), &targetRuleset); err != nil {
 			return err
+		}
+		if err := rule.ValidateRuleset(targetRuleset); err != nil {
+			return fmt.Errorf("%w: %s", rule.ErrInvalidRuleConfig, err)
 		}
 		newCache = append(newCache, targetRuleset)
 	}

@@ -234,3 +234,22 @@ type mockProject struct {
 func (m mockProject) Get(ctx context.Context, id string) (project.Project, error) {
 	return m.GetProjectFunc(ctx, id)
 }
+
+func TestMissingProjectAttributeDoesNotPanic(t *testing.T) {
+	next := &mockNextHandler{}
+	a := Attributes{log: log.NewNoop(), next: next, identityProxyHeaderKey: "X-Auth-Email", projectService: mockProject{
+		GetProjectFunc: func(context.Context, string) (project.Project, error) {
+			t.Fatal("unexpected project lookup")
+			return project.Project{}, nil
+		},
+	}}
+	r := httptest.NewRequest(http.MethodGet, "/", nil)
+	rl := &rule.Rule{}
+	rl.Middlewares = append(rl.Middlewares, rule.MiddlewareSpec{Name: "attributes", Config: map[string]interface{}{"attributes": map[string]interface{}{}}})
+	middleware.EnrichRule(r, rl)
+	middleware.EnrichPathParams(r, map[string]string{})
+	w := httptest.NewRecorder()
+	assert.NotPanics(t, func() { a.ServeHTTP(w, r) })
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Nil(t, next.ctx)
+}

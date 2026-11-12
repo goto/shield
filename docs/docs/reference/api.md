@@ -92,7 +92,7 @@ Create Group
 | 200 | A successful response. | [v1beta1CreateGroupResponse](#v1beta1creategroupresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/groups/{id}
+### /v1beta1/groups/\{id\}
 
 #### GET
 ##### Summary
@@ -131,7 +131,7 @@ Update Group by ID
 | 200 | A successful response. | [v1beta1UpdateGroupResponse](#v1beta1updategroupresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/groups/{id}/relations
+### /v1beta1/groups/\{id\}/relations
 
 #### GET
 ##### Summary
@@ -205,7 +205,7 @@ Create Namespace
 | 200 | A successful response. | [v1beta1CreateNamespaceResponse](#v1beta1createnamespaceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/namespaces/{id}
+### /v1beta1/namespaces/\{id\}
 
 #### GET
 ##### Summary
@@ -244,7 +244,7 @@ Update Namespace by ID
 | 200 | A successful response. | [v1beta1UpdateNamespaceResponse](#v1beta1updatenamespaceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/object/{objectId}/subject/{subjectId}/role/{role}
+### /v1beta1/object/\{objectId\}/subject/\{subjectId\}/role/\{role\}
 
 #### DELETE
 ##### Summary
@@ -298,7 +298,7 @@ Create Organization
 | 200 | A successful response. | [v1beta1CreateOrganizationResponse](#v1beta1createorganizationresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/organizations/{id}
+### /v1beta1/organizations/\{id\}
 
 #### GET
 ##### Summary
@@ -337,7 +337,7 @@ Update Organization by ID
 | 200 | A successful response. | [v1beta1UpdateOrganizationResponse](#v1beta1updateorganizationresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/organizations/{id}/admins
+### /v1beta1/organizations/\{id\}/admins
 
 #### GET
 ##### Summary
@@ -421,7 +421,7 @@ Create Project
 | 200 | A successful response. | [v1beta1CreateProjectResponse](#v1beta1createprojectresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/projects/{id}
+### /v1beta1/projects/\{id\}
 
 #### GET
 ##### Summary
@@ -460,7 +460,7 @@ Update Project by ID
 | 200 | A successful response. | [v1beta1UpdateProjectResponse](#v1beta1updateprojectresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/projects/{id}/admins
+### /v1beta1/projects/\{id\}/admins
 
 #### GET
 ##### Summary
@@ -512,7 +512,7 @@ Create Relation
 | 200 | A successful response. | [v1beta1CreateRelationResponse](#v1beta1createrelationresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/relations/{id}
+### /v1beta1/relations/\{id\}
 
 #### GET
 ##### Summary
@@ -573,7 +573,7 @@ Create Resource
 | 200 | A successful response. | [v1beta1CreateResourceResponse](#v1beta1createresourceresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/resources/{id}
+### /v1beta1/resources/\{id\}
 
 #### GET
 ##### Summary
@@ -716,7 +716,7 @@ Update current User
 | 200 | A successful response. | [v1beta1UpdateCurrentUserResponse](#v1beta1updatecurrentuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/users/{id}
+### /v1beta1/users/\{id\}
 
 #### GET
 ##### Summary
@@ -755,7 +755,7 @@ Update User by ID
 | 200 | A successful response. | [v1beta1UpdateUserResponse](#v1beta1updateuserresponse) |
 | default | An unexpected error response. | [rpcStatus](#rpcstatus) |
 
-### /v1beta1/users/{id}/groups
+### /v1beta1/users/\{id\}/groups
 
 #### GET
 ##### Summary

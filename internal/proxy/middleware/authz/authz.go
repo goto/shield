@@ -112,7 +112,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// TODO: should cache it
 	config := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &config); err != nil {
-		c.log.Error("middleware: failed to decode authz config", "config", wareSpec.Config)
+		c.log.Error("middleware: failed to decode authz config")
 		c.notAllowed(rw, nil)
 		return
 	}
@@ -136,7 +136,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case attribute.TypeGRPCPayload:
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
-				c.log.Error("middleware: not a grpc request", "attr", attr)
+				c.log.Error("middleware: not a grpc request", "attribute_type", attr.Type)
 				c.notAllowed(rw, nil)
 				return
 			}
@@ -149,7 +149,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			permissionAttributes[res] = payloadField
-			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			c.log.Info("middleware: extracted attribute")
 
 		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
@@ -165,7 +165,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			permissionAttributes[res] = payloadField
-			c.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			c.log.Info("middleware: extracted attribute")
 
 		case attribute.TypeHeader:
 			if attr.Key == "" {
@@ -181,7 +181,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			permissionAttributes[res] = headerAttr
-			c.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
+			c.log.Info("middleware: extracted attribute")
 
 		case attribute.TypeQuery:
 			if attr.Key == "" {
@@ -197,7 +197,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			permissionAttributes[res] = queryAttr
-			c.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+			c.log.Info("middleware: extracted attribute")
 
 		case attribute.TypeConstant:
 			if attr.Value == "" {
@@ -207,10 +207,10 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			permissionAttributes[res] = attr.Value
-			c.log.Info("middleware: extracted", "constant_key", res, "attr", permissionAttributes[res])
+			c.log.Info("middleware: extracted attribute")
 
 		default:
-			c.log.Error("middleware: unknown attribute type", "attr", attr)
+			c.log.Error("middleware: unknown attribute type", "attribute_type", attr.Type)
 			c.notAllowed(rw, nil)
 			return
 		}
@@ -227,16 +227,17 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		permissionAttributes[key] = value
 	}
 
-	isAuthorized := true
+	isAuthorized := false
 	for _, permission := range config.Permissions {
 		c.log.Info("checking permission", "permission", permission.Name)
 		if !permission.Expression.IsEmpty() {
 			permission.Expression = enrichExpression(permission.Expression, permissionAttributes)
-			c.log.Info("evaluating expression", "expr", permission.Expression)
+			c.log.Info("evaluating expression")
 			output, err := permission.Expression.Evaluate()
 			if err != nil {
 				c.log.Error("error evaluating expression", "err", err)
-				continue
+				c.notAllowed(rw, nil)
+				return
 			}
 			c.log.Info("successfully evaluated expression", "result", output)
 
@@ -266,9 +267,9 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		}
 	}
 
-	c.log.Info("authz check successful", "user", permissionAttributes["user"], "resource", permissionAttributes["resource"], "result", isAuthorized)
+	c.log.Info("authz check successful", "result", isAuthorized)
 	if !isAuthorized {
-		c.log.Info("user not allowed to make request", "user", permissionAttributes["user"], "resource", permissionAttributes["resource"], "result", isAuthorized)
+		c.log.Info("user not allowed to make request", "result", isAuthorized)
 		c.notAllowed(rw, nil)
 		return
 	}

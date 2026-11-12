@@ -170,7 +170,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		switch attr.Type {
 		case proxyattr.TypeGRPCPayload:
 			if !strings.HasPrefix(res.Header.Get("Content-Type"), "application/grpc") {
-				a.log.Error("middleware: not a grpc request", "attr", attr)
+				a.log.Error("middleware: not a grpc request", "attribute_type", attr.Type)
 				return a.escape.ServeHook(res, fmt.Errorf("invalid header for http request: %s", res.Header.Get("Content-Type")))
 			}
 
@@ -181,7 +181,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 			attributes[id] = payloadField
 
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 		case proxyattr.TypeJSONPayload:
 			if attr.Key == "" {
 				a.log.Error("middleware: payload key field empty")
@@ -195,7 +195,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 			attributes[id] = payloadField
 
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 		case proxyattr.TypeHeader:
 			if attr.Key == "" {
 				a.log.Error("middleware: header key field empty")
@@ -208,7 +208,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 
 			attributes[id] = headerAttr
-			a.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case proxyattr.TypeQuery:
 			if attr.Key == "" {
@@ -222,7 +222,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 
 			attributes[id] = queryAttr
-			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case proxyattr.TypeConstant, proxyattr.TypeComposite:
 			if attr.Value == "" {
@@ -231,11 +231,11 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 			}
 
 			attributes[id] = attr.Value
-			a.log.Info("middleware: extracted", "key", res, "attr", attributes[id])
+			a.log.Debug("middleware: extracted attribute")
 
 		default:
-			a.log.Error("middleware: unknown attribute type", "attr", attr)
-			return a.escape.ServeHook(res, fmt.Errorf("unknown attribute type: %v", attr))
+			a.log.Error("middleware: unknown attribute type", "attribute_type", attr.Type)
+			return a.escape.ServeHook(res, fmt.Errorf("unknown attribute type"))
 		}
 	}
 
@@ -261,7 +261,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 		}
 
 		isResourceCreated = true
-		a.log.Info(fmt.Sprintf("Resource %s created with ID %s", newResource.URN, newResource.Idxa))
+		a.log.Debug("resource created")
 
 		for _, rel := range config.Relations {
 			subjectId, err := getAttributesValues(attributes[rel.SubjectIDAttribute])
@@ -277,7 +277,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				continue
 			}
 
-			newRelation, err := a.createRelation(res.Request.Context(), relation.RelationV2{
+			_, err = a.createRelation(res.Request.Context(), relation.RelationV2{
 				Object: relation.Object{
 					ID:          newResource.Idxa,
 					NamespaceID: newResource.NamespaceID,
@@ -300,7 +300,7 @@ func (a Authz) ServeHook(res *http.Response, err error) (*http.Response, error) 
 				return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 			}
 
-			a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.RoleID, newRelation.Subject.ID, newRelation.Subject.Namespace))
+			a.log.Debug("relation created")
 		}
 	}
 
@@ -358,7 +358,7 @@ func (a Authz) serveRelationOnly(res *http.Response, config Config, attributes m
 			}
 
 			for _, subjectId := range subjectIds {
-				newRelation, err := a.createRelation(ctx, relation.RelationV2{
+				_, err = a.createRelation(ctx, relation.RelationV2{
 					Object: relation.Object{
 						ID:          existingResource.Idxa,
 						NamespaceID: existingResource.NamespaceID,
@@ -381,7 +381,7 @@ func (a Authz) serveRelationOnly(res *http.Response, config Config, attributes m
 					return a.escape.ServeHook(res, fmt.Errorf(err.Error()))
 				}
 
-				a.log.Info(fmt.Sprintf("created relation: %s for %s %s", newRelation.Subject.RoleID, newRelation.Subject.ID, newRelation.Subject.Namespace))
+				a.log.Debug("relation created")
 			}
 		}
 	}

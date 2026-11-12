@@ -7,14 +7,15 @@ import (
 	"strings"
 	"text/template"
 
+	rulecfg "github.com/goto/shield/core/rule/config"
 	"github.com/goto/shield/internal/proxy/attribute"
 	"github.com/goto/shield/internal/proxy/middleware"
 	"github.com/goto/shield/pkg/body_extractor"
 	"github.com/goto/shield/pkg/httputil"
 
-	goauth "github.com/abbot/go-http-auth"
 	"github.com/goto/salt/log"
 	"github.com/mitchellh/mapstructure"
+	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -45,7 +46,7 @@ type Config struct {
 type Credentials struct {
 	User string `yaml:"user" mapstructure:"user"`
 
-	// Password must be hashed using MD5, SHA1, or BCrypt(recommended) using htpasswd
+	// Password must be bcrypt with cost >= 10 (htpasswd -B -C 10).
 	Password string `yaml:"password" mapstructure:"password"`
 
 	// Capabilities are optional and used with scope for applying authz
@@ -82,26 +83,32 @@ func (w *BasicAuth) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	// note: might effect performance, consider caching
 	conf := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &conf); err != nil {
-		w.log.Error("middleware: invalid config", "config", wareSpec.Config)
+		w.log.Error("middleware: invalid config")
 		w.notAllowed(rw)
 		return
 	}
-	authenticator := goauth.NewBasicAuthenticator("shield", func(user, realm string) string {
-		for _, credential := range conf.Users {
-			if credential.User == user {
-				return credential.Password
-			}
+	if err := rulecfg.ValidateMiddlewareConfig("basic_auth", wareSpec.Config); err != nil {
+		w.log.Error("middleware: invalid basic_auth security configuration")
+		w.notAllowed(rw)
+		return
+	}
+	authedUser, password, ok := req.BasicAuth()
+	if !ok {
+		w.notAllowed(rw)
+		return
+	}
+	matched := false
+	for _, credential := range conf.Users {
+		if credential.User == authedUser {
+			matched = bcrypt.CompareHashAndPassword([]byte(credential.Password), []byte(password)) == nil
+			break
 		}
-		return ""
-	})
-
-	var authedUser string
-	if authedUser = authenticator.CheckAuth(req); authedUser != "" {
-		req.Header.Set(httputil.HeaderXUser, authedUser)
-	} else {
+	}
+	if !matched {
 		w.notAllowed(rw)
 		return
 	}
+	req.Header.Set(httputil.HeaderXUser, authedUser)
 
 	if conf.Scope.Action != "" {
 		// basic authorization
@@ -155,7 +162,7 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 			}
 
 			templateMap[res] = payloadField
-			w.log.Debug("middleware: extracted", "field", payloadField, "attr", attr)
+			w.log.Debug("middleware: extracted attribute")
 		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
 				w.log.Error("middleware: payload key field empty")
@@ -168,9 +175,9 @@ func (w BasicAuth) authorizeRequest(conf Config, user string, req *http.Request)
 			}
 
 			templateMap[res] = payloadField
-			w.log.Debug("middleware: extracted", "field", payloadField, "attr", attr)
+			w.log.Debug("middleware: extracted attribute")
 		default:
-			w.log.Error("middleware: unknown attribute type", "attr", attr)
+			w.log.Error("middleware: unknown attribute type", "attribute_type", attr.Type)
 			return false
 		}
 	}

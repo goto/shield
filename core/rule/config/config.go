@@ -44,5 +44,16 @@ func ParseRulesetYaml(fileBytes []byte) (Ruleset, error) {
 	if err := yaml.Unmarshal(fileBytes, &s); err != nil {
 		return Ruleset{}, err
 	}
+	for _, r := range s.Rules {
+		for _, backend := range r.Backends {
+			for _, frontend := range backend.Frontends {
+				for _, m := range frontend.Middlewares {
+					if err := ValidateMiddlewareConfig(m.Name, m.Config); err != nil {
+						return Ruleset{}, err
+					}
+				}
+			}
+		}
+	}
 	return s, nil
 }

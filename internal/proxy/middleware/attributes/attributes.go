@@ -72,7 +72,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 
 	config := Config{}
 	if err := mapstructure.Decode(wareSpec.Config, &config); err != nil {
-		a.log.Error("middleware: invalid config", "config", wareSpec.Config)
+		a.log.Error("middleware: invalid config")
 		a.notAllowed(rw)
 		return
 	}
@@ -90,7 +90,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		case attribute.TypeGRPCPayload:
 			// check if grpc request
 			if !strings.HasPrefix(req.Header.Get("Content-Type"), "application/grpc") {
-				a.log.Error("middleware: not a grpc request", "attr", attr)
+				a.log.Error("middleware: not a grpc request", "attribute_type", attr.Type)
 				a.notAllowed(rw)
 				return
 			}
@@ -104,7 +104,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			requestAttributes[res] = payloadField
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case attribute.TypeJSONPayload:
 			if attr.Key == "" {
@@ -120,7 +120,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			requestAttributes[res] = payloadField
-			a.log.Info("middleware: extracted", "field", payloadField, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case attribute.TypeHeader:
 			if attr.Key == "" {
@@ -136,7 +136,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			requestAttributes[res] = headerAttr
-			a.log.Info("middleware: extracted", "field", headerAttr, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case attribute.TypeQuery:
 			if attr.Key == "" {
@@ -152,7 +152,7 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			requestAttributes[res] = queryAttr
-			a.log.Info("middleware: extracted", "field", queryAttr, "attr", attr)
+			a.log.Debug("middleware: extracted attribute")
 
 		case attribute.TypeConstant:
 			if attr.Value == "" {
@@ -162,10 +162,10 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 			}
 
 			requestAttributes[res] = attr.Value
-			a.log.Info("middleware: extracted", "constant_key", res, "attr", requestAttributes[res])
+			a.log.Debug("middleware: extracted attribute")
 
 		default:
-			a.log.Error("middleware: unknown attribute type", "attr", attr)
+			a.log.Error("middleware: unknown attribute type", "attribute_type", attr.Type)
 			a.notAllowed(rw)
 			return
 		}
@@ -183,10 +183,14 @@ func (a *Attributes) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	}
 
 	// Extract Organization ID from Project ID
-	projectId := requestAttributes["project"].(string)
+	projectId, valid := requestAttributes["project"].(string)
+	if !valid {
+		a.notAllowed(rw)
+		return
+	}
 	projectEx, err := a.projectService.Get(req.Context(), projectId)
 	if err != nil {
-		a.log.Error("middleware: error in getting project", err)
+		a.log.Error("middleware: error in getting project", "err", err)
 		a.notAllowed(rw)
 	}
 

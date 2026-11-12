@@ -104,14 +104,12 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 	}
 	if filter.Data != nil {
 		for key, value := range filter.Data {
-			dataQuery := fmt.Sprintf("data->>'%s' = '%s'", key, value)
-			sqlStatement = sqlStatement.Where(goqu.L(dataQuery))
+			sqlStatement = sqlStatement.Where(goqu.L("data->>? = ?", key, value))
 		}
 	}
 	if filter.Metadata != nil {
 		for key, value := range filter.Metadata {
-			dataQuery := fmt.Sprintf("metadata->>'%s' = '%s'", key, value)
-			sqlStatement = sqlStatement.Where(goqu.L(dataQuery))
+			sqlStatement = sqlStatement.Where(goqu.L("metadata->>? = ?", key, value))
 		}
 	}
 
@@ -122,7 +120,7 @@ func (r ActivityRepository) List(ctx context.Context, filter activity.Filter) ([
 	sqlStatement = sqlStatement.Where(
 		goqu.Ex{"timestamp": goqu.Op{"between": goqu.Range(filter.StartTime, filter.EndTime)}},
 	).Limit(uint(filter.Limit)).Offset(uint(offset)).Order(goqu.I("timestamp").Desc())
-	query, params, err := sqlStatement.ToSQL()
+	query, params, err := sqlStatement.Prepared(true).ToSQL()
 	if err != nil {
 		return nil, err
 	}
