@@ -498,6 +498,45 @@ func (s *UserRepositoryTestSuite) TestList() {
 	}
 }
 
+func (s *UserRepositoryTestSuite) TestListPaginationOrder() {
+	// Equal timestamps require the ID tie-breaker; insertion or index scan order
+	// must not change page membership or the order returned after metadata grouping.
+	_, err := s.client.ExecContext(s.ctx, `UPDATE users SET created_at = '2000-01-01T00:00:00Z'`)
+	s.Require().NoError(err)
+
+	var expectedIDs []string
+	for _, u := range s.users {
+		expectedIDs = append(expectedIDs, u.ID)
+	}
+	sort.Strings(expectedIDs)
+
+	for _, withMetadata := range []bool{false, true} {
+		s.Run(fmt.Sprintf("with_metadata_%t", withMetadata), func() {
+			filter := user.Filter{Limit: 2}
+			if withMetadata {
+				filter.ProjectID = s.projects[0].ID
+				filter.ServiceDataKeyResourceIds = []string{s.keys[0].ResourceID}
+			}
+
+			var gotIDs []string
+			lastPage := int32((len(expectedIDs)+1)/2 + 1)
+			for page := int32(1); page <= lastPage; page++ {
+				filter.Page = page
+				got, err := s.repository.List(s.ctx, filter)
+				s.Require().NoError(err)
+				s.LessOrEqual(len(got), int(filter.Limit))
+				if page == lastPage {
+					s.Empty(got)
+				}
+				for _, u := range got {
+					gotIDs = append(gotIDs, u.ID)
+				}
+			}
+			s.Equal(expectedIDs, gotIDs)
+		})
+	}
+}
+
 func (s *UserRepositoryTestSuite) TestGetByIDs() {
 	type testCase struct {
 		Description   string

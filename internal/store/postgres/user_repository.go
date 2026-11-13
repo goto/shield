@@ -208,7 +208,9 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 		goqu.I("email"),
 		goqu.I("created_at"),
 		goqu.I("updated_at"),
-	).Where(baseConditions...).Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
+	).Where(baseConditions...).
+		Order(goqu.I("created_at").Asc(), goqu.I("id").Asc()).
+		Limit(uint(flt.Limit)).Offset(uint(offset)).ToSQL()
 	if err != nil {
 		return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 	}
@@ -251,12 +253,13 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 			goqu.Cast(goqu.C("id"), "TEXT").Eq(goqu.I("sd.entity_id")))).Where(
 			goqu.I("u.email").In(
 				goqu.From(TABLE_USERS).
-					Select(goqu.DISTINCT("email")).
+					Select(goqu.C("email")).
 					Where(paginationConditions...).
+					Order(goqu.I("created_at").Asc(), goqu.I("id").Asc()).
 					Limit(uint(flt.Limit)).
 					Offset(uint(offset)),
 			),
-		).ToSQL()
+		).Order(goqu.I("u.created_at").Asc(), goqu.I("u.id").Asc()).ToSQL()
 		if err != nil {
 			return []user.User{}, fmt.Errorf("%w: %s", queryErr, err)
 		}
@@ -291,9 +294,11 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 
 	groupedMetadataByUser := make(map[string]user.User)
+	var orderedUserIDs []string
 	for _, u := range fetchedJoinUserMetadata {
 		if _, ok := groupedMetadataByUser[u.ID]; !ok {
 			groupedMetadataByUser[u.ID] = user.User{}
+			orderedUserIDs = append(orderedUserIDs, u.ID)
 		}
 		currentUser := groupedMetadataByUser[u.ID]
 		currentUser.ID = u.ID
@@ -320,8 +325,8 @@ func (r UserRepository) List(ctx context.Context, flt user.Filter) ([]user.User,
 	}
 
 	var transformedUsers []user.User
-	for _, user := range groupedMetadataByUser {
-		transformedUsers = append(transformedUsers, user)
+	for _, id := range orderedUserIDs {
+		transformedUsers = append(transformedUsers, groupedMetadataByUser[id])
 	}
 
 	return transformedUsers, nil

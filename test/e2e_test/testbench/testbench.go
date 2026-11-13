@@ -29,6 +29,8 @@ import (
 const (
 	preSharedKey         = "shield"
 	waitContainerTimeout = 60 * time.Second
+	// E2E tests verify behavior, not query latency under race-enabled CI load.
+	testDBQueryTimeout = 5 * time.Second
 )
 
 var RuleCacheRefreshDelay = time.Minute * 2
@@ -104,7 +106,7 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort
 		MaxIdleConns:        10,
 		MaxOpenConns:        10,
 		ConnMaxLifeTime:     time.Millisecond * 100,
-		MaxQueryTimeoutInMS: time.Millisecond * 100,
+		MaxQueryTimeoutInMS: testDBQueryTimeout,
 	}
 
 	te.SpiceDBConfig = spicedb.Config{
