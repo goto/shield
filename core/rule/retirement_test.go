@@ -2,8 +2,9 @@ package rule_test
 
 import (
 	"context"
-	"github.com/goto/shield/core/rule"
 	"testing"
+
+	"github.com/goto/shield/core/rule"
 )
 
 type retirementRepository struct {

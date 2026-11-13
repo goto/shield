@@ -3,10 +3,11 @@ package basic_auth
 import (
 	"crypto/sha1"
 	"encoding/base64"
-	goauth "github.com/abbot/go-http-auth"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	goauth "github.com/abbot/go-http-auth"
 
 	"github.com/goto/salt/log"
 	"github.com/goto/shield/core/rule"

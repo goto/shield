@@ -1,11 +1,12 @@
 package config_test
 
 import (
-	"github.com/goto/shield/core/rule"
-	"github.com/goto/shield/core/rule/config"
 	"os"
 	"path/filepath"
 	"testing"
+
+	"github.com/goto/shield/core/rule"
+	"github.com/goto/shield/core/rule/config"
 )
 
 func TestConciergeConfigurationsRemainLoadable(t *testing.T) {

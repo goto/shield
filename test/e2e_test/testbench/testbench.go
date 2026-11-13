@@ -99,12 +99,13 @@ func initTestBench(ctx context.Context, appConfig *config.Shield, mockServerPort
 	logger.Info("spicedb is up")
 
 	te.PGConfig = db.Config{
-		Driver:              "postgres",
-		URL:                 connMainPGExternal,
-		MaxIdleConns:        10,
-		MaxOpenConns:        10,
-		ConnMaxLifeTime:     time.Millisecond * 100,
-		MaxQueryTimeoutInMS: time.Millisecond * 100,
+		Driver:          "postgres",
+		URL:             connMainPGExternal,
+		MaxIdleConns:    10,
+		MaxOpenConns:    10,
+		ConnMaxLifeTime: time.Millisecond * 100,
+		// Containerized CI startup is not a sub-100ms latency test.
+		MaxQueryTimeoutInMS: 5 * time.Second,
 	}
 
 	te.SpiceDBConfig = spicedb.Config{

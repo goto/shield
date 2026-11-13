@@ -2,6 +2,8 @@ package v1beta1
 
 import (
 	"context"
+	"testing"
+
 	"github.com/goto/shield/core/servicedata"
 	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/internal/api/v1beta1/mocks"
@@ -12,7 +14,6 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/structpb"
-	"testing"
 )
 
 func TestCrossUserServiceDataDenialReachesAPI(t *testing.T) {
