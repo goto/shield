@@ -466,11 +466,6 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 	s.Require().Greater(len(res.GetProjects()), 0)
 	myProject := res.GetProjects()[0]
 
-	usr, err := s.client.ListUsers(ctxOrgAdminAuth, &shieldv1beta1.ListUsersRequest{})
-	s.Require().NoError(err)
-	s.Require().Greater(len(usr.GetUsers()), 0)
-	myUser := usr.GetUsers()[0]
-
 	s.Run("1. org admin create a new service data key with empty auth email should return unauthenticated error", func() {
 		_, err := s.serviceDataClient.CreateServiceDataKey(context.Background(), &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
@@ -572,7 +567,7 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 		s.Assert().Equal(codes.InvalidArgument, status.Convert(err).Code())
 	})
 
-	s.Run("8. update service data org admin created without edit permission should return unauthenticated error", func() {
+	s.Run("8. updating another user service data without key edit permission returns permission denied", func() {
 		res, err := s.serviceDataClient.CreateServiceDataKey(ctxOrgAdminAuth, &shieldv1beta1.CreateServiceDataKeyRequest{
 			Body: &shieldv1beta1.ServiceDataKeyRequestBody{
 				Project:     myProject.Id,
@@ -584,8 +579,19 @@ func (s *EndToEndAPIRegressionTestSuite) TestServiceDataAPI() {
 		newServiceDataKey := res.GetServiceDataKey()
 		s.Assert().NotNil(newServiceDataKey)
 
+		// ListUsers ordering is unspecified and includes administrators. Create an
+		// actor with no organization, project, group or service-data-key grants.
+		actor, err := s.client.CreateUser(ctxOrgAdminAuth, &shieldv1beta1.CreateUserRequest{
+			Body: &shieldv1beta1.UserRequestBody{
+				Name:  "service-data-no-edit",
+				Email: "service-data-no-edit@example.test",
+			},
+		})
+		s.Require().NoError(err)
+		s.Require().NotNil(actor.GetUser())
+
 		ctxTestUser := metadata.NewOutgoingContext(context.Background(), metadata.New(map[string]string{
-			testbench.IdentityHeader: myUser.Email,
+			testbench.IdentityHeader: actor.GetUser().GetEmail(),
 		}))
 
 		_, err = s.serviceDataClient.UpsertUserServiceData(ctxTestUser, &shieldv1beta1.UpsertUserServiceDataRequest{

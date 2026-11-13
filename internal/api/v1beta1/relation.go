@@ -77,6 +77,9 @@ func (h Handler) CreateRelation(ctx context.Context, request *shieldv1beta1.Crea
 		}
 	}
 
+	if !strings.Contains(request.GetBody().GetSubject(), ":") {
+		return nil, grpcBadBodyError
+	}
 	principal, subjectID := extractSubjectFromPrincipal(request.GetBody().GetSubject())
 	if err := h.verifyPrincipal(ctx, principal, subjectID); err != nil {
 		return nil, err
@@ -261,6 +264,9 @@ func transformRelationV2ToPB(relation relation.RelationV2) (shieldv1beta1.Relati
 
 func extractSubjectFromPrincipal(principal string) (string, string) {
 	splits := strings.Split(principal, ":")
+	if len(splits) < 2 {
+		return "", ""
+	}
 	return splits[0], splits[1]
 }
 

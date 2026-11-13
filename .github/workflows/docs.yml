@@ -11,15 +11,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-      - uses: actions/setup-node@v2
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
       - name: Installation
         uses: bahmutov/npm-install@v1
         with:
-          install-command: yarn
+          install-command: yarn install --frozen-lockfile
           working-directory: docs
+      - name: Audit dependencies
+        working-directory: docs
+        run: yarn audit:security
       - name: Build docs
         working-directory: docs
-        run: cd docs && yarn build
+        run: yarn build
       - name: Deploy docs
         env:
           GIT_USER: anshuman-gojek

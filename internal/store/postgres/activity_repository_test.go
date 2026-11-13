@@ -243,3 +243,35 @@ func (s *ActivityRepositoryTestSuite) TestList() {
 func TestActivityRepository(t *testing.T) {
 	suite.Run(t, new(ActivityRepositoryTestSuite))
 }
+
+// Keys remain arbitrary JSON object keys; SQL syntax must be treated as data.
+func (s *ActivityRepositoryTestSuite) TestHostileFilterCompatibility() {
+	key := "key with spaces ' --"
+	value := "value' OR true; SELECT pg_sleep(10); --"
+	s.Require().NoError(s.repository.Insert(s.ctx, &audit.Log{
+		Actor: "0000000a-0000-00aa-0aa0-aaa00a000aa0", Action: "compatibility.test",
+		Data: map[string]string{key: value}, Metadata: map[string]string{key: value}, Timestamp: time.Now(),
+	}))
+	for _, f := range []activity.Filter{
+		{Data: map[string]string{key: value}}, {Metadata: map[string]string{key: value}},
+	} {
+		rows, err := s.repository.List(s.ctx, f)
+		s.Require().NoError(err)
+		s.Len(rows, 1)
+	}
+	rows, err := s.repository.List(s.ctx, activity.Filter{Data: map[string]string{"name": "' OR true --"}})
+	s.Require().NoError(err)
+	s.Empty(rows)
+}
+
+func (s *ActivityRepositoryTestSuite) TestPageSizeAbove500RemainsSupported() {
+	for i := 0; i < 501; i++ {
+		s.Require().NoError(s.repository.Insert(s.ctx, &audit.Log{
+			Actor: "0000000a-0000-00aa-0aa0-aaa00a000aa0", Action: "compatibility.page",
+			Data: map[string]string{"batch": "compatibility"}, Metadata: map[string]string{}, Timestamp: time.Now(),
+		}))
+	}
+	rows, err := s.repository.List(s.ctx, activity.Filter{Action: "compatibility.page", Limit: 501, Page: 1})
+	s.Require().NoError(err)
+	s.Len(rows, 501)
+}

@@ -90,7 +90,7 @@ func (repo *RuleRepository) refresh(ctx context.Context) error {
 		if rxParsingSuccess {
 			rulesets = append(rulesets, targetRuleSet)
 		} else {
-			repo.log.Warn("skipping rule set due to parsing errors", "content", string(fileBytes))
+			repo.log.Warn("skipping rule set due to parsing errors", "file", obj.Key)
 		}
 	}
 
