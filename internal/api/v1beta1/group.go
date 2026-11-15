@@ -64,7 +64,7 @@ func (h Handler) ListGroups(ctx context.Context, request *shieldv1beta1.ListGrou
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
@@ -112,7 +112,7 @@ func (h Handler) CreateGroup(ctx context.Context, request *shieldv1beta1.CreateG
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	// TODO: change this
@@ -211,7 +211,7 @@ func (h Handler) GetGroup(ctx context.Context, request *shieldv1beta1.GetGroupRe
 	_, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	fetchedGroup, err := h.groupService.Get(ctx, request.GetId())
@@ -269,7 +269,7 @@ func (h Handler) UpdateGroup(ctx context.Context, request *shieldv1beta1.UpdateG
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	// TODO: change this implementation

@@ -1,0 +1,1 @@
+DROP INDEX CONCURRENTLY IF EXISTS public.relations_object_id_namespace_id_idx;

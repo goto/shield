@@ -85,7 +85,7 @@ func (c *Authz) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	usr, err := c.userService.FetchCurrentUser(req.Context())
 	if err != nil {
 		c.log.Error("middleware: failed to get user details", "err", err.Error())
-		c.notAllowed(rw, nil)
+		c.notAllowed(rw, err)
 		return
 	}
 
@@ -305,6 +305,13 @@ func (w Authz) notAllowed(rw http.ResponseWriter, err error) {
 		switch {
 		case errors.Is(err, resource.ErrNotExist):
 			rw.WriteHeader(http.StatusNotFound)
+			return
+		case errors.Is(err, user.ErrMissingEmail), errors.Is(err, user.ErrInvalidEmail):
+			rw.WriteHeader(http.StatusUnauthorized)
+			return
+		default:
+			// Dependency errors must fail closed without blaming the caller's identity.
+			rw.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 	}

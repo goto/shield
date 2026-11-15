@@ -4,8 +4,18 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
+	"github.com/goto/shield/core/user"
 	"github.com/goto/shield/pkg/errors"
 )
+
+// A failed caller lookup is not necessarily an authentication failure: the
+// database may be unavailable or the query may have timed out.
+func currentUserError(err error) error {
+	if errors.Is(err, user.ErrMissingEmail) || errors.Is(err, user.ErrInvalidEmail) {
+		return grpcUnauthenticated
+	}
+	return grpcInternalServerError
+}
 
 // HTTP Codes defined here:
 // https://github.com/grpc-ecosystem/grpc-gateway/blob/master/runtime/errors.go#L36

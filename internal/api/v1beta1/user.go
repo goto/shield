@@ -50,7 +50,7 @@ func (h Handler) ListUsers(ctx context.Context, request *shieldv1beta1.ListUsers
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	servicedataKeyResourceIds, err := h.relationService.LookupResources(ctx, schema.ServiceDataKeyNamespace, schema.ViewPermission, schema.UserPrincipal, currentUser.ID)
@@ -160,7 +160,7 @@ func (h Handler) CreateUser(ctx context.Context, request *shieldv1beta1.CreateUs
 				return nil, grpcInternalServerError
 			}
 		default:
-			return nil, grpcUnauthenticated
+			return nil, currentUserError(err)
 		}
 	}
 
@@ -266,7 +266,7 @@ func (h Handler) GetUser(ctx context.Context, request *shieldv1beta1.GetUserRequ
 	_, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	fetchedUser, err := h.userService.Get(ctx, request.GetId())
@@ -384,7 +384,7 @@ func (h Handler) UpdateUser(ctx context.Context, request *shieldv1beta1.UpdateUs
 	currentUser, err := h.userService.FetchCurrentUser(ctx)
 	if err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	if strings.TrimSpace(request.GetId()) == "" {
@@ -675,7 +675,7 @@ func (h Handler) DeleteUser(ctx context.Context, request *shieldv1beta1.DeleteUs
 
 	if _, err := h.userService.FetchCurrentUser(ctx); err != nil {
 		logger.Error(err.Error())
-		return nil, grpcUnauthenticated
+		return nil, currentUserError(err)
 	}
 
 	if err := h.userService.Delete(ctx, request.Id); err != nil {
